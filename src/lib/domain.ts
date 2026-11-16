@@ -51,7 +51,14 @@ export function validateMaster(input: unknown): Master {
     if (!value.categories.some((c) => c.id === p.categoryId))
       throw new Error(`Product ${p.id}: unknown category ${p.categoryId}`);
   }
-  return value;
+  return {
+    products: value.products.map((p) => ({ ...p, cost: p.cost ?? null })),
+    locations: value.locations.map((l) => ({
+      ...l,
+      capacity: l.capacity ?? null,
+    })),
+    categories: value.categories,
+  };
 }
 export function parseScan(
   raw: string,
