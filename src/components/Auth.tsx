@@ -13,6 +13,8 @@ export function Auth({ activation = false }: { activation?: boolean }) {
       password = String(form.get("password"));
     try {
       if (activation) {
+        if (password !== form.get("confirm"))
+          throw new Error("Passwords do not match.");
         const params = new URLSearchParams(location.search),
           token = params.get("token_hash");
         if (token) {
@@ -21,9 +23,10 @@ export function Auth({ activation = false }: { activation?: boolean }) {
             type: "recovery",
           });
           if (error) throw error;
+          // Keep the authenticated recovery session, but remove the consumed
+          // one-time token so a rejected password can be corrected and retried.
+          history.replaceState(null, "", "/activate");
         }
-        if (password !== form.get("confirm"))
-          throw new Error("Passwords do not match.");
         const { error } = await supabase.auth.updateUser({ password });
         if (error) throw error;
         history.replaceState(null, "", "/");
@@ -159,3 +162,4 @@ export function Auth({ activation = false }: { activation?: boolean }) {
     </div>
   );
 }
+

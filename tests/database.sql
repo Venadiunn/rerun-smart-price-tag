@@ -16,7 +16,7 @@ if position(expected in sqlerrm)=0 then raise exception 'Expected %, got %',expe
 end;
 end $$;
 do $$
-declare s jsonb; u public.units; v integer; duplicate_id uuid:=gen_random_uuid(); scan_id uuid; tag public.tags; before_rev uuid;
+declare s jsonb; u public.units; v integer; duplicate_id uuid:=gen_random_uuid(); scan_id uuid; tag public.tags; before_rev uuid; display_id uuid; incoming public.units;
 begin
 s:=public.rerun_snapshot();
 if jsonb_array_length(s->'master'->'products')<>8 then raise exception 'Seed master count is wrong'; end if;
@@ -45,6 +45,12 @@ perform public.rerun_command('transition',jsonb_build_object('id',u.id,'version'
 perform public.rerun_command('transition',jsonb_build_object('id',u.id,'version',v,'status','Pending Restock'),gen_random_uuid());v:=v+1;
 select * into tag from public.tags where status='Available' order by id limit 1;
 perform public.rerun_command('tag_action',jsonb_build_object('id',tag.id,'version',tag.version,'action','assign','unitId',u.id),gen_random_uuid());
+s:=public.rerun_command('display_create',jsonb_build_object('id',tag.id),gen_random_uuid());display_id:=(s->>'id')::uuid;
+perform public.rerun_command('display_action',jsonb_build_object('id',display_id,'version',1,'status','Failed'),gen_random_uuid());
+perform public.rerun_command('display_action',jsonb_build_object('id',display_id,'version',2,'status','Pending'),gen_random_uuid());
+perform public.rerun_command('display_action',jsonb_build_object('id',display_id,'version',3,'status','Written'),gen_random_uuid());
+perform public.rerun_command('display_action',jsonb_build_object('id',display_id,'version',4,'status','Verified'),gen_random_uuid());
+if not exists(select 1 from public.display_updates where id=display_id and status='Verified' and attempt=2) then raise exception 'Simulated retry/verification failed'; end if;
 perform pg_temp.expect_command_error('tag_action',jsonb_build_object('id',tag.id,'version',tag.version,'action','recover'),'changed');
 perform public.rerun_command('tag_action',jsonb_build_object('id',tag.id,'version',tag.version+1,'action','recover'),gen_random_uuid());
 perform pg_temp.expect_command_error('tag_action',jsonb_build_object('id',tag.id,'version',tag.version+2,'action','assign','unitId',u.id),'available');
@@ -61,6 +67,11 @@ perform public.rerun_publish_master((public.rerun_snapshot())->'master',before_r
 raise exception 'Expected missing workbook rejection';
 exception when others then if position('Upload the master' in sqlerrm)=0 then raise; end if; end;
 if (public.rerun_snapshot())->'revision'->>'id'<>before_rev::text then raise exception 'Failed publication changed active master'; end if;
+perform public.rerun_command('receive','{"productId":"PROD-001","quantity":1,"status":"Offered"}',gen_random_uuid());
+select * into incoming from public.units where status='Offered' and created_at=now() limit 1;
+perform public.rerun_command('transition',jsonb_build_object('id',incoming.id,'version',1,'status','In-Transit'),gen_random_uuid());
+perform public.rerun_command('transition',jsonb_build_object('id',incoming.id,'version',2,'status','Received in Store'),gen_random_uuid());
+if not exists(select 1 from public.units where id=incoming.id and status='Received in Store') then raise exception 'Upstream lifecycle failed'; end if;
 end $$;
 select set_config('request.jwt.claim.sub',current_setting('rerun.test_associate'),true);
 do $$ begin
@@ -69,7 +80,9 @@ perform pg_temp.expect_command_error('staff_update',jsonb_build_object('id',curr
 begin perform public.rerun_publish_master('{}',null,'x',gen_random_uuid()); raise exception 'Expected manager rejection'; exception when others then if position('Manager access' in sqlerrm)=0 then raise; end if; end;
 begin insert into public.products values('BAD','Aisle-4-Shelf-B','Clothing','{}');raise exception 'Expected direct write rejection';exception when insufficient_privilege then null;end;
 if exists(select 1 from public.profiles where role='administrator') then raise exception 'Associate can read admin profile'; end if;
+if exists(select 1 from public.audit_events where action like 'staff_%') then raise exception 'Associate can read employee administration details'; end if;
 end $$;
 reset role;
 rollback;
 select 'Passed: atomic idempotency, missing/stale versions, capacity, discrepancy acknowledgment, lifecycle inspection, tag recovery, stock-out reasons, unknown items, failed master publication, role enforcement, direct-write RLS, profile isolation. All fixtures rolled back.' as verification;
+

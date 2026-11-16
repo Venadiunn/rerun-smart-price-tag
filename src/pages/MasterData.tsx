@@ -9,7 +9,13 @@ import {
   PenLine,
 } from "lucide-react";
 import { useWorkspace, isManager } from "../lib/context";
-import { publishMaster, downloadMaster, masterRequest } from "../lib/api";
+import {
+  publishMaster,
+  downloadMaster,
+  masterRequest,
+  exportCSV,
+} from "../lib/api";
+import { productCsvRows } from "../lib/csv";
 import { supabase } from "../lib/supabase";
 import { dateTime, validateMaster, money } from "../lib/domain";
 import type { Master, Product, Location, Category } from "../lib/types";
@@ -120,6 +126,18 @@ export function MasterData() {
             >
               <Download size={17} />
               Download master XLSX
+            </button>
+            <button
+              className="secondary"
+              onClick={() =>
+                exportCSV(
+                  productCsvRows(data.master.products),
+                  "ReRun Master Products.csv",
+                )
+              }
+            >
+              <Download size={17} />
+              Products CSV
             </button>
             {manager && (
               <label className="primary upload-button">
@@ -462,3 +480,4 @@ export function MasterData() {
     </>
   );
 }
+

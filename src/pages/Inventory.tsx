@@ -10,6 +10,7 @@ import {
 import { useWorkspace } from "../lib/context";
 import { command, download, exportCSV } from "../lib/api";
 import { money } from "../lib/domain";
+import { productCsvRows } from "../lib/csv";
 import { PageTitle, Status, Modal, Empty, field } from "../components/ui";
 export function Inventory() {
   const { data, openProduct, run, busy } = useWorkspace(),
@@ -151,10 +152,7 @@ export function Inventory() {
             <button
               className="text-button"
               onClick={() =>
-                exportCSV(
-                  products as unknown as Record<string, unknown>[],
-                  "rerun-products.csv",
-                )
+                exportCSV(productCsvRows(products), "rerun-products.csv")
               }
             >
               CSV
@@ -338,3 +336,4 @@ export function Inventory() {
     </>
   );
 }
+

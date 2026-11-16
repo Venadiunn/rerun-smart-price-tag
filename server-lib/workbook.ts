@@ -171,6 +171,15 @@ function records(sheet: ExcelJS.Worksheet, required: string[]) {
   return result;
 }
 const text = (v: unknown) => (v == null ? "" : String(v).trim());
+function booleanValue(value: unknown) {
+  if (typeof value === "boolean") return value;
+  if (
+    typeof value === "string" &&
+    ["true", "false"].includes(value.trim().toLowerCase())
+  )
+    return value.trim().toLowerCase() === "true";
+  throw new Error("Taxable must be TRUE or FALSE.");
+}
 function cents(v: unknown) {
   if (
     v === null ||
@@ -253,10 +262,7 @@ export async function readWorkbook(
       classification: text(r.Classification),
       supplierId: text(r.Supplier_ID),
       departmentCode: text(r.Department_Code),
-      taxable:
-        typeof r.Taxable === "boolean"
-          ? r.Taxable
-          : text(r.Taxable).toLowerCase() === "true",
+      taxable: booleanValue(r.Taxable),
       size: text(r.Size),
       color: text(r.Color),
       locationId: text(r.Intended_Location),
@@ -293,3 +299,4 @@ export async function readWorkbook(
   }
   return { master: validateMaster(master), revision };
 }
+

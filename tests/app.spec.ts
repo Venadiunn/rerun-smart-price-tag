@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import fs from "node:fs";
+import { createClient } from "@supabase/supabase-js";
 test.afterEach(async ({ page }) => {
   const state = await page.context().storageState();
   const saved = state.origins
@@ -79,16 +80,14 @@ test.describe("administrator workspace", () => {
     page,
   }) => {
     await page.goto("/scan");
-    await page
-      .getByRole("textbox", { name: "Item code or QR JSON" })
-      .fill(
-        JSON.stringify({
-          Item_ID: "PROD-003",
-          Item_Name: "Classic Cotton T-Shirt",
-          Price: 19.99,
-          Intended_Location: null,
-        }),
-      );
+    await page.getByRole("textbox", { name: "Item code or QR JSON" }).fill(
+      JSON.stringify({
+        Item_ID: "PROD-003",
+        Item_Name: "Classic Cotton T-Shirt",
+        Price: 19.99,
+        Intended_Location: null,
+      }),
+    );
     await page.getByRole("button", { name: "Look up item" }).click();
     await expect(page.locator(".scan-alerts")).toContainText(
       "MISSING LOCATION",
@@ -118,14 +117,12 @@ test.describe("administrator workspace", () => {
     await page.getByRole("button", { name: "Download master XLSX" }).click();
     const file = await pending;
     expect(file.suggestedFilename()).toContain(".xlsx");
-    await page
-      .locator("input[type=file]")
-      .setInputFiles({
-        name: file.suggestedFilename(),
-        mimeType:
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        buffer: fs.readFileSync((await file.path())!),
-      });
+    await page.locator("input[type=file]").setInputFiles({
+      name: file.suggestedFilename(),
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      buffer: fs.readFileSync((await file.path())!),
+    });
     await expect(
       page.getByRole("heading", { name: "Review 0 changes" }),
     ).toBeVisible();
@@ -172,13 +169,11 @@ test.describe("administrator workspace", () => {
       .evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL());
     await page.getByLabel("Close dialog").click();
     await page.goto("/scan");
-    await page
-      .locator("input[type=file]")
-      .setInputFiles({
-        name: "generated-qr.png",
-        mimeType: "image/png",
-        buffer: Buffer.from(image.split(",")[1], "base64"),
-      });
+    await page.locator("input[type=file]").setInputFiles({
+      name: "generated-qr.png",
+      mimeType: "image/png",
+      buffer: Buffer.from(image.split(",")[1], "base64"),
+    });
     await expect(page.locator(".scan-alerts")).toContainText("VALID ITEM");
     await page.getByRole("button", { name: "Clear", exact: true }).click();
     await page.evaluate(async (image) => {
@@ -235,3 +230,53 @@ test("associate authenticates with password and cannot access employee/master co
     page.getByRole("heading", { name: "Employees", exact: true }),
   ).toHaveCount(0);
 });
+test("employee activation validates confirmation before consuming the private token", async ({
+  page,
+}) => {
+  const admin = JSON.parse(
+    fs.readFileSync(".private/admin-session.json", "utf8"),
+  );
+  const sb = createClient(
+    "https://ikuvbteklxjbsixwhril.supabase.co",
+    "sb_publishable_FnpGIa5bHpNIvCz_xlYodA_n8wRubNc",
+    { auth: { persistSession: false } },
+  );
+  const auth = await sb.auth.setSession(admin);
+  if (auth.error) throw auth.error;
+  fs.writeFileSync(
+    ".private/admin-session.json",
+    JSON.stringify(auth.data.session),
+  );
+  const users = JSON.parse(fs.readFileSync(".private/test-users.json", "utf8")),
+    user = users.associate;
+  const { data, error } = await sb.functions.invoke("staff", {
+    body: {
+      action: "activation",
+      userId: user.id,
+      email: user.email,
+      role: "associate",
+    },
+  });
+  if (error) throw error;
+  await page.goto(`/activate?token_hash=${encodeURIComponent(data.tokenHash)}`);
+  const password = `ReRun-test-${crypto.randomUUID()}`;
+  await page.getByLabel("New password", { exact: true }).fill(password);
+  await page
+    .getByLabel("Confirm password", { exact: true })
+    .fill("does-not-match");
+  await page
+    .getByRole("button", { name: "Activate account", exact: true })
+    .click();
+  await expect(page.getByRole("alert")).toContainText("Passwords do not match");
+  await page.getByLabel("Confirm password", { exact: true }).fill(password);
+  await page
+    .getByRole("button", { name: "Activate account", exact: true })
+    .click();
+  await expect(
+    page.getByRole("heading", { name: "A clearer view of your floor." }),
+  ).toBeVisible();
+  users.associate.password = password;
+  fs.writeFileSync(".private/test-users.json", JSON.stringify(users));
+  expect(page.url()).not.toContain("token_hash");
+});
+
