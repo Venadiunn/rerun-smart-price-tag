@@ -126,7 +126,9 @@ export function ProductDrawer({
                             status,
                             reason,
                           }),
-                        `Unit marked ${status}.`,
+                        ["Received in Store", "Inspected"].includes(status)
+                          ? "Unit updated. Automatic sorting checked its destination."
+                          : `Unit marked ${status}.`,
                       )
                     }
                   >

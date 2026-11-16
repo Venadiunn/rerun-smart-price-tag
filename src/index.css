@@ -991,6 +991,7 @@ main {
   background: transparent;
 }
 .table-scroll {
+  position: relative;
   overflow-x: auto;
 }
 table {
@@ -2830,4 +2831,23 @@ pre {
     animation: none !important;
     transition: none !important;
   }
+}
+
+.sort-panel {
+  margin-bottom: 24px;
+}
+.sort-panel > p {
+  line-height: 1.6;
+  max-width: 850px;
+  margin: 0 24px;
+}
+.sort-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin: 20px 24px;
+}
+.sort-panel > .notice,
+.sort-panel > .secondary {
+  margin: 20px 24px;
 }

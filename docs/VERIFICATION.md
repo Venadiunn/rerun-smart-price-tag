@@ -1,5 +1,13 @@
 # Verification record
 
+## Automatic sorting update — November 16, 2026
+
+Added 100 fictional physical unit records across 100 of the expanded catalog's product IDs. At completion of the data update, the workspace contained 208 products, 117 units, 20 reusable tags, and 16 designed locations under master revision 12. Another unit was received through the app during implementation and was preserved. Eight additional labeled racks/shelves extend the demonstration layout; their capacities are prototype configuration, not measurements of a real store.
+
+New receipts automatically reserve their product-ID destination and enter Pending Restock. Arrival from In-Transit and completed inspections use the same path. Inspection and discrepancy holds remain blocked, manager overflow is preserved, and placement requires staff confirmation. Reservation counts include units still occupying their old location during relocation. Manual transitions, overflow assignment, and prospective master publication all respect capacity commitments.
+
+Validation: 20 Vitest tests passed, TypeScript/Vite build and ESLint passed, and hosted `tests/auto-sort.sql` assertions passed with transaction rollback. Database assertions covered duplicate requests, one-slot capacity competition, automatic receive, manual-transition and destination overbooking rejection, inspection/discrepancy holds, preserved overflow, reserved-capacity checks during master publication, and anonymous denial. Targeted Chrome checks verified staff login, 117-unit inventory, 109-unit restock route, product-ID lookup, correct destination and unit details, placement-review controls, route CSV, map reservations, and a 390-pixel mobile viewport without page overflow. Physical merchandise and hardware were not moved by these tests.
+
 Local verification completed on November 16, 2026:
 
 - TypeScript and Vite production build passed.

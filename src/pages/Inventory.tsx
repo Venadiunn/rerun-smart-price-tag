@@ -12,6 +12,7 @@ import { command, download, exportCSV } from "../lib/api";
 import { money } from "../lib/domain";
 import { productCsvRows } from "../lib/csv";
 import { PageTitle, Status, Modal, Empty, field } from "../components/ui";
+import { AutoSortPanel } from "../components/AutoSortPanel";
 export function Inventory() {
   const { data, openProduct, run, busy } = useWorkspace(),
     [search, setSearch] = useState(""),
@@ -87,6 +88,7 @@ export function Inventory() {
           </>
         }
       />
+      <AutoSortPanel />
       <section className="panel">
         <div className="table-toolbar">
           <label className="search-box">
@@ -252,6 +254,11 @@ export function Inventory() {
               (u) => !["Restocked", "Sold", "Stocked Out"].includes(u.status),
             )
             .filter((u) => products.some((p) => p.id === u.product_id))
+            .toSorted(
+              (a, b) =>
+                a.destination_id.localeCompare(b.destination_id) ||
+                a.product_id.localeCompare(b.product_id),
+            )
             .map((u) => (
               <button
                 key={u.id}
@@ -279,7 +286,9 @@ export function Inventory() {
           <div className="notice">
             <PackagePlus size={20} />
             Every received unit gets a permanent identifier. Existing labels and
-            histories stay intact.
+            histories stay intact. Stock received in store is automatically
+            sorted by product ID; full destinations and other holds remain in
+            review.
           </div>
           <form
             className="stack"
@@ -293,7 +302,7 @@ export function Inventory() {
                     quantity: Number(f.get("quantity")),
                     status: field(f, "initialStatus"),
                   }),
-                "Stock received.",
+                "Stock received. Check Automatic sorting for routes and holds.",
               );
               if (done) setReceive(false);
             }}
@@ -336,4 +345,3 @@ export function Inventory() {
     </>
   );
 }
-

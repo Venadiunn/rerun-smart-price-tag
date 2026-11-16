@@ -3,6 +3,7 @@ import { MapPin, ArrowRight, Layers3 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { useWorkspace } from "../lib/context";
 import { PageTitle, Status } from "../components/ui";
+import { locationLoad, restockRoute } from "../lib/sorting";
 export function Locations() {
   const { data, openProduct } = useWorkspace(),
     [selected, setSelected] = useState(""),
@@ -50,10 +51,8 @@ export function Locations() {
             </div>
             <div className="location-grid">
               {locations.map((l) => {
-                const count = data.units.filter(
-                    (u) => u.current_location_id === l.id,
-                  ).length,
-                  full = l.capacity !== null && count >= l.capacity;
+                const load = locationLoad(data.units, l.id),
+                  full = l.capacity !== null && load.committed >= l.capacity;
                 return (
                   <button
                     key={l.id}
@@ -69,12 +68,13 @@ export function Locations() {
                     <div className="capacity-bar">
                       <i
                         style={{
-                          width: `${l.capacity ? Math.min(100, (count / l.capacity) * 100) : 0}%`,
+                          width: `${l.capacity ? Math.min(100, (load.committed / l.capacity) * 100) : 0}%`,
                         }}
                       />
                     </div>
                     <small>
-                      {count} / {l.capacity ?? "∞"} units
+                      {load.confirmed} placed · {load.reserved} reserved /{" "}
+                      {l.capacity ?? "∞"}
                     </small>
                   </button>
                 );
@@ -146,6 +146,22 @@ export function Locations() {
                       <small>{p.id}</small>
                     </span>
                     <ArrowRight size={16} />
+                  </button>
+                ))}
+              <h3 className="subheading">Restock reservations</h3>
+              {restockRoute(data.units)
+                .filter((u) => u.destination_id === location.id)
+                .map((u) => (
+                  <button
+                    className="location-item"
+                    key={u.id}
+                    onClick={() => openProduct(u.product_id, u.id)}
+                  >
+                    <span>
+                      {u.product_id}
+                      <small className="mono">{u.id}</small>
+                    </span>
+                    <Status value={u.status} />
                   </button>
                 ))}
               <h3 className="subheading">Last confirmed placements</h3>

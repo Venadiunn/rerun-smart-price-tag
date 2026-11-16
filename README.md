@@ -36,6 +36,14 @@ Download the latest workbook before editing. Upload `.xlsx` or product `.csv` fi
 
 Publication checks the expected revision and storage object before switching the active pointer. Failed candidates leave the prior master active. Previous revisions remain available and can be staged as a new revision. Unit movements, lifecycle events, scans, tag associations, and audit records are stored separately and survive master replacement.
 
+## Automatic store sorting
+
+Receiving stock in store automatically looks up its product ID in the active master, reserves space at its designated location, and queues it as Pending Restock. Arrival from In-Transit and completion of inspection run the same process. Manager-assigned overflow destinations are preserved. Full destinations, missing inspection, and outstanding scan discrepancies hold a unit for review.
+
+Inventory → Automatic sorting retries held arrivals and presents a restock route grouped by location and product ID, with a CSV export. Store locations shows confirmed placements and reservations separately. Staff use Review & place → Confirm restocked after physically shelving merchandise. Sorting does not claim physical placement or hardware movement.
+
+Reservations share the store transaction lock with receive, manual moves, placement confirmation, and master publication. Request IDs prevent duplicate deliveries. The internal sorting helper is outside the exposed API schema and has no client execution grants. Apply migrations 008 and 009 after the existing migrations. `tests/auto-sort.sql` checks capacity, duplicate requests, holds, overflow, manual movements, master capacity changes, and unauthorized access inside a rolled-back transaction.
+
 ## Access and deployment
 
 Associates use daily operations. Managers additionally publish master changes, approve prices, assign overflow destinations, and manage markdown rules. Administrators also create/disable employees and generate private account activation links. No activation emails are sent automatically.
