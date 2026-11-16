@@ -1,12 +1,321 @@
-import { useState } from 'react'
-import { ShieldCheck,Plus,KeyRound,Copy } from 'lucide-react'
-import { useWorkspace } from '../lib/context'
-import { supabase } from '../lib/supabase'
-import { command } from '../lib/api'
-import { PageTitle,Status,Modal,field } from '../components/ui'
-import type { Profile } from '../lib/types'
-export function Settings(){
-  const {data,run,busy}=useWorkspace(),[create,setCreate]=useState(false),[activation,setActivation]=useState(''),[employee,setEmployee]=useState<Profile|null>(null)
-  async function invite(body:Record<string,unknown>){const {data:result,error}=await supabase.functions.invoke('staff',{body});if(error)throw new Error((await error.context?.json?.())?.error??error.message);if(result.error)throw new Error(result.error);setActivation(`${location.origin}/activate?token_hash=${encodeURIComponent(result.tokenHash)}`)}
-  return <><PageTitle eyebrow="WORKSPACE & ACCESS" title="A workspace your team can trust." description="Manage employee access and your account settings."/><div className="settings-grid"><section className="panel"><div className="section-heading"><h2><ShieldCheck size={20}/>Your account</h2></div><div className="account-card"><div className="avatar">{data.profile.email.slice(0,2).toUpperCase()}</div><strong>{data.profile.email}</strong><Status value={data.profile.role}/></div><form className="stack" onSubmit={async e=>{e.preventDefault();const f=new FormData(e.currentTarget);await run(async()=>{if(f.get('password')!==f.get('confirm'))throw new Error('Passwords do not match.');const {error}=await supabase.auth.updateUser({password:field(f,'password')});if(error)throw error},'Password changed.')}}><h3>Change your password</h3><label>New password<input type="password" name="password" minLength={12} autoComplete="new-password" required/></label><label>Confirm password<input type="password" name="confirm" minLength={12} autoComplete="new-password" required/></label><button className="secondary" disabled={busy}><KeyRound size={16}/>Update password</button></form></section><section className="panel"><div className="section-heading"><h2>Workspace details</h2></div><dl className="workspace-facts"><div><dt>Store</dt><dd>ReRun demonstration store</dd></div><div><dt>Currency</dt><dd>USD · prices stored in cents</dd></div><div><dt>Display time zone</dt><dd>America/Chicago</dd></div><div><dt>Master</dt><dd>Versioned Excel workbook · revision {data.revision.revision}</dd></div><div><dt>Physical tag connection</dt><dd>Simulator</dd></div><div><dt>Data provenance</dt><dd>Eight fictional products from WWT Tech 26-27 with fictional sample unit histories.</dd></div></dl><p className="hint">Inventory writes require a connection. Retry after an error; the workspace never reports an unconfirmed write as successful.</p></section></div>{data.profile.role==='administrator'&&<section className="panel"><div className="section-heading"><div><span className="eyebrow">ADMINISTRATOR CONTROLS</span><h2>Employees</h2></div><button className="primary" onClick={()=>setCreate(true)}><Plus size={16}/>Add employee</button></div><div className="table-scroll"><table><thead><tr><th>Email</th><th>Role</th><th>Access</th><th>Actions</th></tr></thead><tbody>{data.profiles.map(p=><tr key={p.id}><td>{p.email}{p.id===data.profile.id&&<small>Your account</small>}</td><td>{p.role}</td><td><Status value={p.active?'Active':'Disabled'}/></td><td><div className="actions"><button className="secondary small" disabled={busy||!p.active} onClick={()=>run(()=>invite({action:'activation',userId:p.id,email:p.email,role:p.role}),'Private activation link generated.')}>Activation / recovery</button><button className="text-button" disabled={p.id===data.profile.id} onClick={()=>setEmployee(p)}>Edit access</button></div></td></tr>)}</tbody></table></div><p className="hint">Administrators manage access. Managers manage master data and price approvals. Associates perform daily inventory, scanning, and tag workflows.</p></section>}{create&&<Modal title="Add employee" onClose={()=>setCreate(false)}><form className="stack" onSubmit={async e=>{e.preventDefault();const f=new FormData(e.currentTarget);if(await run(async()=>{await invite({action:'create',email:field(f,'email'),role:field(f,'role')});return true},'Employee created. Share their private activation link.'))setCreate(false)}}><label>Email<input name="email" type="email" required autoComplete="off"/></label><label>Role<select name="role"><option>associate</option><option>manager</option><option>administrator</option></select></label><p className="hint">ReRun generates a private activation link. No email is sent automatically.</p><button className="primary" disabled={busy}>Create employee</button></form></Modal>}{employee&&<Modal title="Edit employee access" onClose={()=>setEmployee(null)}><form className="stack" onSubmit={async e=>{e.preventDefault();const f=new FormData(e.currentTarget);if(await run(()=>command('staff_update',{id:employee.id,role:field(f,'role'),active:f.get('active')==='on'}),'Access updated.'))setEmployee(null)}}><strong>{employee.email}</strong><label>Role<select name="role" defaultValue={employee.role}><option>associate</option><option>manager</option><option>administrator</option></select></label><label className="checkbox-label"><input type="checkbox" name="active" defaultChecked={employee.active}/>Active staff access</label><button className="primary" disabled={busy}>Save access</button></form></Modal>}{activation&&<Modal title="Private account activation" onClose={()=>setActivation('')}><p>This link allows the employee to set their own password. Share it privately with the intended employee. It expires according to the Auth link lifetime and can be used once.</p><textarea readOnly aria-label="Private activation link" value={activation} rows={4}/><button className="primary" onClick={()=>run(()=>navigator.clipboard.writeText(activation),'Activation link copied.')}><Copy size={16}/>Copy private link</button></Modal>}</>
+import { useState } from "react";
+import { ShieldCheck, Plus, KeyRound, Copy } from "lucide-react";
+import { useWorkspace } from "../lib/context";
+import { supabase } from "../lib/supabase";
+import { command } from "../lib/api";
+import { PageTitle, Status, Modal, field } from "../components/ui";
+import type { Profile } from "../lib/types";
+export function Settings() {
+  const { data, run, busy } = useWorkspace(),
+    [create, setCreate] = useState(false),
+    [activation, setActivation] = useState(""),
+    [employee, setEmployee] = useState<Profile | null>(null);
+  async function invite(body: Record<string, unknown>) {
+    const { data: result, error } = await supabase.functions.invoke("staff", {
+      body,
+    });
+    if (error)
+      throw new Error((await error.context?.json?.())?.error ?? error.message);
+    if (result.error) throw new Error(result.error);
+    setActivation(
+      `${location.origin}/activate?token_hash=${encodeURIComponent(result.tokenHash)}`,
+    );
+  }
+  return (
+    <>
+      <PageTitle
+        eyebrow="WORKSPACE & ACCESS"
+        title="A workspace your team can trust."
+        description="Manage employee access and your account settings."
+      />
+      <div className="settings-grid">
+        <section className="panel">
+          <div className="section-heading">
+            <h2>
+              <ShieldCheck size={20} />
+              Your account
+            </h2>
+          </div>
+          <div className="account-card">
+            <div className="avatar">
+              {data.profile.email.slice(0, 2).toUpperCase()}
+            </div>
+            <strong>{data.profile.email}</strong>
+            <Status value={data.profile.role} />
+          </div>
+          <form
+            className="stack"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const f = new FormData(e.currentTarget);
+              await run(async () => {
+                if (f.get("password") !== f.get("confirm"))
+                  throw new Error("Passwords do not match.");
+                const { error } = await supabase.auth.updateUser({
+                  password: field(f, "password"),
+                });
+                if (error) throw error;
+              }, "Password changed.");
+            }}
+          >
+            <h3>Change your password</h3>
+            <label>
+              New password
+              <input
+                type="password"
+                name="password"
+                minLength={12}
+                autoComplete="new-password"
+                required
+              />
+            </label>
+            <label>
+              Confirm password
+              <input
+                type="password"
+                name="confirm"
+                minLength={12}
+                autoComplete="new-password"
+                required
+              />
+            </label>
+            <button className="secondary" disabled={busy}>
+              <KeyRound size={16} />
+              Update password
+            </button>
+          </form>
+        </section>
+        <section className="panel">
+          <div className="section-heading">
+            <h2>Workspace details</h2>
+          </div>
+          <dl className="workspace-facts">
+            <div>
+              <dt>Store</dt>
+              <dd>ReRun demonstration store</dd>
+            </div>
+            <div>
+              <dt>Currency</dt>
+              <dd>USD · prices stored in cents</dd>
+            </div>
+            <div>
+              <dt>Display time zone</dt>
+              <dd>America/Chicago</dd>
+            </div>
+            <div>
+              <dt>Master</dt>
+              <dd>
+                Versioned Excel workbook · revision {data.revision.revision}
+              </dd>
+            </div>
+            <div>
+              <dt>Physical tag connection</dt>
+              <dd>Simulator</dd>
+            </div>
+            <div>
+              <dt>Data provenance</dt>
+              <dd>
+                Eight fictional products from WWT Tech 26-27 with fictional
+                sample unit histories.
+              </dd>
+            </div>
+          </dl>
+          <p className="hint">
+            Inventory writes require a connection. Retry after an error; the
+            workspace never reports an unconfirmed write as successful.
+          </p>
+        </section>
+      </div>
+      {data.profile.role === "administrator" && (
+        <section className="panel">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">ADMINISTRATOR CONTROLS</span>
+              <h2>Employees</h2>
+            </div>
+            <button className="primary" onClick={() => setCreate(true)}>
+              <Plus size={16} />
+              Add employee
+            </button>
+          </div>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Access</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.profiles.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      {p.email}
+                      {p.id === data.profile.id && <small>Your account</small>}
+                    </td>
+                    <td>{p.role}</td>
+                    <td>
+                      <Status value={p.active ? "Active" : "Disabled"} />
+                    </td>
+                    <td>
+                      <div className="actions">
+                        <button
+                          className="secondary small"
+                          disabled={busy || !p.active}
+                          onClick={() =>
+                            run(
+                              () =>
+                                invite({
+                                  action: "activation",
+                                  userId: p.id,
+                                  email: p.email,
+                                  role: p.role,
+                                }),
+                              "Private activation link generated.",
+                            )
+                          }
+                        >
+                          Activation / recovery
+                        </button>
+                        <button
+                          className="text-button"
+                          disabled={p.id === data.profile.id}
+                          onClick={() => setEmployee(p)}
+                        >
+                          Edit access
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="hint">
+            Administrators manage access. Managers manage master data and price
+            approvals. Associates perform daily inventory, scanning, and tag
+            workflows.
+          </p>
+        </section>
+      )}
+      {create && (
+        <Modal title="Add employee" onClose={() => setCreate(false)}>
+          <form
+            className="stack"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const f = new FormData(e.currentTarget);
+              if (
+                await run(async () => {
+                  await invite({
+                    action: "create",
+                    email: field(f, "email"),
+                    role: field(f, "role"),
+                  });
+                  return true;
+                }, "Employee created. Share their private activation link.")
+              )
+                setCreate(false);
+            }}
+          >
+            <label>
+              Email
+              <input name="email" type="email" required autoComplete="off" />
+            </label>
+            <label>
+              Role
+              <select name="role">
+                <option>associate</option>
+                <option>manager</option>
+                <option>administrator</option>
+              </select>
+            </label>
+            <p className="hint">
+              ReRun generates a private activation link. No email is sent
+              automatically.
+            </p>
+            <button className="primary" disabled={busy}>
+              Create employee
+            </button>
+          </form>
+        </Modal>
+      )}
+      {employee && (
+        <Modal title="Edit employee access" onClose={() => setEmployee(null)}>
+          <form
+            className="stack"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              const f = new FormData(e.currentTarget);
+              if (
+                await run(
+                  () =>
+                    command("staff_update", {
+                      id: employee.id,
+                      role: field(f, "role"),
+                      active: f.get("active") === "on",
+                    }),
+                  "Access updated.",
+                )
+              )
+                setEmployee(null);
+            }}
+          >
+            <strong>{employee.email}</strong>
+            <label>
+              Role
+              <select name="role" defaultValue={employee.role}>
+                <option>associate</option>
+                <option>manager</option>
+                <option>administrator</option>
+              </select>
+            </label>
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                name="active"
+                defaultChecked={employee.active}
+              />
+              Active staff access
+            </label>
+            <button className="primary" disabled={busy}>
+              Save access
+            </button>
+          </form>
+        </Modal>
+      )}
+      {activation && (
+        <Modal
+          title="Private account activation"
+          onClose={() => setActivation("")}
+        >
+          <p>
+            This link allows the employee to set their own password. Share it
+            privately with the intended employee. It expires according to the
+            Auth link lifetime and can be used once.
+          </p>
+          <textarea
+            readOnly
+            aria-label="Private activation link"
+            value={activation}
+            rows={4}
+          />
+          <button
+            className="primary"
+            onClick={() =>
+              run(
+                () => navigator.clipboard.writeText(activation),
+                "Activation link copied.",
+              )
+            }
+          >
+            <Copy size={16} />
+            Copy private link
+          </button>
+        </Modal>
+      )}
+    </>
+  );
 }

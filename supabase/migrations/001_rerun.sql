@@ -47,7 +47,7 @@ select jsonb_build_object(
 'units',(select coalesce(jsonb_agg(u order by u.id),'[]') from public.units u),
 'tags',(select coalesce(jsonb_agg(t order by t.id),'[]') from public.tags t),
 'scans',(select coalesce(jsonb_agg(s order by s.created_at desc),'[]') from public.scan_records s),
-'events',(select coalesce(jsonb_agg(a order by a.created_at desc),'[]') from public.audit_events a),
+'events',(select coalesce(jsonb_agg(a order by a.created_at desc),'[]') from public.audit_events a where r='administrator' or a.action not like 'staff_%'),
 'prices',(select coalesce(jsonb_agg(p order by p.created_at desc),'[]') from public.price_requests p),
 'updates',(select coalesce(jsonb_agg(d order by d.created_at desc),'[]') from public.display_updates d),
 'settings',(select settings from public.store_config)) into result;
@@ -69,10 +69,12 @@ entity:=coalesce(args->>'id','');
 case cmd
 when 'receive' then
 select * into p from public.products where id=args->>'productId'; if not found then raise exception 'Unknown product'; end if;
-n:=(args->>'quantity')::integer; if n<1 or n>100 then raise exception 'Receive between 1 and 100 units at once'; end if;
+n:=(args->>'quantity')::integer; if n is null or n<1 or n>100 then raise exception 'Receive between 1 and 100 units at once'; end if;
 for i in 1..n loop
-insert into public.units(product_id,status,destination_id) values(p.id,'Received in Store',p.location_id) returning * into u;
-insert into public.audit_events(action,entity_id,actor,details) values('Received in Store',u.id,auth.uid(),jsonb_build_object('productId',p.id));
+next_status:=coalesce(args->>'status','Received in Store');
+if next_status not in ('Offered','In-Transit','Received in Store') then raise exception 'Invalid initial lifecycle status'; end if;
+insert into public.units(product_id,status,destination_id) values(p.id,next_status,p.location_id) returning * into u;
+insert into public.audit_events(action,entity_id,actor,details) values(next_status,u.id,auth.uid(),jsonb_build_object('productId',p.id));
 end loop; entity:=p.id;
 when 'transition' then
 select * into u from public.units where id=entity for update; if not found then raise exception 'Unknown unit'; end if;
@@ -104,7 +106,10 @@ select * into u from public.units where id=entity for update;
 if not found or u.version is distinct from (args->>'version')::integer then raise exception 'Unit changed or missing'; end if;
 if length(trim(coalesce(args->>'reason','')))<3 then raise exception 'Destination change reason required'; end if;
 if not exists(select 1 from public.locations where id=args->>'locationId') then raise exception 'Unknown location'; end if;
-update public.units set destination_id=args->>'locationId',version=version+1 where id=entity;
+select (data->>'capacity')::integer into cap from public.locations where id=args->>'locationId' for update;
+select count(*) into occupied from public.units where current_location_id=args->>'locationId' and id<>u.id;
+if cap is not null and occupied>=cap then raise exception 'Overflow destination is full'; end if;
+update public.units set destination_id=args->>'locationId',version=version+1,status=case when status='Restocked' and destination_id<>args->>'locationId' then 'Pending Restock' else status end where id=entity;
 when 'tag_register' then
 if r='associate' then raise exception 'Manager access required'; end if;
 if entity !~ '^TAG-[A-Za-z0-9-]{1,80}$' then raise exception 'Use TAG- followed by letters, numbers or hyphens'; end if;
@@ -191,6 +196,7 @@ end if;
 update public.display_updates set status=next_status,version=version+1,attempt=attempt+case when next_status='Pending' then 1 else 0 end where id=d.id;
 when 'settings' then
 if r='associate' then raise exception 'Manager access required'; end if;
+if not(args ?& array['ageDays','sellThrough','discount']) or args->>'ageDays' is null or args->>'sellThrough' is null or args->>'discount' is null then raise exception 'Invalid markdown thresholds'; end if;
 if (args->>'ageDays')::integer<1 or (args->>'ageDays')::integer>3650 or (args->>'sellThrough')::numeric<0 or (args->>'sellThrough')::numeric>100 or (args->>'discount')::numeric<=0 or (args->>'discount')::numeric>90 then raise exception 'Invalid markdown thresholds'; end if;
 update public.store_config set settings=args where id=true;
 when 'staff_update' then

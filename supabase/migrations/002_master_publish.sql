@@ -38,7 +38,8 @@ insert into public.master_revisions(id,revision,payload,storage_path,created_by)
 insert into public.categories select x->>'id',x from jsonb_array_elements(candidate->'categories') x on conflict(id) do update set data=excluded.data;
 insert into public.locations select x->>'id',x from jsonb_array_elements(candidate->'locations') x on conflict(id) do update set data=excluded.data;
 -- Follow changed home locations unless a manager explicitly assigned a unit elsewhere.
-update public.units u set destination_id=x->>'locationId',version=u.version+1 from public.products p,jsonb_array_elements(candidate->'products') x where p.id=u.product_id and x->>'id'=p.id and u.destination_id=p.location_id and p.location_id<>x->>'locationId';
+insert into public.audit_events(action,entity_id,details,actor) select 'Destination changed',u.id,jsonb_build_object('previous',u.destination_id,'next',x->>'locationId','revision',new_id),auth.uid() from public.units u,public.products p,jsonb_array_elements(candidate->'products') x where p.id=u.product_id and x->>'id'=p.id and u.destination_id=p.location_id and p.location_id<>x->>'locationId';
+update public.units u set destination_id=x->>'locationId',version=u.version+1,status=case when u.status='Restocked' then 'Pending Restock' else u.status end from public.products p,jsonb_array_elements(candidate->'products') x where p.id=u.product_id and x->>'id'=p.id and u.destination_id=p.location_id and p.location_id<>x->>'locationId';
 insert into public.products select x->>'id',x->>'locationId',x->>'categoryId',x from jsonb_array_elements(candidate->'products') x on conflict(id) do update set location_id=excluded.location_id,category_id=excluded.category_id,data=excluded.data;
 delete from public.products where id not in(select x->>'id' from jsonb_array_elements(candidate->'products') x);
 delete from public.locations where id not in(select x->>'id' from jsonb_array_elements(candidate->'locations') x);

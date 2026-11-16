@@ -1,21 +1,464 @@
-import { useState } from 'react'
-import { Download,Upload,Plus,FileSpreadsheet,History,Check,PenLine } from 'lucide-react'
-import { useWorkspace,isManager } from '../lib/context'
-import { publishMaster,downloadMaster,masterRequest } from '../lib/api'
-import { supabase } from '../lib/supabase'
-import { dateTime,validateMaster,money } from '../lib/domain'
-import type { Master,Product,Location,Category } from '../lib/types'
-import { PageTitle,Modal,field } from '../components/ui'
-type Kind=keyof Master
-type Edit={kind:Kind;index:number;value:Record<string,unknown>}
-export function MasterData(){
-  const {data,run,busy}=useWorkspace(),[draft,setDraft]=useState<{master:Master;base:Master;revision:string}|null>(null),[edit,setEdit]=useState<Edit|null>(null),[tab,setTab]=useState<Kind>('products')
-  const manager=isManager(data.profile.role),master=draft?.master??data.master
-  function stage(next:Master){setDraft(draft?{...draft,master:next}:{master:next,base:structuredClone(data.master),revision:data.revision.id})}
-  function editor(kind:Kind,index=-1){
-    const defaults=kind==='products'?{id:'',sku:'',barcode:'',name:'',price:0,cost:null,categoryId:master.categories[0]?.id??'',subcategory:'',classification:'',supplierId:'',departmentCode:'',taxable:true,size:'',color:'',locationId:master.locations[0]?.id??'',introducedAt:new Date().toISOString().slice(0,10)}:kind==='locations'?{id:'',department:'',aisle:'',rack:'',shelf:'',capacity:null}:{id:'',name:''}
-    setEdit({kind,index,value:(index>=0?{...master[kind][index]}:defaults) as Record<string,unknown>})
+import { useState } from "react";
+import {
+  Download,
+  Upload,
+  Plus,
+  FileSpreadsheet,
+  History,
+  Check,
+  PenLine,
+} from "lucide-react";
+import { useWorkspace, isManager } from "../lib/context";
+import { publishMaster, downloadMaster, masterRequest } from "../lib/api";
+import { supabase } from "../lib/supabase";
+import { dateTime, validateMaster, money } from "../lib/domain";
+import type { Master, Product, Location, Category } from "../lib/types";
+import { PageTitle, Modal, field } from "../components/ui";
+type Kind = keyof Master;
+type Edit = { kind: Kind; index: number; value: Record<string, unknown> };
+export function MasterData() {
+  const { data, run, busy } = useWorkspace(),
+    [draft, setDraft] = useState<{
+      master: Master;
+      base: Master;
+      revision: string;
+    } | null>(null),
+    [edit, setEdit] = useState<Edit | null>(null),
+    [tab, setTab] = useState<Kind>("products");
+  const manager = isManager(data.profile.role),
+    master = draft?.master ?? data.master;
+  function stage(next: Master) {
+    setDraft(
+      draft
+        ? { ...draft, master: next }
+        : {
+            master: next,
+            base: structuredClone(data.master),
+            revision: data.revision.id,
+          },
+    );
   }
-  const changes=draft?(['products','locations','categories'] as Kind[]).flatMap(kind=>draft.master[kind].flatMap(row=>{const old=draft.base[kind].find(p=>p.id===row.id);if(!old)return [`Added ${kind.slice(0,-1)} ${row.id}`];return Object.entries(row).filter(([key,value])=>JSON.stringify((old as unknown as Record<string,unknown>)[key])!==JSON.stringify(value)).map(([key,value])=>`${row.id} · ${key}: ${String((old as unknown as Record<string,unknown>)[key]??'blank')} → ${String(value??'blank')}`)}).concat(draft.base[kind].filter(row=>!draft.master[kind].some(n=>n.id===row.id)).map(row=>`Removed ${kind.slice(0,-1)} ${row.id}`))):[]
-  return <><PageTitle eyebrow="AUTHORITATIVE MASTER" title="One trusted source of truth." description="Review, publish, and download immutable Excel revisions of product and location data." actions={<><button className="secondary" disabled={busy} onClick={()=>run(()=>downloadMaster(data.revision.storage_path))}><Download size={17}/>Download master XLSX</button>{manager&&<label className="primary upload-button"><Upload size={17}/>Import CSV / XLSX<input type="file" accept=".xlsx,.csv" disabled={busy} onChange={async e=>{const file=e.target.files?.[0];e.target.value='';if(!file)return;await run(async()=>{if(file.size>2097152)throw new Error('Upload must be 2 MB or smaller.');const bytes=new Uint8Array(await file.arrayBuffer());let binary='';for(const b of bytes)binary+=String.fromCharCode(b);const result=await masterRequest({action:'import',filename:file.name,base64:btoa(binary)});setDraft({master:result.master,base:structuredClone(data.master),revision:result.expectedRevision})},'Upload validated. Review the candidate before publishing.') }}/></label>}</>}/><div className="master-status"><div className="master-file-icon"><FileSpreadsheet size={28}/></div><div><strong>ReRun Master Inventory.xlsx</strong><span>Active revision {data.revision.revision} · {dateTime(data.revision.created_at)}</span></div><span className="small-chip"><Check size={13}/>PUBLISHED</span></div>{draft&&<section className="panel draft-review"><div className="section-heading"><div><span className="eyebrow">UNPUBLISHED CANDIDATE</span><h2>Review {changes.length} change{changes.length===1?'':'s'}</h2></div><div className="actions"><button className="secondary" disabled={busy} onClick={()=>setDraft(null)}>Discard draft</button><button className="primary" disabled={busy||!changes.length} onClick={async()=>{const done=await run(()=>publishMaster(draft.master,draft.revision),'Master revision published.');if(done)setDraft(null)}}>Publish new revision</button></div></div><ul className="change-list">{changes.map((c,i)=><li key={i}>{c}</li>)}</ul>{draft.revision!==data.revision.id&&<div className="inline-error">Another revision was published. Discard this candidate and reapply your edits to the latest master.</div>}<p className="hint">Publication updates the workbook and searchable records together. Operational histories remain intact.</p></section>}<section className="panel"><div className="master-tabs"><div className="tabs">{(['products','locations','categories'] as Kind[]).map(t=><button className={tab===t?'active':''} key={t} onClick={()=>setTab(t)}>{t}<span>{master[t].length}</span></button>)}</div>{manager&&<button className="secondary" onClick={()=>editor(tab)}><Plus size={16}/>Add {tab==='categories'?'category':tab.slice(0,-1)}</button>}</div><div className="table-scroll"><table><thead><tr><th>Identifier</th><th>{tab==='products'?'Product':tab==='locations'?'Destination':'Name'}</th><th>{tab==='products'?'Price / category':tab==='locations'?'Capacity':' '}</th><th>Action</th></tr></thead><tbody>{master[tab].map((row,i)=><tr key={row.id}><td className="mono">{row.id}</td><td>{tab==='products'?(row as Product).name:tab==='locations'?[(row as Location).department,(row as Location).aisle,(row as Location).rack,(row as Location).shelf].filter(Boolean).join(' → '):(row as Category).name}</td><td>{tab==='products'?`${money((row as Product).price)} · ${(row as Product).categoryId}`:tab==='locations'?(row as Location).capacity??'Unlimited':''}</td><td>{manager&&<button className="text-button" onClick={()=>editor(tab,i)}><PenLine size={14}/>Edit</button>}</td></tr>)}</tbody></table></div></section><section className="panel"><div className="section-heading"><h2><History size={19}/>Revision history</h2></div>{data.revisions.map(r=><div className="revision-row" key={r.id}><div><strong>Revision {r.revision}</strong><small>{dateTime(r.created_at)}</small></div><span className="mono muted">{r.id.slice(0,8)}</span><div className="actions"><button className="secondary" disabled={busy} onClick={()=>run(()=>downloadMaster(r.storage_path,`ReRun Master v${r.revision}.xlsx`))}>Download</button>{manager&&r.id!==data.revision.id&&<button className="text-button" disabled={busy} onClick={()=>run(async()=>{const {data:old,error}=await supabase.from('master_revisions').select('payload').eq('id',r.id).single();if(error)throw error;stage(old.payload as Master)},'Previous revision staged for review.')}>Stage as new revision</button>}</div></div>)}</section>{edit&&<Modal title={`${edit.index<0?'Add':'Edit'} ${edit.kind==='categories'?'category':edit.kind.slice(0,-1)}`} onClose={()=>setEdit(null)} wide><form className="record-form" onSubmit={e=>{e.preventDefault();const form=new FormData(e.currentTarget),value={...edit.value};for(const key of Object.keys(value)){if(key==='taxable')value[key]=form.get(key)==='on';else if(['price','cost'].includes(key))value[key]=field(form,key)===''?null:Math.round(Number(form.get(key))*100);else if(key==='capacity')value[key]=field(form,key)===''?null:Number(form.get(key));else if(!(key==='id'&&edit.index>=0))value[key]=field(form,key)}const next=structuredClone(master);if(edit.index<0)(next[edit.kind] as unknown[]).push(value);else (next[edit.kind] as unknown[])[edit.index]=value;void run(async()=>{validateMaster(next);stage(next);setEdit(null)},'Edit staged. Review and publish the candidate.')}}>{Object.entries(edit.value).map(([key,value])=><label key={key}>{key.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase())}{['price','cost'].includes(key)?<input name={key} type="number" step="0.01" min={0} required={key==='price'} defaultValue={value===null?'':Number(value)/100}/>:key==='taxable'?<input type="checkbox" name={key} defaultChecked={!!value}/>:key==='categoryId'||key==='locationId'?<select name={key} defaultValue={String(value)}>{(key==='categoryId'?master.categories:master.locations).map(c=><option key={c.id} value={c.id}>{c.id}</option>)}</select>:<input name={key} disabled={key==='id'&&edit.index>=0} type={key==='introducedAt'?'date':key==='capacity'?'number':'text'} min={key==='capacity'?1:undefined} required={['id','sku','name','department','aisle','introducedAt'].includes(key)} maxLength={120} defaultValue={value==null?'':String(value)}/>}</label>)}<div className="form-footer"><p className="hint">Prices and costs use USD. Empty capacity means unlimited. Changes require publication.</p><button className="primary" disabled={busy}>Stage changes</button></div></form></Modal>}</>
+  function editor(kind: Kind, index = -1) {
+    const defaults =
+      kind === "products"
+        ? {
+            id: "",
+            sku: "",
+            barcode: "",
+            name: "",
+            price: 0,
+            cost: null,
+            categoryId: master.categories[0]?.id ?? "",
+            subcategory: "",
+            classification: "",
+            supplierId: "",
+            departmentCode: "",
+            taxable: true,
+            size: "",
+            color: "",
+            locationId: master.locations[0]?.id ?? "",
+            introducedAt: new Date().toISOString().slice(0, 10),
+          }
+        : kind === "locations"
+          ? {
+              id: "",
+              department: "",
+              aisle: "",
+              rack: "",
+              shelf: "",
+              capacity: null,
+            }
+          : { id: "", name: "" };
+    setEdit({
+      kind,
+      index,
+      value: (index >= 0 ? { ...master[kind][index] } : defaults) as Record<
+        string,
+        unknown
+      >,
+    });
+  }
+  const changes = draft
+    ? (["products", "locations", "categories"] as Kind[]).flatMap((kind) =>
+        draft.master[kind]
+          .flatMap((row) => {
+            const old = draft.base[kind].find((p) => p.id === row.id);
+            if (!old) return [`Added ${kind.slice(0, -1)} ${row.id}`];
+            return Object.entries(row)
+              .filter(
+                ([key, value]) =>
+                  JSON.stringify(
+                    (old as unknown as Record<string, unknown>)[key],
+                  ) !== JSON.stringify(value),
+              )
+              .map(
+                ([key, value]) =>
+                  `${row.id} · ${key}: ${String((old as unknown as Record<string, unknown>)[key] ?? "blank")} → ${String(value ?? "blank")}`,
+              );
+          })
+          .concat(
+            draft.base[kind]
+              .filter((row) => !draft.master[kind].some((n) => n.id === row.id))
+              .map((row) => `Removed ${kind.slice(0, -1)} ${row.id}`),
+          ),
+      )
+    : [];
+  return (
+    <>
+      <PageTitle
+        eyebrow="AUTHORITATIVE MASTER"
+        title="One trusted source of truth."
+        description="Review, publish, and download immutable Excel revisions of product and location data."
+        actions={
+          <>
+            <button
+              className="secondary"
+              disabled={busy}
+              onClick={() =>
+                run(() => downloadMaster(data.revision.storage_path))
+              }
+            >
+              <Download size={17} />
+              Download master XLSX
+            </button>
+            {manager && (
+              <label className="primary upload-button">
+                <Upload size={17} />
+                Import CSV / XLSX
+                <input
+                  type="file"
+                  accept=".xlsx,.csv"
+                  disabled={busy}
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    e.target.value = "";
+                    if (!file) return;
+                    await run(async () => {
+                      if (file.size > 2097152)
+                        throw new Error("Upload must be 2 MB or smaller.");
+                      const bytes = new Uint8Array(await file.arrayBuffer());
+                      let binary = "";
+                      for (const b of bytes) binary += String.fromCharCode(b);
+                      const result = await masterRequest({
+                        action: "import",
+                        filename: file.name,
+                        base64: btoa(binary),
+                      });
+                      setDraft({
+                        master: result.master,
+                        base: structuredClone(data.master),
+                        revision: result.expectedRevision,
+                      });
+                    }, "Upload validated. Review the candidate before publishing.");
+                  }}
+                />
+              </label>
+            )}
+          </>
+        }
+      />
+      <div className="master-status">
+        <div className="master-file-icon">
+          <FileSpreadsheet size={28} />
+        </div>
+        <div>
+          <strong>ReRun Master Inventory.xlsx</strong>
+          <span>
+            Active revision {data.revision.revision} ·{" "}
+            {dateTime(data.revision.created_at)}
+          </span>
+        </div>
+        <span className="small-chip">
+          <Check size={13} />
+          PUBLISHED
+        </span>
+      </div>
+      {draft && (
+        <section className="panel draft-review">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">UNPUBLISHED CANDIDATE</span>
+              <h2>
+                Review {changes.length} change{changes.length === 1 ? "" : "s"}
+              </h2>
+            </div>
+            <div className="actions">
+              <button
+                className="secondary"
+                disabled={busy}
+                onClick={() => setDraft(null)}
+              >
+                Discard draft
+              </button>
+              <button
+                className="primary"
+                disabled={busy || !changes.length}
+                onClick={async () => {
+                  const done = await run(
+                    () => publishMaster(draft.master, draft.revision),
+                    "Master revision published.",
+                  );
+                  if (done) setDraft(null);
+                }}
+              >
+                Publish new revision
+              </button>
+            </div>
+          </div>
+          <ul className="change-list">
+            {changes.map((c, i) => (
+              <li key={i}>{c}</li>
+            ))}
+          </ul>
+          {draft.revision !== data.revision.id && (
+            <div className="inline-error">
+              Another revision was published. Discard this candidate and reapply
+              your edits to the latest master.
+            </div>
+          )}
+          <p className="hint">
+            Publication updates the workbook and searchable records together.
+            Operational histories remain intact.
+          </p>
+        </section>
+      )}
+      <section className="panel">
+        <div className="master-tabs">
+          <div className="tabs">
+            {(["products", "locations", "categories"] as Kind[]).map((t) => (
+              <button
+                className={tab === t ? "active" : ""}
+                key={t}
+                onClick={() => setTab(t)}
+              >
+                {t}
+                <span>{master[t].length}</span>
+              </button>
+            ))}
+          </div>
+          {manager && (
+            <button className="secondary" onClick={() => editor(tab)}>
+              <Plus size={16} />
+              Add {tab === "categories" ? "category" : tab.slice(0, -1)}
+            </button>
+          )}
+        </div>
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Identifier</th>
+                <th>
+                  {tab === "products"
+                    ? "Product"
+                    : tab === "locations"
+                      ? "Destination"
+                      : "Name"}
+                </th>
+                <th>
+                  {tab === "products"
+                    ? "Price / category"
+                    : tab === "locations"
+                      ? "Capacity"
+                      : " "}
+                </th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {master[tab].map((row, i) => (
+                <tr key={row.id}>
+                  <td className="mono">{row.id}</td>
+                  <td>
+                    {tab === "products"
+                      ? (row as Product).name
+                      : tab === "locations"
+                        ? [
+                            (row as Location).department,
+                            (row as Location).aisle,
+                            (row as Location).rack,
+                            (row as Location).shelf,
+                          ]
+                            .filter(Boolean)
+                            .join(" → ")
+                        : (row as Category).name}
+                  </td>
+                  <td>
+                    {tab === "products"
+                      ? `${money((row as Product).price)} · ${(row as Product).categoryId}`
+                      : tab === "locations"
+                        ? ((row as Location).capacity ?? "Unlimited")
+                        : ""}
+                  </td>
+                  <td>
+                    {manager && (
+                      <button
+                        className="text-button"
+                        onClick={() => editor(tab, i)}
+                      >
+                        <PenLine size={14} />
+                        Edit
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+      <section className="panel">
+        <div className="section-heading">
+          <h2>
+            <History size={19} />
+            Revision history
+          </h2>
+        </div>
+        {data.revisions.map((r) => (
+          <div className="revision-row" key={r.id}>
+            <div>
+              <strong>Revision {r.revision}</strong>
+              <small>{dateTime(r.created_at)}</small>
+            </div>
+            <span className="mono muted">{r.id.slice(0, 8)}</span>
+            <div className="actions">
+              <button
+                className="secondary"
+                disabled={busy}
+                onClick={() =>
+                  run(() =>
+                    downloadMaster(
+                      r.storage_path,
+                      `ReRun Master v${r.revision}.xlsx`,
+                    ),
+                  )
+                }
+              >
+                Download
+              </button>
+              {manager && r.id !== data.revision.id && (
+                <button
+                  className="text-button"
+                  disabled={busy}
+                  onClick={() =>
+                    run(async () => {
+                      const { data: old, error } = await supabase
+                        .from("master_revisions")
+                        .select("payload")
+                        .eq("id", r.id)
+                        .single();
+                      if (error) throw error;
+                      stage(old.payload as Master);
+                    }, "Previous revision staged for review.")
+                  }
+                >
+                  Stage as new revision
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </section>
+      {edit && (
+        <Modal
+          title={`${edit.index < 0 ? "Add" : "Edit"} ${edit.kind === "categories" ? "category" : edit.kind.slice(0, -1)}`}
+          onClose={() => setEdit(null)}
+          wide
+        >
+          <form
+            className="record-form"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const form = new FormData(e.currentTarget),
+                value = { ...edit.value };
+              for (const key of Object.keys(value)) {
+                if (key === "taxable") value[key] = form.get(key) === "on";
+                else if (["price", "cost"].includes(key))
+                  value[key] =
+                    field(form, key) === ""
+                      ? null
+                      : Math.round(Number(form.get(key)) * 100);
+                else if (key === "capacity")
+                  value[key] =
+                    field(form, key) === "" ? null : Number(form.get(key));
+                else if (!(key === "id" && edit.index >= 0))
+                  value[key] = field(form, key);
+              }
+              const next = structuredClone(master);
+              if (edit.index < 0) (next[edit.kind] as unknown[]).push(value);
+              else (next[edit.kind] as unknown[])[edit.index] = value;
+              void run(async () => {
+                validateMaster(next);
+                stage(next);
+                setEdit(null);
+              }, "Edit staged. Review and publish the candidate.");
+            }}
+          >
+            {Object.entries(edit.value).map(([key, value]) => (
+              <label key={key}>
+                {key
+                  .replace(/([A-Z])/g, " $1")
+                  .replace(/^./, (s) => s.toUpperCase())}
+                {["price", "cost"].includes(key) ? (
+                  <input
+                    name={key}
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    required={key === "price"}
+                    defaultValue={value === null ? "" : Number(value) / 100}
+                  />
+                ) : key === "taxable" ? (
+                  <input type="checkbox" name={key} defaultChecked={!!value} />
+                ) : key === "categoryId" || key === "locationId" ? (
+                  <select name={key} defaultValue={String(value)}>
+                    {(key === "categoryId"
+                      ? master.categories
+                      : master.locations
+                    ).map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.id}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <input
+                    name={key}
+                    disabled={key === "id" && edit.index >= 0}
+                    type={
+                      key === "introducedAt"
+                        ? "date"
+                        : key === "capacity"
+                          ? "number"
+                          : "text"
+                    }
+                    min={key === "capacity" ? 1 : undefined}
+                    required={[
+                      "id",
+                      "sku",
+                      "name",
+                      "department",
+                      "aisle",
+                      "introducedAt",
+                    ].includes(key)}
+                    maxLength={120}
+                    defaultValue={value == null ? "" : String(value)}
+                  />
+                )}
+              </label>
+            ))}
+            <div className="form-footer">
+              <p className="hint">
+                Prices and costs use USD. Empty capacity means unlimited.
+                Changes require publication.
+              </p>
+              <button className="primary" disabled={busy}>
+                Stage changes
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
+    </>
+  );
 }
