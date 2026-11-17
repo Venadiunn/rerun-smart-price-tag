@@ -1,6 +1,23 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useId, useRef } from "react";
 import type { ReactNode } from "react";
 import { X, LoaderCircle } from "lucide-react";
+let openModals = 0;
+let previousBodyOverflow = "";
+let previousRootOverflow = "";
+function lockModalScroll() {
+  if (openModals++ === 0) {
+    previousBodyOverflow = document.body.style.overflow;
+    previousRootOverflow = document.documentElement.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.documentElement.style.overflow = "hidden";
+  }
+  return () => {
+    if (--openModals === 0) {
+      document.body.style.overflow = previousBodyOverflow;
+      document.documentElement.style.overflow = previousRootOverflow;
+    }
+  };
+}
 export function Badge({
   children,
   tone = "neutral",
@@ -78,28 +95,101 @@ export function Modal({
   wide?: boolean;
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   useEffect(() => {
     const dialog = ref.current;
-    dialog?.showModal();
-    return () => dialog?.close();
+    if (!dialog) return;
+    const opener =
+      document.activeElement instanceof HTMLElement
+        ? document.activeElement
+        : null;
+    dialog.showModal();
+    const unlock = lockModalScroll();
+    const viewport = window.visualViewport;
+    const updateViewport = () => {
+      if (!viewport) return;
+      dialog.style.setProperty(
+        "--modal-viewport-top",
+        `${viewport.offsetTop}px`,
+      );
+      dialog.style.setProperty(
+        "--modal-viewport-left",
+        `${viewport.offsetLeft}px`,
+      );
+      dialog.style.setProperty(
+        "--modal-viewport-right",
+        `${Math.max(0, window.innerWidth - viewport.offsetLeft - viewport.width)}px`,
+      );
+      dialog.style.setProperty(
+        "--modal-viewport-bottom",
+        `${Math.max(0, window.innerHeight - viewport.offsetTop - viewport.height)}px`,
+      );
+      dialog.style.setProperty("--modal-viewport-width", `${viewport.width}px`);
+      dialog.style.setProperty(
+        "--modal-viewport-height",
+        `${viewport.height}px`,
+      );
+    };
+    updateViewport();
+    viewport?.addEventListener("resize", updateViewport);
+    viewport?.addEventListener("scroll", updateViewport);
+    window.addEventListener("resize", updateViewport);
+    dialog
+      .querySelector<HTMLButtonElement>('[aria-label="Close dialog"]')
+      ?.focus({ preventScroll: true });
+    return () => {
+      viewport?.removeEventListener("resize", updateViewport);
+      viewport?.removeEventListener("scroll", updateViewport);
+      window.removeEventListener("resize", updateViewport);
+      dialog.close();
+      unlock();
+      if (opener?.isConnected) opener.focus({ preventScroll: true });
+    };
   }, []);
   return (
     <dialog
       ref={ref}
       className={wide ? "modal wide" : "modal"}
-      onCancel={onClose}
+      aria-labelledby={titleId}
+      onKeyDown={(e) => {
+        if (e.key !== "Tab") return;
+        const focusable = [
+          ...e.currentTarget.querySelectorAll<HTMLElement>(
+            "button,a[href],input,select,textarea,summary,[tabindex]",
+          ),
+        ].filter(
+          (node) =>
+            !node.matches(":disabled") &&
+            node.tabIndex >= 0 &&
+            node.getClientRects().length > 0,
+        );
+        const first = focusable[0],
+          last = focusable[focusable.length - 1];
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }}
+      onCancel={(e) => {
+        e.preventDefault();
+        onClose();
+      }}
     >
       <div className="modal-top">
-        <h2>{title}</h2>
+        <h2 id={titleId}>{title}</h2>
         <button
           className="icon-button"
+          type="button"
           aria-label="Close dialog"
           onClick={onClose}
         >
           <X size={20} />
         </button>
       </div>
-      {children}
+      <div className="modal-body">{children}</div>
     </dialog>
   );
 }

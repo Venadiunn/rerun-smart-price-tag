@@ -1,5 +1,13 @@
 # Verification record
 
+## Centered, responsive popups — November 16, 2026
+
+The Review & place dialog reproduced at x=0/y=0 on a 1440×1000 viewport because the shared dialog's margins were reset to zero. The shared Modal now explicitly centers itself within the visible viewport, constrains its width/height, and scrolls content beneath a persistent title/close header. The same component serves item details, receiving, pricing, tag management/registration, employee dialogs, master editors, and private activation.
+
+Dialog fields use at least 16px text and 44px control/close targets; metadata, status badges, and hints are larger and have stronger contrast. Long identifiers wrap, wide detail panels become one column on phones, and the price/title header adapts to narrow widths. The page behind an open modal is scroll-locked. Dialog titles are explicitly labeled, Tab/Shift+Tab cycle inside the popup, Escape closes it, and focus returns to the opening control. Visible-viewport resize/scroll handling keeps popups within the available mobile screen when keyboard or zoom changes the visible region.
+
+`tests/modals.spec.ts` covers all shared dialog forms at 1440×1000, 390×844, 320×640, and 844×390, plus persistent close controls during scrolling, keyboard focus/return, a reduced-height mobile form, and a visual-viewport-only keyboard simulation. Private activation layout is checked using a mocked placeholder response, with no real activation tokens generated. These layout tests open and close forms without submitting inventory or employee changes. The existing unit/build/lint checks and operational browser tests remain part of release verification.
+
 ## Smart-tag coverage and functional audit — November 16, 2026
 
 Overview now exposes Auto sort & assign tags. The two remaining received units were sorted using the authenticated UI, yielding 100 placed and 27 pending units. Every one of the 127 units has exactly one assigned reusable smart tag. The operation preserved 16 existing assignments, reused four available tags, and registered 107 tags. No additional stock was created. Available capacity is 373 of 500 slots; the 1,000-product master is unchanged at revision 13.
