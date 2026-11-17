@@ -35,6 +35,7 @@ export function ProductDrawer({
     units = data.units.filter((u) => u.product_id === p.id),
     u = units.find((u) => u.id === unitId);
   const timeline = data.events.filter((e) => e.entity_id === unitId);
+  const smartTag = u ? data.tags.find((t) => t.unit_id === u.id) : undefined;
   if (!p) return null;
   return (
     <Modal title="Item details" onClose={onClose} wide>
@@ -86,7 +87,11 @@ export function ProductDrawer({
           </div>
           <label>
             Physical unit
-            <select value={unitId} onChange={(e) => setUnitId(e.target.value)}>
+            <select
+              aria-label="Physical unit"
+              value={unitId}
+              onChange={(e) => setUnitId(e.target.value)}
+            >
               <option value="">Select a unit ({units.length})</option>
               {units.map((u) => (
                 <option key={u.id} value={u.id}>
@@ -101,6 +106,13 @@ export function ProductDrawer({
                 <Status value={u.status} />
                 <span className="muted">Record version {u.version}</span>
               </div>
+              <p className="hint">
+                Smart tag:{" "}
+                <strong>
+                  {smartTag?.id ??
+                    "Not assigned; auto sort will assign a tag when space is allocated."}
+                </strong>
+              </p>
               {transitions[u.status].includes("Stocked Out") && (
                 <label>
                   Reason for stock-out
@@ -235,20 +247,29 @@ export function ProductDrawer({
         <aside className="label-sidebar">
           <label>
             QR label format
-            <select value={qrMode} onChange={(e) => setQrMode(e.target.value)}>
+            <select
+              aria-label="QR label format"
+              value={qrMode}
+              onChange={(e) => setQrMode(e.target.value)}
+            >
               <option value="stable">Stable identifier</option>
               <option value="snapshot">Product data snapshot</option>
+              <option value="tag" disabled={!smartTag}>
+                Smart tag identifier
+              </option>
             </select>
           </label>
           <QRLabel
             value={
-              qrMode === "snapshot"
-                ? qrPayload(p, u?.id)
-                : u
-                  ? `rerun:unit:${u.id}`
-                  : p.id
+              qrMode === "tag" && smartTag
+                ? `rerun:tag:${smartTag.id}`
+                : qrMode === "snapshot"
+                  ? qrPayload(p, u?.id)
+                  : u
+                    ? `rerun:unit:${u.id}`
+                    : p.id
             }
-            label={u?.id ?? p.id}
+            label={qrMode === "tag" && smartTag ? smartTag.id : (u?.id ?? p.id)}
           />
           <p className="hint">
             Stable labels always look up current information. Snapshot labels

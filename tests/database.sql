@@ -9,6 +9,8 @@ do $$ begin
   assert not has_function_privilege('anon','public.rerun_snapshot()','execute'),'Anonymous snapshot execution must be denied';
   assert not has_function_privilege('authenticated','rerun_internal.sort_received(text[])','execute'),'Internal sorter must not be directly callable';
   assert not has_schema_privilege('authenticated','rerun_internal','usage'),'Internal schema must not be exposed';
+  assert not has_function_privilege('authenticated','rerun_internal.ensure_smart_tags(text[])','execute'),'Internal tag allocator must not be directly callable';
+  assert not has_sequence_privilege('authenticated','rerun_internal.smart_tag_serial','usage'),'Internal tag numbers must not be directly mutable';
   assert not has_table_privilege('authenticated','public.staff_invites','select'),'Invite allowlist must be private';
   assert not has_table_privilege('authenticated','public.command_requests','select'),'Command receipts must be private';
   assert (select not public and file_size_limit=2097152 from storage.buckets where id='master-workbooks'),'Master workbook bucket must be private and size limited';

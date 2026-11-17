@@ -3,6 +3,11 @@ import type { Unit } from "./types";
 export interface SortResult {
   ok: boolean;
   sorted: number;
+  tagging?: {
+    assigned: number;
+    created: number;
+    held: { unitId: string; reason: string }[];
+  };
   routes: { unitId: string; productId: string; locationId: string }[];
   waiting: {
     unitId: string;

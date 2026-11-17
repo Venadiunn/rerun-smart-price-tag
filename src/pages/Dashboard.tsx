@@ -12,9 +12,11 @@ import { Link } from "@tanstack/react-router";
 import { useWorkspace } from "../lib/context";
 import { dateTime } from "../lib/domain";
 import { PageTitle, Status } from "../components/ui";
+import { AutoSortPanel } from "../components/AutoSortPanel";
+import { locationLoad, restockRoute } from "../lib/sorting";
 export function Dashboard() {
   const { data, openProduct } = useWorkspace(),
-    pending = data.units.filter((u) => u.status === "Pending Restock"),
+    pending = restockRoute(data.units),
     restocked = data.units.filter((u) => u.status === "Restocked");
   const alerts = data.scans.filter(
     (s) => s.findings[0] !== "VALID ITEM" && !s.acknowledged_at,
@@ -74,6 +76,7 @@ export function Dashboard() {
           </article>
         ))}
       </div>
+      <AutoSortPanel compact />
       <section className="workflow-banner">
         <div>
           <span className="eyebrow">THE RESTOCKING WORKFLOW</span>
@@ -195,9 +198,7 @@ export function Dashboard() {
         </div>
         <div className="mini-locations">
           {data.master.locations.slice(0, 4).map((l) => {
-            const count = data.units.filter(
-              (u) => u.current_location_id === l.id,
-            ).length;
+            const load = locationLoad(data.units, l.id);
             return (
               <div key={l.id}>
                 <MapPin size={17} />
@@ -205,18 +206,19 @@ export function Dashboard() {
                   {l.aisle} · {l.rack || l.shelf}
                 </strong>
                 <small>
-                  {count} / {l.capacity ?? "∞"} units
+                  {load.confirmed} placed · {load.reserved} reserved /{" "}
+                  {l.capacity ?? "∞"}
                 </small>
                 <div className="capacity-bar">
                   <i
                     style={{
-                      width: `${l.capacity ? Math.min(100, (count / l.capacity) * 100) : 0}%`,
+                      width: `${l.capacity ? Math.min(100, (load.committed / l.capacity) * 100) : 0}%`,
                     }}
                   />
                 </div>
                 <Status
                   value={
-                    l.capacity && count >= l.capacity
+                    l.capacity && load.committed >= l.capacity
                       ? "Full"
                       : "Space available"
                   }

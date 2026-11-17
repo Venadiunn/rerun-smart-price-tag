@@ -8,11 +8,27 @@ import { QRLabel } from "../components/QRLabel";
 export function Tags() {
   const { data, run, busy } = useWorkspace(),
     [selected, setSelected] = useState(""),
-    [register, setRegister] = useState(false);
+    [register, setRegister] = useState(false),
+    [query, setQuery] = useState(""),
+    [statusFilter, setStatusFilter] = useState(""),
+    [limit, setLimit] = useState(40);
   const tag = data.tags.find((t) => t.id === selected),
     unit = data.units.find((u) => u.id === tag?.unit_id),
     product = data.master.products.find((p) => p.id === unit?.product_id);
   const updates = data.updates.filter((u) => u.tag_id === tag?.id);
+  const unitsById = new Map(data.units.map((u) => [u.id, u])),
+    productsById = new Map(data.master.products.map((p) => [p.id, p]));
+  const filtered = data.tags.filter((t) => {
+    const u = t.unit_id ? unitsById.get(t.unit_id) : undefined,
+      p = u ? productsById.get(u.product_id) : undefined;
+    return (
+      (!statusFilter || t.status === statusFilter) &&
+      [t.id, t.unit_id, p?.id, p?.name, u?.destination_id]
+        .join(" ")
+        .toLowerCase()
+        .includes(query.toLowerCase())
+    );
+  });
   return (
     <>
       <PageTitle
@@ -48,8 +64,35 @@ export function Tags() {
           awaiting inspection
         </span>
       </div>
+      <div className="panel table-toolbar">
+        <label className="search-box">
+          <input
+            aria-label="Search smart tags"
+            placeholder="Search tag, unit, product or location…"
+            value={query}
+            onChange={(e) => {
+              setQuery(e.target.value);
+              setLimit(40);
+            }}
+          />
+        </label>
+        <select
+          aria-label="Tag status filter"
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setLimit(40);
+          }}
+        >
+          <option value="">All tag statuses</option>
+          {["Assigned", "Available", "Inspection", "Retired"].map((s) => (
+            <option key={s}>{s}</option>
+          ))}
+        </select>
+        <span>{filtered.length} matching tags</span>
+      </div>
       <div className="tag-grid">
-        {data.tags.map((t) => (
+        {filtered.slice(0, limit).map((t) => (
           <button
             className="panel tag-card"
             key={t.id}
@@ -62,11 +105,8 @@ export function Tags() {
             <strong>{t.id}</strong>
             <p>
               {t.unit_id
-                ? data.master.products.find(
-                    (p) =>
-                      p.id ===
-                      data.units.find((u) => u.id === t.unit_id)?.product_id,
-                  )?.name
+                ? productsById.get(unitsById.get(t.unit_id)?.product_id ?? "")
+                    ?.name
                 : "Ready for a future assignment"}
             </p>
             <small className="mono">{t.unit_id ?? "No active unit"}</small>
@@ -77,6 +117,14 @@ export function Tags() {
           </button>
         ))}
       </div>
+      {filtered.length === 0 && (
+        <p className="notice">No smart tags match this search.</p>
+      )}
+      {filtered.length > limit && (
+        <button className="secondary" onClick={() => setLimit(limit + 40)}>
+          Show more tags ({filtered.length - limit} remaining)
+        </button>
+      )}
       {tag && (
         <Modal title={`Manage ${tag.id}`} onClose={() => setSelected("")} wide>
           <div className="detail-columns">

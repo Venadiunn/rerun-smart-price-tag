@@ -42,6 +42,8 @@ Receiving stock in store automatically looks up its product ID in the active mas
 
 Inventory → Automatic sorting retries held arrivals and presents a restock route grouped by location and product ID, with a CSV export. Store locations shows confirmed placements and reservations separately. Staff use Review & place → Confirm restocked after physically shelving merchandise. Sorting does not claim physical placement or hardware movement.
 
+Overview also provides **Auto sort & assign tags** with links to the restock route and smart tags. Every inspected unit with reserved or placed space receives one reusable smart-tag record. Available tags are reused first; new tag IDs are registered automatically when required. Full destinations remain held without consuming a new tag. Existing assignments, inspection holds, and retired tags are preserved. Tag allocation runs inside the same store transaction as receive, sorting, lifecycle changes, and destination updates. Smart tags has product/unit/location search, status filters, and incremental loading; unit details can print the assigned tag's QR label.
+
 Reservations share the store transaction lock with receive, manual moves, placement confirmation, and master publication. Request IDs prevent duplicate deliveries. The internal sorting helper is outside the exposed API schema and has no client execution grants. Apply migrations 008 and 009 after the existing migrations. `tests/auto-sort.sql` checks capacity, duplicate requests, holds, overflow, manual movements, master capacity changes, and unauthorized access inside a rolled-back transaction.
 
 ## Access and deployment

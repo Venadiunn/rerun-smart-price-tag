@@ -6,7 +6,7 @@ The connected ReRun project is `ikuvbteklxjbsixwhril` in `us-east-1`, verified A
 
 Master revision 13 contains 1,000 unique product IDs, names, and SKUs. It preserves the prior 208 products and adds 792 fictional variants. Barcode aliases are unique where supplied; legacy products can have no barcode because QR lookup uses product/unit IDs. The 16 locations provide exactly 500 configured slots: Clothing Rack D has 50, and the other 15 fixtures have 30 each.
 
-The mock workspace contains 127 permanent unit records. The requested preset has 100 recorded placements, 25 restock reservations, and 375 uncommitted slots. Two additional received units remain in their existing review state. Previously received units, tag assignments, staff accounts, and history were preserved. Placement setup used the existing version-checked command API and retained an ignored local journal for safe retries. These records describe a fictional store, not measured physical stock.
+The mock workspace contains 127 permanent unit records. It has 100 recorded placements, 27 restock reservations, and 373 uncommitted slots. All 127 allocated units have one assigned smart tag each. Existing unit/tag assignments, staff accounts, and history were preserved. Setup used the version-checked command API and retained ignored local verification records. These records describe a fictional store, not measured physical stock.
 
 ## Access and storage
 
@@ -20,6 +20,8 @@ The mock workspace contains 127 permanent unit records. The requested preset has
 ## Schema and verification
 
 The hosted migration `20261117015611_finalize_store_backend` is checked in with its server-generated version. It adds foreign-key and sorting indexes, optimizes profile/storage policies, explicitly denies private-table access, and aligns bucket size limits with the application. The local CLI binary was blocked by Device Guard; the authenticated Supabase connector applied the hosted migration successfully.
+
+Migration `20261117031019_automatic_capacity_smart_tags` adds the internal capacity-aware smart-tag allocator. Its function and sequence have no browser grants. Existing active-profile command authorization and the shared transaction lock protect allocation; duplicate requests return stored results. Only eligible units with allocated space receive new assignments. Received/inspection holds and available/recovered/retired tag states remain distinct. The Overview sort command also reconciles missing assignments, so retrying does not create duplicates.
 
 The performance advisor no longer reports missing foreign-key indexes or per-row auth evaluation warnings. Freshly created, unused indexes may appear as informational notices until their query patterns run. The security advisor's four authenticated SECURITY DEFINER warnings correspond to the intentional RPC boundaries described above; authorization tests verify their restrictions.
 

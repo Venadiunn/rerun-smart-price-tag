@@ -2851,6 +2851,12 @@ pre {
 .sort-panel > .secondary {
   margin: 20px 24px;
 }
+.overview-sort-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 20px 24px 24px;
+}
 .store-overview {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));

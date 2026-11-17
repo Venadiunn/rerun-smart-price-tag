@@ -1,5 +1,19 @@
 # Verification record
 
+## Smart-tag coverage and functional audit — November 16, 2026
+
+Overview now exposes Auto sort & assign tags. The two remaining received units were sorted using the authenticated UI, yielding 100 placed and 27 pending units. Every one of the 127 units has exactly one assigned reusable smart tag. The operation preserved 16 existing assignments, reused four available tags, and registered 107 tags. No additional stock was created. Available capacity is 373 of 500 slots; the 1,000-product master is unchanged at revision 13.
+
+Tag allocation is transactional, uses only eligible capacity-allocated units, skips existing assignments and unavailable tags, and remains automatic for later receipts, sorting, lifecycle changes, and destination edits. Tags are searchable by product, unit, destination, and tag ID, with a status filter and bounded loading. Unit details identify the assigned smart tag and can generate its QR label using the existing Nimiq creator. Overview capacity indicators now include reservations, correcting the earlier placed-only calculation.
+
+The extended unit-label check found that the unit selector's implicit accessible name included its option text. Explicit accessible labels were added to the unit and QR-format selectors; the smart-tag label test passed after the correction. Database audit extensions also passed for duplicate tag rejection, assigned-tag retirement protection, unassigned-tag retirement, uninspected return rejection, required display states, and failed display retry/attempt counting.
+
+The fresh-project seed now registers its reusable tag pool before receiving stock, allowing automatic allocation to reuse the intended pool instead of creating a second set. The initialized live store is protected by the seed's existing no-overwrite guard.
+
+All 25 unit tests, TypeScript/Vite build, and ESLint passed. Ten browser tests passed locally: login/denial; inventory, unit details, and generated QR; all screens; discrepancy persistence/acknowledgment; authoritative XLSX download/import with zero changes; mobile navigation; Nimiq image decoding and simulated camera; Overview sorting/tag search; associate access restrictions; and private activation validation. A temporary example.com test account was returned to its original disabled state after the run. All 11 requested accounts remained active.
+
+Three hosted SQL test transactions passed and rolled back: `database.sql`, `auto-sort.sql`, and `functional-audit.sql`. They cover RLS/private helpers, role boundaries, idempotent receive, one-tag-per-unit allocation, held capacity without new tags, smart-tag scan resolution, simulated display Pending → Written → Verified, stale versions, placement, register/sale, tag recovery/inspection, return inspection and rerouting, manager overflow, reasoned stock-out, price rejection, markdown settings, stale master publication, and missing workbook rejection. Separate browser checks verified smart-tag QR image lookup, exact floor-plan counts, pagination, PROD-1000 lookup, full 1,000-product CSV export, route export, and mobile layout. Physical display hardware remains simulated.
+
 ## Expanded visual store — November 16, 2026
 
 Master revision 13 has 1,000 unique product IDs, names, and SKUs, with all 792 new variants linked to valid locations. Total configured capacity is exactly 500 across 16 fixtures. All 127 existing unit records were preserved; 91 eligible pending units were marked as placed through the normal command API, yielding 100 recorded placements, 25 reservations, and 375 available slots. No location exceeds its capacity. All 11 requested staff/admin accounts remain active.

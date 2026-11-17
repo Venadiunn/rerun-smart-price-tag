@@ -3,8 +3,9 @@ import { Route, Download, ArrowRight } from "lucide-react";
 import { command, exportCSV } from "../lib/api";
 import { useWorkspace } from "../lib/context";
 import { restockRoute, type SortResult } from "../lib/sorting";
+import { Link } from "@tanstack/react-router";
 
-export function AutoSortPanel() {
+export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
   const { data, run, busy, openProduct } = useWorkspace();
   const [result, setResult] = useState<SortResult | null>(null);
   const [limit, setLimit] = useState(15);
@@ -13,6 +14,12 @@ export function AutoSortPanel() {
   const eligible = data.units.filter((u) =>
     ["Received in Store", "Inspected"].includes(u.status),
   );
+  const missingTags = data.units.filter(
+    (u) =>
+      ["Pending Restock", "Restocked"].includes(u.status) &&
+      u.inspected &&
+      !data.tags.some((t) => t.unit_id === u.id),
+  ).length;
   const visible = route.filter((u) =>
     `${u.product_id} ${u.id} ${u.destination_id}`
       .toLowerCase()
@@ -29,30 +36,32 @@ export function AutoSortPanel() {
         </div>
         <button
           className="primary"
-          disabled={busy || eligible.length === 0}
+          disabled={busy}
+          aria-label="Auto sort and assign smart tags"
           onClick={async () => {
             const sorted = await run(
               () => command<SortResult>("auto_sort", {}),
-              "Sorting complete.",
+              "Sorting and smart-tag assignment complete.",
             );
             if (sorted) setResult(sorted);
           }}
         >
-          Auto sort {eligible.length} units
+          Auto sort & assign tags
         </button>
       </div>
       <p>
         New arrivals automatically match their product ID to the master index.
-        Available space is reserved before units enter the restock route. Staff
-        confirm placement at the rack or shelf.
+        Available space and a reusable smart tag are assigned before units enter
+        the restock route. Staff confirm placement at the rack or shelf.
       </p>
       <div className="sort-summary" aria-live="polite">
         <strong>{route.length} ready to place</strong>
         <span>{eligible.length} awaiting sorting or review</span>
+        <span>{missingTags} allocated units need tags</span>
         {result && (
           <span>
             {result.sorted} newly routed · {result.waiting.length} held for
-            review
+            review · {result.tagging?.assigned ?? 0} smart tags assigned
           </span>
         )}
       </div>
@@ -78,75 +87,95 @@ export function AutoSortPanel() {
           </div>
         </div>
       )}
-      <div className="table-toolbar">
-        <label className="search-box">
-          <input
-            aria-label="Search restock route"
-            placeholder="Find a product ID, unit or destination…"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setLimit(15);
-            }}
-          />
-        </label>
-        <button
-          className="secondary"
-          disabled={!route.length}
-          onClick={() =>
-            exportCSV(
-              route.map((u, i) => ({
-                Stop: i + 1,
-                Location: u.destination_id,
-                Product_ID: u.product_id,
-                Product: data.master.products.find((p) => p.id === u.product_id)
-                  ?.name,
-                Unit_ID: u.id,
-                Status: u.status,
-              })),
-              "rerun-restock-route.csv",
-            )
-          }
-        >
-          <Download size={16} /> Export restock route
-        </button>
-      </div>
-      <div className="table-scroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Destination</th>
-              <th>Product ID</th>
-              <th>Unit</th>
-              <th>Placement</th>
-            </tr>
-          </thead>
-          <tbody>
-            {visible.slice(0, limit).map((u) => (
-              <tr key={u.id}>
-                <td>{u.destination_id}</td>
-                <td className="mono">{u.product_id}</td>
-                <td className="mono">{u.id}</td>
-                <td>
-                  <button
-                    className="text-button"
-                    onClick={() => openProduct(u.product_id, u.id)}
-                  >
-                    Review & place <ArrowRight size={15} />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      {!visible.length && (
-        <p className="hint">No matching units are ready for placement.</p>
+      {result?.tagging && result.tagging.held.length > 0 && (
+        <div className="notice" role="status">
+          {result.tagging.held.length} tag assignments held for capacity review.
+          Ask a manager to resolve location commitments.
+        </div>
       )}
-      {visible.length > limit && (
-        <button className="secondary" onClick={() => setLimit(limit + 30)}>
-          Show more ({visible.length - limit} remaining)
-        </button>
+      {compact ? (
+        <div className="overview-sort-links">
+          <Link className="secondary" to="/inventory">
+            Open restock route <ArrowRight size={16} />
+          </Link>
+          <Link className="secondary" to="/tags">
+            View smart tags <ArrowRight size={16} />
+          </Link>
+        </div>
+      ) : (
+        <>
+          <div className="table-toolbar">
+            <label className="search-box">
+              <input
+                aria-label="Search restock route"
+                placeholder="Find a product ID, unit or destination…"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setLimit(15);
+                }}
+              />
+            </label>
+            <button
+              className="secondary"
+              disabled={!route.length}
+              onClick={() =>
+                exportCSV(
+                  route.map((u, i) => ({
+                    Stop: i + 1,
+                    Location: u.destination_id,
+                    Product_ID: u.product_id,
+                    Product: data.master.products.find(
+                      (p) => p.id === u.product_id,
+                    )?.name,
+                    Unit_ID: u.id,
+                    Status: u.status,
+                  })),
+                  "rerun-restock-route.csv",
+                )
+              }
+            >
+              <Download size={16} /> Export restock route
+            </button>
+          </div>
+          <div className="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Destination</th>
+                  <th>Product ID</th>
+                  <th>Unit</th>
+                  <th>Placement</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.slice(0, limit).map((u) => (
+                  <tr key={u.id}>
+                    <td>{u.destination_id}</td>
+                    <td className="mono">{u.product_id}</td>
+                    <td className="mono">{u.id}</td>
+                    <td>
+                      <button
+                        className="text-button"
+                        onClick={() => openProduct(u.product_id, u.id)}
+                      >
+                        Review & place <ArrowRight size={15} />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {!visible.length && (
+            <p className="hint">No matching units are ready for placement.</p>
+          )}
+          {visible.length > limit && (
+            <button className="secondary" onClick={() => setLimit(limit + 30)}>
+              Show more ({visible.length - limit} remaining)
+            </button>
+          )}
+        </>
       )}
     </section>
   );

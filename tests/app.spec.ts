@@ -162,6 +162,9 @@ test.describe("administrator workspace", () => {
   }) => {
     await page.goto("/inventory");
     await page
+      .getByRole("textbox", { name: "Search inventory" })
+      .fill("PROD-001");
+    await page
       .getByRole("button", { name: "Open Premium Leather Boots" })
       .click();
     const image = await page
@@ -206,6 +209,51 @@ test.describe("administrator workspace", () => {
       .getByRole("button", { name: "Start camera", exact: true })
       .click();
     await expect(page.locator(".scan-alerts")).toContainText("VALID ITEM");
+  });
+  test("overview sorting and searchable smart-tag coverage", async ({
+    page,
+  }) => {
+    await page.goto("/");
+    await page
+      .getByRole("button", {
+        name: "Auto sort and assign smart tags",
+        exact: true,
+      })
+      .click();
+    await expect(page.locator(".sort-summary")).toContainText(
+      "0 allocated units need tags",
+    );
+    await page
+      .getByRole("link", { name: "View smart tags", exact: true })
+      .click();
+    await page.getByLabel("Search smart tags").fill("PROD-009");
+    await expect(page.locator(".tag-card").first()).toBeVisible();
+    await page.locator(".tag-card").first().click();
+    await expect(page.locator(".digital-tag")).toContainText(
+      "Everyday Oxford Shirt",
+    );
+    await expect(page.getByRole("dialog").locator("canvas")).toBeVisible();
+    await page.getByLabel("Close dialog").click();
+    await page.getByLabel("Search smart tags").fill("no-such-tag-identifier");
+    await expect(
+      page.getByText("No smart tags match this search."),
+    ).toBeVisible();
+    await page.goto("/inventory");
+    await page.getByLabel("Search inventory").fill("PROD-009");
+    await page
+      .getByRole("button", {
+        name: "Open Everyday Oxford Shirt / Sky Blue / S",
+        exact: true,
+      })
+      .click();
+    await page
+      .getByLabel("Physical unit", { exact: true })
+      .selectOption({ index: 1 });
+    await page.getByLabel("QR label format").selectOption("tag");
+    await expect(
+      page.getByRole("dialog").locator(".label-sidebar"),
+    ).toContainText(/TAG-/);
+    await expect(page.getByRole("dialog").locator("canvas")).toBeVisible();
   });
 });
 test("associate authenticates with password and cannot access employee/master controls", async ({
@@ -279,4 +327,3 @@ test("employee activation validates confirmation before consuming the private to
   fs.writeFileSync(".private/test-users.json", JSON.stringify(users));
   expect(page.url()).not.toContain("token_hash");
 });
-

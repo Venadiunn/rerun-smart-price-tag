@@ -36,18 +36,19 @@ const { error: publish } = await sb.rpc("rerun_publish_master", {
   request_id: randomUUID(),
 });
 if (publish) throw publish;
-for (const product of seedMaster.products) {
-  const { error } = await sb.rpc("rerun_command", {
-    cmd: "receive",
-    args: { productId: product.id, quantity: 2 },
-    request_id: randomUUID(),
-  });
-  if (error) throw error;
-}
+// Register the reusable pool first so receiving reuses these tags automatically.
 for (let n = 1; n <= 20; n++) {
   const { error } = await sb.rpc("rerun_command", {
     cmd: "tag_register",
     args: { id: `TAG-${String(n).padStart(4, "0")}` },
+    request_id: randomUUID(),
+  });
+  if (error) throw error;
+}
+for (const product of seedMaster.products) {
+  const { error } = await sb.rpc("rerun_command", {
+    cmd: "receive",
+    args: { productId: product.id, quantity: 2 },
     request_id: randomUUID(),
   });
   if (error) throw error;
