@@ -1,5 +1,13 @@
 # Verification record
 
+## Expanded visual store — November 16, 2026
+
+Master revision 13 has 1,000 unique product IDs, names, and SKUs, with all 792 new variants linked to valid locations. Total configured capacity is exactly 500 across 16 fixtures. All 127 existing unit records were preserved; 91 eligible pending units were marked as placed through the normal command API, yielding 100 recorded placements, 25 reservations, and 375 available slots. No location exceeds its capacity. All 11 requested staff/admin accounts remain active.
+
+The floor plan includes receiving/inspection, six aisles, clickable racks/shelves, unit-capacity markers, customer walkways, entrance/exit, and checkout. Both floor-plan and capacity-grid views use the live Supabase snapshot. Catalog pagination renders 50 products per page while search/export use the entire catalog.
+
+Validation: 25 Vitest tests, production build, and ESLint passed. Updated hosted authorization and sorting transactions passed and rolled back. Targeted Chrome checks passed for staff login, exact store totals, all 500 capacity markers, 100 placed and 25 reserved markers, fixture selection, floor/grid toggle, department filtering, keyboard selection, 20-page inventory navigation, PROD-1000 lookup, route CSV, and a 390-pixel mobile layout. Database checks verified uniqueness, valid location references, and no capacity oversubscription. Supabase readiness and remaining plan boundaries are documented in `SUPABASE.md`.
+
 ## Automatic sorting update — November 16, 2026
 
 Added 100 fictional physical unit records across 100 of the expanded catalog's product IDs. At completion of the data update, the workspace contained 208 products, 117 units, 20 reusable tags, and 16 designed locations under master revision 12. Another unit was received through the app during implementation and was preserved. Eight additional labeled racks/shelves extend the demonstration layout; their capacities are prototype configuration, not measurements of a real store.

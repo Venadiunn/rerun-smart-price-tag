@@ -1,6 +1,9 @@
 -- Run on a Supabase test database or in the hosted SQL tool. All fixtures roll back.
 begin;
 select set_config('request.jwt.claim.sub',(select id::text from public.profiles where active and role='administrator' limit 1),true);
+select id from public.store_config for update;
+-- Isolate the global sort queue inside this rolled-back transaction.
+update public.units set status='Offered' where status in ('Received in Store','Inspected');
 do $$
 declare first_result jsonb; second_result jsonb; request uuid:=gen_random_uuid(); n integer;
   revision public.master_revisions; candidate jsonb; reserved_location text;

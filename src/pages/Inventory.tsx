@@ -20,7 +20,8 @@ export function Inventory() {
     [status, setStatus] = useState(""),
     [location, setLocation] = useState(""),
     [sort, setSort] = useState("name"),
-    [receive, setReceive] = useState(false);
+    [receive, setReceive] = useState(false),
+    [page, setPage] = useState(1);
   const q = useDeferredValue(search.toLowerCase());
   const products = data.master.products
     .filter((p) => {
@@ -50,9 +51,12 @@ export function Inventory() {
       sort === "price"
         ? a.price - b.price
         : sort === "id"
-          ? a.id.localeCompare(b.id)
+          ? a.id.localeCompare(b.id, "en", { numeric: true })
           : a.name.localeCompare(b.name),
     );
+  const pageSize = 50,
+    totalPages = Math.max(1, Math.ceil(products.length / pageSize)),
+    currentPage = Math.min(page, totalPages);
   return (
     <>
       <PageTitle
@@ -96,7 +100,10 @@ export function Inventory() {
             <input
               aria-label="Search inventory"
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
               placeholder="Search products, SKU, unit or tag ID…"
             />
           </label>
@@ -104,7 +111,10 @@ export function Inventory() {
             <select
               aria-label="Category filter"
               value={category}
-              onChange={(e) => setCategory(e.target.value)}
+              onChange={(e) => {
+                setCategory(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="">All categories</option>
               {data.master.categories.map((c) => (
@@ -116,7 +126,10 @@ export function Inventory() {
             <select
               aria-label="Status filter"
               value={status}
-              onChange={(e) => setStatus(e.target.value)}
+              onChange={(e) => {
+                setStatus(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="">All statuses</option>
               {[...new Set(data.units.map((u) => u.status))].map((s) => (
@@ -126,7 +139,10 @@ export function Inventory() {
             <select
               aria-label="Location filter"
               value={location}
-              onChange={(e) => setLocation(e.target.value)}
+              onChange={(e) => {
+                setLocation(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="">All locations</option>
               {data.master.locations.map((l) => (
@@ -145,7 +161,10 @@ export function Inventory() {
             <select
               aria-label="Sort inventory"
               value={sort}
-              onChange={(e) => setSort(e.target.value)}
+              onChange={(e) => {
+                setSort(e.target.value);
+                setPage(1);
+              }}
             >
               <option value="name">Product name</option>
               <option value="price">Price, low to high</option>
@@ -177,61 +196,65 @@ export function Inventory() {
               </tr>
             </thead>
             <tbody>
-              {products.map((p) => {
-                const units = data.units.filter((u) => u.product_id === p.id),
-                  pending = units.filter(
-                    (u) => u.status === "Pending Restock",
-                  ).length;
-                return (
-                  <tr key={p.id}>
-                    <td>
-                      <button
-                        className="product-cell"
-                        onClick={() => openProduct(p.id)}
-                      >
-                        <span className="product-monogram">
-                          {p.name
-                            .split(" ")
-                            .map((s) => s[0])
-                            .slice(0, 2)
-                            .join("")}
-                        </span>
-                        <span>
-                          <strong>{p.name}</strong>
-                          <small className="mono">{p.id}</small>
-                        </span>
-                      </button>
-                    </td>
-                    <td>
-                      {p.categoryId}
-                      <small>{p.subcategory}</small>
-                    </td>
-                    <td>
-                      {p.size}
-                      <small>{p.color}</small>
-                    </td>
-                    <td className="mono">{money(p.price)}</td>
-                    <td>
-                      <span className="location-pill">{p.locationId}</span>
-                    </td>
-                    <td>
-                      <strong>{units.length}</strong>
-                      {pending > 0 && (
-                        <small className="amber-text">{pending} pending</small>
-                      )}
-                    </td>
-                    <td>
-                      <button
-                        className="icon-button"
-                        aria-label={`Open ${p.name}`}
-                        onClick={() => openProduct(p.id)}
-                      >
-                        <ArrowRight size={17} />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
+              {products
+                .slice((currentPage - 1) * pageSize, currentPage * pageSize)
+                .map((p) => {
+                  const units = data.units.filter((u) => u.product_id === p.id),
+                    pending = units.filter(
+                      (u) => u.status === "Pending Restock",
+                    ).length;
+                  return (
+                    <tr key={p.id}>
+                      <td>
+                        <button
+                          className="product-cell"
+                          onClick={() => openProduct(p.id)}
+                        >
+                          <span className="product-monogram">
+                            {p.name
+                              .split(" ")
+                              .map((s) => s[0])
+                              .slice(0, 2)
+                              .join("")}
+                          </span>
+                          <span>
+                            <strong>{p.name}</strong>
+                            <small className="mono">{p.id}</small>
+                          </span>
+                        </button>
+                      </td>
+                      <td>
+                        {p.categoryId}
+                        <small>{p.subcategory}</small>
+                      </td>
+                      <td>
+                        {p.size}
+                        <small>{p.color}</small>
+                      </td>
+                      <td className="mono">{money(p.price)}</td>
+                      <td>
+                        <span className="location-pill">{p.locationId}</span>
+                      </td>
+                      <td>
+                        <strong>{units.length}</strong>
+                        {pending > 0 && (
+                          <small className="amber-text">
+                            {pending} pending
+                          </small>
+                        )}
+                      </td>
+                      <td>
+                        <button
+                          className="icon-button"
+                          aria-label={`Open ${p.name}`}
+                          onClick={() => openProduct(p.id)}
+                        >
+                          <ArrowRight size={17} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
@@ -241,6 +264,26 @@ export function Inventory() {
           </Empty>
         )}
       </section>
+      <nav className="inventory-pagination" aria-label="Inventory pages">
+        <button
+          className="secondary"
+          disabled={currentPage === 1}
+          onClick={() => setPage(currentPage - 1)}
+        >
+          Previous page
+        </button>
+        <span>
+          Page {currentPage} of {totalPages} · up to {pageSize} products per
+          page
+        </span>
+        <button
+          className="secondary"
+          disabled={currentPage === totalPages}
+          onClick={() => setPage(currentPage + 1)}
+        >
+          Next page
+        </button>
+      </nav>
       <section className="panel unit-list">
         <div className="section-heading">
           <div>
