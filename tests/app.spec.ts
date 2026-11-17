@@ -32,6 +32,29 @@ test("signed-out staff gate and invalid login", async ({ page }) => {
 });
 test.describe("administrator workspace", () => {
   test.use({ storageState: ".private/administrator.state.json" });
+  test("tag pool covers all 500 store capacity slots", async ({ page }) => {
+    await page.goto("/tags");
+    await expect(page.locator(".summary-line")).toContainText("500 total tags");
+    await expect(page.locator(".summary-line")).toContainText(
+      "500 capacity slots",
+    );
+    await page.getByLabel("Tag status filter").selectOption("Available");
+    await expect(page.locator(".tag-card").first()).toBeVisible();
+    await page.locator(".tag-card").first().click();
+    await expect(page.getByRole("dialog").locator("canvas")).toBeVisible();
+    await expect(page.getByRole("dialog")).toContainText(
+      "Assign to an eligible unit",
+    );
+    await page.getByLabel("Close dialog").click();
+    await page.setViewportSize({ width: 320, height: 640 });
+    await page.reload();
+    await expect(page.locator(".summary-line")).toContainText("500 total tags");
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+  });
   test("dashboard, inventory lookup, unit details and generated QR", async ({
     page,
   }) => {

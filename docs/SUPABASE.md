@@ -6,7 +6,9 @@ The connected ReRun project is `ikuvbteklxjbsixwhril` in `us-east-1`, verified A
 
 Master revision 13 contains 1,000 unique product IDs, names, and SKUs. It preserves the prior 208 products and adds 792 fictional variants. Barcode aliases are unique where supplied; legacy products can have no barcode because QR lookup uses product/unit IDs. The 16 locations provide exactly 500 configured slots: Clothing Rack D has 50, and the other 15 fixtures have 30 each.
 
-The mock workspace contains 127 permanent unit records. It has 100 recorded placements, 27 restock reservations, and 373 uncommitted slots. All 127 allocated units have one assigned smart tag each. Existing unit/tag assignments, staff accounts, and history were preserved. Setup used the version-checked command API and retained ignored local verification records. These records describe a fictional store, not measured physical stock.
+As of November 17, 2026, the reusable tag pool contains exactly 500 tags for the 500 configured capacity slots: 131 assigned to existing units and 369 available for future arrivals. Existing unit/tag assignments, staff accounts, and history were preserved; expanding the pool created no additional stock. Tags are assigned to physical unit records when stock is allocated, and unoccupied capacity is covered by available tags. These records describe a fictional store, not measured physical stock.
+
+`supabase/maintenance/sync_tag_pool_to_capacity.sql` safely expands the pool through the existing administrator-checked registration command under the store transaction lock. It refuses unlimited or reduced-capacity configurations that need review, preserves assignments, and never deletes historical tags. Re-running it at the target count creates no duplicates. Smart Tags displays both the total tag count and configured slot capacity.
 
 ## Access and storage
 

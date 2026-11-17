@@ -1,5 +1,11 @@
 # Verification record
 
+## One tag per capacity slot — November 17, 2026
+
+The store's 500-slot capacity is now covered by exactly 500 reusable tag records. The 131 existing assigned tags were preserved, and 369 available tags were registered for future stock. No unit records or location capacities were changed. The maintenance operation uses the existing administrator-checked command API in one serialized transaction and asserts that every previous assignment is intact. A second run verified idempotence: total 500, assigned 131, available 369.
+
+Smart Tags now displays the total pool and capacity-slot count together. The summary wraps on small screens. The tag-pool browser regression checks the 500/500 totals, available-tag filtering, a spare tag's QR label/assignment dialog, and a 320px mobile layout.
+
 ## Centered, responsive popups — November 16, 2026
 
 The Review & place dialog reproduced at x=0/y=0 on a 1440×1000 viewport because the shared dialog's margins were reset to zero. The shared Modal now explicitly centers itself within the visible viewport, constrains its width/height, and scrolls content beneath a persistent title/close header. The same component serves item details, receiving, pricing, tag management/registration, employee dialogs, master editors, and private activation.

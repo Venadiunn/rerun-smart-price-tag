@@ -16,6 +16,10 @@ export function Tags() {
     unit = data.units.find((u) => u.id === tag?.unit_id),
     product = data.master.products.find((p) => p.id === unit?.product_id);
   const updates = data.updates.filter((u) => u.tag_id === tag?.id);
+  const capacity = data.master.locations.reduce(
+    (sum, l) => sum + (l.capacity ?? 0),
+    0,
+  );
   const unitsById = new Map(data.units.map((u) => [u.id, u])),
     productsById = new Map(data.master.products.map((p) => [p.id, p]));
   const filtered = data.tags.filter((t) => {
@@ -34,7 +38,7 @@ export function Tags() {
       <PageTitle
         eyebrow="ASSIGN · RECOVER · REUSE"
         title="A new chapter for every tag."
-        description="Keep physical units and reusable tags connected, with a history of every assignment."
+        description="One reusable smart tag for each capacity slot. Assigned tags follow units; available tags cover unoccupied slots."
         actions={
           isManager(data.profile.role) && (
             <button className="primary" onClick={() => setRegister(true)}>
@@ -45,6 +49,12 @@ export function Tags() {
         }
       />
       <div className="summary-line">
+        <span>
+          <strong>{data.tags.length}</strong> total tags
+        </span>
+        <span>
+          <strong>{capacity}</strong> capacity slots
+        </span>
         <span>
           <strong>
             {data.tags.filter((t) => t.status === "Assigned").length}

@@ -1675,6 +1675,7 @@ pre {
 }
 .summary-line {
   display: flex;
+  flex-wrap: wrap;
   gap: 25px;
   font-size: 11px;
   color: #9297a6;
