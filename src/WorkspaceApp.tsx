@@ -1,5 +1,6 @@
 import { useEffect, useState, lazy, Suspense } from "react";
 import type { Session } from "@supabase/supabase-js";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 import {
   QueryClient,
   QueryClientProvider,
@@ -333,6 +334,7 @@ function Runtime() {
           Saving changes…
         </div>
       )}
+      <SpeedInsights />
     </WorkspaceContext.Provider>
   );
 }
