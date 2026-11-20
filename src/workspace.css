@@ -1746,3 +1746,64 @@
 .destination-details [data-slot="item"] {
   cursor: pointer;
 }
+
+/* Keep interactive surfaces discoverable without changing their dimensions. */
+:is(
+  .tag-card,
+  .unit-card,
+  .store-fixture,
+  .map-location,
+  .queue-item,
+  .product-cell,
+  button[data-slot="item"],
+  a[data-slot="item"],
+  [data-variant="ghost"],
+  [data-slot="tabs-trigger"]
+) {
+  outline: 1px solid color-mix(in oklch, var(--foreground) 14%, transparent);
+  outline-offset: -1px;
+  transition-property: background-color, outline-color, box-shadow;
+  transition-duration: 150ms;
+}
+
+:is(
+    .tag-card,
+    .unit-card,
+    .store-fixture,
+    .map-location,
+    .queue-item,
+    .product-cell,
+    button[data-slot="item"],
+    a[data-slot="item"],
+    [data-variant="ghost"],
+    [data-slot="tabs-trigger"]
+  ):not(:disabled):not([aria-disabled="true"]):is(:hover, :active) {
+  outline-color: color-mix(in oklch, var(--foreground) 32%, transparent);
+  background-color: var(--muted);
+  transform: none;
+}
+
+:is(.store-fixture, .map-location, [data-slot="tabs-trigger"]):is(
+  .selected,
+  [aria-pressed="true"],
+  [data-active]
+) {
+  outline-color: color-mix(in oklch, var(--foreground) 45%, transparent);
+  background-color: var(--muted);
+}
+
+:is(
+  .tag-card,
+  .unit-card,
+  .store-fixture,
+  .map-location,
+  .queue-item,
+  .product-cell,
+  button[data-slot="item"],
+  a[data-slot="item"],
+  [data-variant="ghost"],
+  [data-slot="tabs-trigger"]
+):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: -2px;
+}
