@@ -57,7 +57,7 @@
     color: var(--primary);
     background: var(--muted);
     font-weight: 700;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .panel {
     background: white;
@@ -78,17 +78,17 @@
     display: flex;
     align-items: center;
     gap: 9px;
-    font-size: 16px;
+    font-size: 1rem;
   }
   .section-heading a {
     display: flex;
     align-items: center;
     gap: 7px;
     color: var(--primary);
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .count {
-    font-size: 12px;
+    font-size: 0.875rem;
     border: 1px solid var(--border);
     border-radius: 5px;
     padding: 3px 7px;
@@ -128,7 +128,7 @@
     color: var(--destructive);
   }
   .stat > span {
-    font-size: 12px;
+    font-size: 0.875rem;
     letter-spacing: 1px;
     color: var(--muted-foreground);
     font-weight: 650;
@@ -137,13 +137,13 @@
     line-height: 1.5;
   }
   .stat > strong {
-    font-size: 35px;
+    font-size: 2.1875rem;
     letter-spacing: -1.5px;
     line-height: 1;
     font-weight: 600;
   }
   .stat > small {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--primary);
     margin-top: 14px;
   }
@@ -165,11 +165,11 @@
     background: var(--card);
   }
   .queue-item strong {
-    font-size: 12px;
+    font-size: 0.875rem;
     display: block;
   }
   .queue-item small {
-    font-size: 12px;
+    font-size: 0.875rem;
     display: block;
     color: var(--primary);
     margin-top: 5px;
@@ -180,7 +180,7 @@
   }
   .queue-dest {
     margin-left: auto;
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--primary);
     display: flex;
     align-items: center;
@@ -221,18 +221,18 @@
   }
   .timeline strong {
     display: block;
-    font-size: 12px;
+    font-size: 0.875rem;
     text-transform: capitalize;
   }
   .timeline small {
     display: block;
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--primary);
     margin: 4px 0;
     overflow-wrap: anywhere;
   }
   .timeline time {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
   .mini-locations {
@@ -251,10 +251,10 @@
     color: var(--primary);
   }
   .mini-locations strong {
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .mini-locations small {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--primary);
   }
   .capacity-bar {
@@ -282,11 +282,11 @@
     color: var(--primary);
   }
   .calm-empty h3 {
-    font-size: 14px;
+    font-size: 1rem;
     color: var(--primary);
   }
   .calm-empty p {
-    font-size: 12px;
+    font-size: 0.875rem;
     max-width: 320px;
   }
   .empty {
@@ -297,10 +297,10 @@
     margin: 12px 0 6px;
   }
   .empty p {
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .empty-orbit {
-    font-size: 32px;
+    font-size: 2rem;
     color: var(--primary);
   }
   .table-toolbar {
@@ -328,7 +328,7 @@
     background: transparent;
     border: 0;
     padding: 10px 0;
-    font-size: 12px;
+    font-size: 0.875rem;
     font-weight: 400;
   }
   .filter-row {
@@ -336,7 +336,7 @@
     gap: 8px;
   }
   .filter-row select {
-    font-size: 12px;
+    font-size: 0.875rem;
     max-width: 165px;
     padding: 10px;
   }
@@ -345,13 +345,13 @@
     align-items: center;
     justify-content: space-between;
     padding: 15px 24px;
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--primary);
   }
   .table-caption select {
     border: 0;
     width: auto;
-    font-size: 12px;
+    font-size: 0.875rem;
     padding: 5px;
     background: transparent;
   }
@@ -373,11 +373,11 @@
   }
   .product-cell small {
     color: var(--muted-foreground);
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .location-pill {
     display: inline-block;
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--primary);
     background: var(--muted);
     border: 1px solid var(--border);
@@ -408,17 +408,17 @@
     background: var(--card);
   }
   .unit-card strong {
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .unit-card small {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--primary);
     max-width: 100%;
     overflow: hidden;
     text-overflow: ellipsis;
   }
   .unit-card > span:last-child {
-    font-size: 12px;
+    font-size: 0.875rem;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -432,12 +432,12 @@
     margin-bottom: 24px;
   }
   .product-detail-head h2 {
-    font-size: 22px;
+    font-size: 1.375rem;
     margin-bottom: 5px;
   }
   .detail-price {
     margin-left: auto;
-    font-size: 22px;
+    font-size: 1.375rem;
     white-space: nowrap;
   }
   .destination {
@@ -453,20 +453,20 @@
   }
   .destination small {
     display: block;
-    font-size: 12px;
+    font-size: 0.875rem;
     font-weight: 650;
     letter-spacing: 0.8px;
   }
   .destination strong {
     display: block;
-    font-size: 20px;
+    font-size: 1.25rem;
     color: var(--primary);
     line-height: 1.5;
     margin-top: 6px;
     overflow-wrap: anywhere;
   }
   .destination span {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--primary);
   }
   .detail-columns {
@@ -482,11 +482,11 @@
   }
   .facts small {
     display: block;
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
   .facts strong {
-    font-size: 12px;
+    font-size: 0.875rem;
     display: block;
     margin-top: 5px;
   }
@@ -495,7 +495,7 @@
     justify-content: space-between;
     align-items: center;
     margin: 17px 0;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .transition-actions {
     display: flex;
@@ -504,7 +504,7 @@
     margin: 17px 0;
   }
   .subheading {
-    font-size: 12px;
+    font-size: 0.875rem;
     margin: 24px 0 15px;
   }
   .timeline.compact {
@@ -514,7 +514,7 @@
     min-height: 53px;
   }
   .timeline.compact time {
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .label-sidebar {
     background: var(--muted);
@@ -549,21 +549,21 @@
   }
   .qr-paper strong {
     font:
-      10px Consolas,
+      0.875rem Consolas,
       monospace;
     max-width: 230px;
     overflow-wrap: anywhere;
     text-align: center;
   }
   .qr-paper small {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
   .disclosure {
     margin-top: 20px;
     border-top: 1px solid var(--border);
     padding-top: 15px;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .disclosure summary {
     display: flex;
@@ -589,7 +589,7 @@
     padding-right: 0;
   }
   .live-label {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--primary);
     letter-spacing: 1px;
   }
@@ -623,10 +623,10 @@
   }
   .camera-placeholder h3 {
     color: var(--primary);
-    font-size: 13px;
+    font-size: 0.9375rem;
   }
   .camera-placeholder p {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
   .scanner-controls {
@@ -661,20 +661,20 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
     margin-bottom: 12px;
   }
   .manual-entry textarea {
     font:
-      11px Consolas,
+      0.875rem Consolas,
       monospace;
   }
   .manual-entry button {
     margin-top: 10px;
   }
   .scan-result > h2 {
-    font-size: 22px;
+    font-size: 1.375rem;
     margin-top: 8px;
     margin-bottom: 7px;
   }
@@ -695,7 +695,7 @@
   }
   .scan-comparison small {
     color: var(--muted-foreground);
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .scan-result label {
     margin-bottom: 15px;
@@ -704,18 +704,18 @@
     padding: 20px 24px;
   }
   .demo-scenarios summary {
-    font-size: 12px;
+    font-size: 0.875rem;
     cursor: pointer;
     font-weight: 600;
   }
   .demo-scenarios summary span {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
     margin-left: 12px;
     font-weight: 400;
   }
   .demo-scenarios p {
-    font-size: 12px;
+    font-size: 0.875rem;
     margin: 15px 0;
   }
   .map-layout {
@@ -732,7 +732,7 @@
   }
   .map-layout .section-heading select {
     max-width: 165px;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .map-floor {
     margin: 0 24px;
@@ -744,14 +744,14 @@
   .map-entrance {
     text-align: center;
     color: var(--muted-foreground);
-    font-size: 12px;
+    font-size: 0.875rem;
     letter-spacing: 2px;
     margin-bottom: 25px;
   }
   .map-entrance span {
     display: block;
     margin-top: 5px;
-    font-size: 18px;
+    font-size: 1.125rem;
   }
   .location-grid {
     display: grid;
@@ -780,11 +780,11 @@
     border-color: var(--border);
   }
   .map-location small {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
   .map-location strong {
-    font-size: 18px;
+    font-size: 1.125rem;
     letter-spacing: -0.5px;
   }
   .map-location .capacity-bar {
@@ -802,7 +802,7 @@
     align-items: center;
     gap: 5px;
     color: var(--muted-foreground);
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .map-legend i {
     width: 6px;
@@ -820,7 +820,7 @@
     padding: 15px 24px 22px;
   }
   .location-title {
-    font-size: 19px;
+    font-size: 1.1875rem;
     line-height: 1.5;
     overflow-wrap: anywhere;
     margin: 8px 0 25px;
@@ -834,24 +834,24 @@
     border-bottom: 1px solid var(--border);
     width: 100%;
     text-align: left;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .location-item small {
     display: block;
     color: var(--muted-foreground);
     margin-top: 6px;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .summary-line {
     display: flex;
     flex-wrap: wrap;
     gap: 25px;
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--primary);
     margin-bottom: 24px;
   }
   .summary-line strong {
-    font-size: 18px;
+    font-size: 1.125rem;
     color: var(--primary);
     margin-right: 5px;
   }
@@ -879,16 +879,16 @@
     gap: 10px;
   }
   .tag-card > strong {
-    font-size: 16px;
+    font-size: 1rem;
     letter-spacing: 0.3px;
   }
   .tag-card p {
-    font-size: 12px;
+    font-size: 0.875rem;
     min-height: 36px;
     color: var(--muted-foreground);
   }
   .tag-card > small {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -898,7 +898,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--primary);
     border-top: 1px solid var(--border);
     padding-top: 15px;
@@ -917,29 +917,29 @@
     color: var(--foreground);
   }
   .digital-tag > small:first-child {
-    font-size: 12px;
+    font-size: 0.875rem;
     letter-spacing: 1px;
     color: var(--muted-foreground);
   }
   .digital-tag h2 {
-    font-size: 20px;
+    font-size: 1.25rem;
   }
   .digital-tag > strong {
-    font-size: 38px;
+    font-size: 2.375rem;
     letter-spacing: -1px;
   }
   .digital-tag > span {
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .digital-tag > p {
-    font-size: 16px;
+    font-size: 1rem;
     font-weight: 600;
     color: var(--warning);
     border-top: 1px solid var(--border);
     padding-top: 14px;
   }
   .digital-tag small {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
     overflow-wrap: anywhere;
   }
@@ -956,22 +956,22 @@
     justify-content: space-between;
   }
   .display-attempt small {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
   .display-attempt p {
-    font-size: 12px;
+    font-size: 0.875rem;
     margin: 12px 0;
   }
   .display-attempt .actions {
     margin-top: 12px;
   }
   .display-attempt .danger-text {
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .section-copy {
     padding: 0 24px 20px;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .suggestion-grid {
     display: grid;
@@ -989,7 +989,7 @@
     gap: 11px;
   }
   .suggestion h3 {
-    font-size: 12px;
+    font-size: 0.875rem;
     min-height: 37px;
     line-height: 1.6;
   }
@@ -1000,7 +1000,7 @@
     flex-wrap: wrap;
   }
   .price-pair strong {
-    font-size: 18px;
+    font-size: 1.125rem;
     letter-spacing: -0.3px;
   }
   .price-pair svg {
@@ -1008,12 +1008,12 @@
   }
   .suggestion p,
   .suggestion small {
-    font-size: 12px;
+    font-size: 0.875rem;
     line-height: 1.6;
   }
   .reason-cell {
     max-width: 280px;
-    font-size: 12px;
+    font-size: 0.875rem;
     line-height: 1.7;
   }
   .rules-form {
@@ -1039,7 +1039,7 @@
   }
   .master-status strong {
     display: block;
-    font-size: 13px;
+    font-size: 0.9375rem;
   }
   .master-tabs {
     display: flex;
@@ -1057,7 +1057,7 @@
     text-transform: capitalize;
     padding: 8px 12px;
     border-radius: 6px;
-    font-size: 12px;
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--muted-foreground);
     display: flex;
@@ -1070,7 +1070,7 @@
     color: var(--primary);
   }
   .tabs button span {
-    font-size: 12px;
+    font-size: 0.875rem;
     background: var(--card);
     border-radius: 4px;
     padding: 2px 5px;
@@ -1078,7 +1078,7 @@
   }
   .change-list {
     font:
-      11px/1.8 Consolas,
+      0.875rem/1.8 Consolas,
       monospace;
     margin: 0 24px 18px;
     padding: 0 0 0 16px;
@@ -1096,10 +1096,10 @@
   }
   .revision-row strong {
     display: block;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .revision-row small {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
     display: block;
     margin-top: 5px;
@@ -1119,7 +1119,7 @@
   }
   .event-name {
     text-transform: capitalize;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .event-details {
     min-width: 210px;
@@ -1136,14 +1136,14 @@
     gap: 14px;
   }
   .scan-history-top time {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
   .scan-history p {
     margin: 12px 0;
   }
   .scan-history details {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
   .scan-history button {
@@ -1175,7 +1175,7 @@
     margin-bottom: 25px;
   }
   .account-card strong {
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .workspace-facts > div {
     display: flex;
@@ -1183,7 +1183,7 @@
     gap: 25px;
     padding: 17px 0;
     border-bottom: 1px solid var(--border);
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .workspace-facts dt {
     color: var(--muted-foreground);
@@ -1216,10 +1216,10 @@
       padding: 20px 16px;
     }
     .stat > span {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .stat small {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .tag-grid,
     .suggestion-grid {
@@ -1229,7 +1229,7 @@
       grid-template-columns: 1.3fr 1fr;
     }
     .queue-dest {
-      font-size: 12px;
+      font-size: 0.875rem;
       max-width: 40%;
     }
     .unit-grid {
@@ -1247,10 +1247,10 @@
       min-height: 145px;
     }
     .stat small {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .stat > span {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .dashboard-grid {
       grid-template-columns: 1fr;
@@ -1278,7 +1278,7 @@
       max-width: none;
     }
     .queue-dest {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .section-heading {
       flex-wrap: wrap;
@@ -1298,15 +1298,15 @@
       padding: 19px 15px;
     }
     .stat > span {
-      font-size: 12px;
+      font-size: 0.875rem;
       max-width: 65%;
       min-height: 24px;
     }
     .stat strong {
-      font-size: 31px;
+      font-size: 1.9375rem;
     }
     .stat small {
-      font-size: 12px;
+      font-size: 0.875rem;
       line-height: 1.5;
     }
     .dashboard-grid {
@@ -1316,20 +1316,20 @@
       padding: 20px;
     }
     .section-heading h2 {
-      font-size: 15px;
+      font-size: 1rem;
     }
     .section-heading a {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .queue-item {
       padding: 16px 20px;
     }
     .queue-item small {
       max-width: 120px;
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .queue-dest {
-      font-size: 12px;
+      font-size: 0.875rem;
       max-width: 40%;
     }
     .mini-locations {
@@ -1346,19 +1346,19 @@
       gap: 6px;
     }
     .filter-row select {
-      font-size: 12px;
+      font-size: 0.875rem;
       max-width: 33%;
       padding: 9px 6px;
     }
     .table-caption {
       padding: 12px 20px;
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .table-caption .actions {
       gap: 5px;
     }
     .table-caption select {
-      font-size: 12px;
+      font-size: 0.875rem;
       max-width: 120px;
     }
     .unit-grid {
@@ -1370,13 +1370,13 @@
       gap: 8px;
     }
     .unit-card strong {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .unit-card small {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .unit-card > span:last-child {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .detail-columns {
       grid-template-columns: 1fr;
@@ -1387,16 +1387,16 @@
       flex-wrap: wrap;
     }
     .product-detail-head h2 {
-      font-size: 19px;
+      font-size: 1.1875rem;
     }
     .product-detail-head > div:nth-child(2) {
       flex: 1;
     }
     .detail-price {
-      font-size: 19px;
+      font-size: 1.1875rem;
     }
     .destination strong {
-      font-size: 17px;
+      font-size: 1.0625rem;
     }
     .destination {
       padding: 17px;
@@ -1428,11 +1428,11 @@
     }
     .summary-line {
       gap: 15px;
-      font-size: 12px;
+      font-size: 0.875rem;
       flex-wrap: wrap;
     }
     .summary-line strong {
-      font-size: 16px;
+      font-size: 1rem;
     }
     .tag-grid {
       gap: 12px;
@@ -1442,13 +1442,13 @@
       gap: 11px;
     }
     .tag-card > strong {
-      font-size: 14px;
+      font-size: 1rem;
     }
     .tag-card p {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .tag-card > small {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .tag-card-top {
       gap: 5px;
@@ -1465,14 +1465,14 @@
       gap: 9px;
     }
     .suggestion h3 {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .price-pair strong {
-      font-size: 16px;
+      font-size: 1rem;
     }
     .suggestion p,
     .suggestion small {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .rules-form {
       padding: 0 20px 20px;
@@ -1483,7 +1483,7 @@
       flex-wrap: wrap;
     }
     .master-status strong {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .master-tabs {
       padding: 17px 20px;
@@ -1493,7 +1493,7 @@
       gap: 2px;
     }
     .tabs button {
-      font-size: 12px;
+      font-size: 0.875rem;
       padding: 8px 10px;
     }
     .revision-row {
@@ -1530,16 +1530,16 @@
       padding: 14px;
     }
     .map-location strong {
-      font-size: 17px;
+      font-size: 1.0625rem;
     }
     .map-location small {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .map-legend {
       gap: 9px;
     }
     .map-legend span {
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .section-copy {
       padding-left: 20px;
@@ -1580,7 +1580,7 @@
     flex-wrap: wrap;
     gap: 12px;
     margin: 20px 0 28px;
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
   .store-overview > div {
@@ -1593,18 +1593,18 @@
     gap: 8px;
   }
   .store-overview span {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
     letter-spacing: 1px;
     font-weight: 600;
   }
   .store-overview strong {
-    font-size: 30px;
+    font-size: 1.875rem;
     color: var(--foreground);
     letter-spacing: -1px;
   }
   .store-overview small {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
   .store-view-controls {
@@ -1629,7 +1629,7 @@
     border: 1px solid var(--border);
     border-radius: 8px;
     padding: 14px;
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .store-back-wall > span,
   .store-front-wall > span {
@@ -1639,7 +1639,7 @@
   }
   .store-back-wall > span:last-child {
     color: var(--muted-foreground);
-    font-size: 12px;
+    font-size: 0.875rem;
     letter-spacing: 1px;
   }
   .store-walkway {
@@ -1648,7 +1648,7 @@
     justify-content: center;
     gap: 12px;
     color: var(--primary);
-    font-size: 12px;
+    font-size: 0.875rem;
     letter-spacing: 2px;
     padding: 18px 0;
   }
@@ -1668,7 +1668,7 @@
     margin-bottom: 12px;
   }
   .store-aisle h3 {
-    font-size: 12px;
+    font-size: 0.875rem;
     margin-top: 4px;
   }
   .store-fixtures {
@@ -1706,11 +1706,11 @@
     gap: 4px;
   }
   .fixture-top strong {
-    font-size: 12px;
+    font-size: 0.875rem;
   }
   .fixture-top small,
   .fixture-counts {
-    font-size: 12px;
+    font-size: 0.875rem;
     color: var(--muted-foreground);
   }
   .fixture-slots {
@@ -1739,7 +1739,7 @@
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
-    font-size: 12px;
+    font-size: 0.875rem;
     margin: 18px 0 12px;
     color: var(--primary);
   }
@@ -1772,7 +1772,7 @@
       padding: 15px;
     }
     .store-overview strong {
-      font-size: 26px;
+      font-size: 1.625rem;
     }
     .store-aisles {
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1806,7 +1806,7 @@
     }
     .store-front-wall {
       padding: 10px;
-      font-size: 12px;
+      font-size: 0.875rem;
     }
     .store-view-controls {
       padding-left: 20px;

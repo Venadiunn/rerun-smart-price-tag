@@ -19,7 +19,7 @@ import {
   NativeSelectOption,
 } from "@/components/ui/native-select";
 import { Card } from "@/components/ui/card";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Link } from "@tanstack/react-router";
 import { useWorkspace } from "../lib/context";
@@ -33,6 +33,14 @@ export function Locations() {
     [view, setView] = useState("floor"),
     [detailLimit, setDetailLimit] = useState(20),
     [department, setDepartment] = useState("");
+  const detailHeading = useRef<HTMLHeadingElement>(null);
+  const schematicHeading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (selected && matchMedia("(max-width: 1100px)").matches) {
+      detailHeading.current?.focus({ preventScroll: true });
+      detailHeading.current?.scrollIntoView({ block: "start" });
+    }
+  }, [selected]);
   const locations = data.master.locations.filter(
       (l) => !department || l.department === department,
     ),
@@ -99,7 +107,13 @@ export function Locations() {
       <div className="map-layout">
         <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
-            <h2>Store schematic</h2>
+            <h2
+              ref={schematicHeading}
+              tabIndex={-1}
+              className="location-focus-heading"
+            >
+              Store schematic
+            </h2>
             <NativeSelect
               aria-label="Department filter"
               value={department}
@@ -214,7 +228,26 @@ export function Locations() {
         </Card>
         <Card className="panel destination-details gap-0 py-0 ring-0">
           <div className="section-heading">
-            <h2>Destination details</h2>
+            <h2
+              ref={detailHeading}
+              tabIndex={-1}
+              className="location-focus-heading"
+            >
+              Destination details
+            </h2>
+            {location && (
+              <Button
+                className="location-back"
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  schematicHeading.current?.focus({ preventScroll: true });
+                  schematicHeading.current?.scrollIntoView({ block: "start" });
+                }}
+              >
+                Back to store schematic
+              </Button>
+            )}
           </div>
           {location ? (
             <>

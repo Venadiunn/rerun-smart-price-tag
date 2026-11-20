@@ -1,8 +1,16 @@
 import { supabase } from "./supabase";
 import type { Master, Snapshot } from "./types";
+export class SnapshotError extends Error {
+  readonly temporary: boolean;
+  constructor(message: string, temporary: boolean) {
+    super(message);
+    this.temporary = temporary;
+  }
+}
 export async function snapshot(): Promise<Snapshot> {
-  const { data, error } = await supabase.rpc("rerun_snapshot");
-  if (error) throw new Error(error.message);
+  const { data, error, status } = await supabase.rpc("rerun_snapshot");
+  if (error)
+    throw new SnapshotError(error.message, status === 0 || status >= 500);
   return data as Snapshot;
 }
 export async function command<T = { ok: boolean; id: string }>(

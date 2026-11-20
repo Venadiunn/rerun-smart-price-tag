@@ -31,7 +31,7 @@ for (const theme of ["light", "dark"] as const)
         const failures = await page.locator("main").evaluate((main) =>
           [
             ...main.querySelectorAll<HTMLElement>(
-              'h1,h2,h3,p,strong,small,label,[data-slot="item-title"],[data-slot="item-description"]',
+              'h1,h2,h3,p,strong,small,label,th,td,[data-slot="button"],[data-slot="tabs-trigger"],[data-slot="item-title"],[data-slot="item-description"]',
             ),
           ]
             .filter((e) => {
@@ -43,7 +43,7 @@ for (const theme of ["light", "dark"] as const)
               )
                 return false;
               return (
-                parseFloat(getComputedStyle(e).fontSize) < 12 ||
+                parseFloat(getComputedStyle(e).fontSize) < 14 ||
                 e.scrollHeight - e.clientHeight > 2 ||
                 e.scrollWidth - e.clientWidth > 2
               );
@@ -117,8 +117,8 @@ for (const theme of ["light", "dark"] as const) {
           expect(row.height).toBeGreaterThanOrEqual(64);
           expect(row.textOverflow).toBeLessThanOrEqual(1);
           expect(row.titleClipped).toBeLessThanOrEqual(1);
-          expect(row.titleSize).toBeGreaterThanOrEqual(14);
-          expect(row.codeSize).toBeGreaterThanOrEqual(12);
+          expect(row.titleSize).toBeGreaterThanOrEqual(16);
+          expect(row.codeSize).toBeGreaterThanOrEqual(14);
           expect(row.titleBottom).toBeLessThanOrEqual(row.codeTop + 1);
           expect(row.codeBottom).toBeLessThanOrEqual(row.bottom - 8);
           if (i) expect(bounds[i - 1].bottom).toBeLessThanOrEqual(row.top + 1);

@@ -17,7 +17,7 @@ import {
 } from "@tanstack/react-router";
 import { X, CheckCircle2, AlertCircle } from "lucide-react";
 import { supabase } from "./lib/supabase";
-import { snapshot } from "./lib/api";
+import { snapshot, SnapshotError } from "./lib/api";
 import { WorkspaceContext } from "./lib/context";
 import { Auth } from "./components/Auth";
 import { Busy } from "./components/ui";
@@ -140,7 +140,11 @@ function Runtime() {
   if (session === undefined) return <Busy />;
   if (!session) return <Auth />;
   if (query.isPending) return <Busy />;
-  if (query.error || !query.data?.revision)
+  if (
+    !query.data?.revision ||
+    (query.error &&
+      !(query.error instanceof SnapshotError && query.error.temporary))
+  )
     return (
       <div className="access-error">
         <AlertCircle size={35} />
@@ -171,6 +175,9 @@ function Runtime() {
       value={{
         data: query.data,
         busy: pending > 0,
+        updatedAt: query.dataUpdatedAt,
+        refreshing: query.isFetching,
+        refreshFailed: query.isRefetchError,
         run,
         refresh: async () => {
           await query.refetch();

@@ -62,7 +62,8 @@ const navigation = [
 ] as const;
 
 function WorkspaceFrame() {
-  const { data } = useWorkspace();
+  const { data, updatedAt, refreshing, refreshFailed, refresh } =
+    useWorkspace();
   const { isMobile, openMobile, setOpenMobile, toggleSidebar, state } =
     useSidebar();
   const path = useRouterState({ select: (s) => s.location.pathname });
@@ -181,7 +182,7 @@ function WorkspaceFrame() {
           <div className="flex shrink-0 items-center gap-1.5">
             <span className="connection-status hidden items-center gap-1.5 text-xs text-muted-foreground lg:flex">
               <i className="size-1.5 rounded-full bg-emerald-500" />
-              Master v{data.revision.revision} connected
+              Master v{data.revision.revision}
             </span>
             <AppearanceMenu />
             <DropdownMenu>
@@ -226,12 +227,38 @@ function WorkspaceFrame() {
           </div>
         </header>
         <main id="main" className="workspace-content">
+          {refreshFailed && (
+            <div className="notice warning" role="alert">
+              The latest refresh failed. Showing the last successfully loaded
+              data. Use Refresh data below to try again.
+            </div>
+          )}
           <Outlet />
         </main>
         <footer className="workspace-footer">
-          <span className="flex items-center gap-1.5">
-            Demonstration workspace
-          </span>
+          <div className="workspace-freshness">
+            <span>
+              Data refreshed{" "}
+              <time dateTime={new Date(updatedAt).toISOString()}>
+                {new Intl.DateTimeFormat(undefined, {
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit",
+                  second: "2-digit",
+                  timeZoneName: "short",
+                }).format(updatedAt)}
+              </time>
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={refreshing}
+              onClick={() => void refresh()}
+            >
+              {refreshing ? "Refreshing…" : "Refresh data"}
+            </Button>
+          </div>
           <span>Fictional inventory · Display updates are simulated</span>
         </footer>
       </div>

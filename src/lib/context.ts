@@ -3,6 +3,9 @@ import type { Snapshot } from "./types";
 export interface Workspace {
   data: Snapshot;
   busy: boolean;
+  updatedAt: number;
+  refreshing: boolean;
+  refreshFailed: boolean;
   run: <T>(work: () => Promise<T>, success?: string) => Promise<T | undefined>;
   refresh: () => Promise<void>;
   openProduct: (id: string, unitId?: string) => void;
