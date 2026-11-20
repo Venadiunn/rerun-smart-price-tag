@@ -39,7 +39,7 @@ export function AppearanceMenu() {
           >
             <Icon />
             <span className="flex-1">{label}</span>
-            {appearance === value && <Check aria-label="Selected" />}
+            {appearance === value && <Check aria-hidden="true" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
