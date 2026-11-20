@@ -1,6 +1,6 @@
 # ReRun workspace interface
 
-The interface uses the shadcn Base UI Nova components, with a neutral zinc palette, charcoal actions, Geist typography, subtle borders, and compact desktop spacing. The shadcn/ui repository and official registry are the design source for the entire interface. Decorative icons and monogram tiles are omitted; icons remain for essential controls and the collapsed navigation rail. Content rows grow with wrapped names and identifiers, with a minimum 12-pixel text size. Components follow [shadcn/ui](https://github.com/shadcn-ui/ui); ReRun retains its own logo and operational workflows.
+The interface uses the shadcn Base UI Nova components, with a neutral zinc palette, charcoal actions, Geist typography, subtle borders, and compact desktop spacing. The shadcn/ui repository and official registry are the design source for the entire interface. Decorative icons and monogram tiles are omitted; icons remain for essential controls and the collapsed navigation rail. Record cards and rows use labeled Open, View, Review, Manage, and Select buttons. Navigation, tabs, menus, native select fields, and disclosures retain their appropriate control patterns. Content rows grow with wrapped names and identifiers, with a minimum 12-pixel text size. Components follow [shadcn/ui](https://github.com/shadcn-ui/ui); ReRun retains its own logo and operational workflows.
 
 ## Navigation and appearance
 

@@ -74,42 +74,44 @@ for (const theme of ["light", "dark"] as const) {
       );
       await page.goto("/locations");
       await page
-        .getByRole("button", { name: /^Electronics-Aisle-2-Shelf-A:/ })
+        .getByRole("button", { name: /^Select Electronics-Aisle-2-Shelf-A:/ })
         .click();
       const list = page.getByRole("list", {
         name: "Assigned products",
         exact: true,
       });
-      await expect(list.getByRole("button").first()).toContainText(
-        "Wireless Earbuds Pro",
+      await expect(list.getByRole("button").first()).toHaveAccessibleName(
+        /Wireless Earbuds Pro/,
       );
       const checkRows = async () => {
-        const bounds = await list.getByRole("button").evaluateAll((rows) =>
-          rows.map((row) => {
-            const title = row.querySelector<HTMLElement>(
-              '[data-slot="item-title"]',
-            )!;
-            const code = row.querySelector<HTMLElement>(
-              '[data-slot="item-description"]',
-            )!;
-            const r = row.getBoundingClientRect(),
-              t = title.getBoundingClientRect(),
-              c = code.getBoundingClientRect();
-            return {
-              top: r.top,
-              bottom: r.bottom,
-              height: r.height,
-              width: r.width,
-              textOverflow: row.scrollWidth - row.clientWidth,
-              titleClipped: title.scrollHeight - title.clientHeight,
-              titleSize: parseFloat(getComputedStyle(title).fontSize),
-              codeSize: parseFloat(getComputedStyle(code).fontSize),
-              titleBottom: t.bottom,
-              codeTop: c.top,
-              codeBottom: c.bottom,
-            };
-          }),
-        );
+        const bounds = await list
+          .locator('[data-slot="item"]')
+          .evaluateAll((rows) =>
+            rows.map((row) => {
+              const title = row.querySelector<HTMLElement>(
+                '[data-slot="item-title"]',
+              )!;
+              const code = row.querySelector<HTMLElement>(
+                '[data-slot="item-description"]',
+              )!;
+              const r = row.getBoundingClientRect(),
+                t = title.getBoundingClientRect(),
+                c = code.getBoundingClientRect();
+              return {
+                top: r.top,
+                bottom: r.bottom,
+                height: r.height,
+                width: r.width,
+                textOverflow: row.scrollWidth - row.clientWidth,
+                titleClipped: title.scrollHeight - title.clientHeight,
+                titleSize: parseFloat(getComputedStyle(title).fontSize),
+                codeSize: parseFloat(getComputedStyle(code).fontSize),
+                titleBottom: t.bottom,
+                codeTop: c.top,
+                codeBottom: c.bottom,
+              };
+            }),
+          );
         expect(bounds.length).toBeGreaterThanOrEqual(20);
         for (const [i, row] of bounds.entries()) {
           expect(row.height).toBeGreaterThanOrEqual(64);

@@ -1,3 +1,4 @@
+import { DisclosureTrigger } from "../components/ui";
 import {
   Empty as EmptyState,
   EmptyHeader,
@@ -356,9 +357,9 @@ export function Scan() {
         </Card>
       </div>
       <details className="panel demo-scenarios">
-        <summary>
+        <DisclosureTrigger>
           Try a documented QR scenario <span>Fictional demonstration data</span>
-        </summary>
+        </DisclosureTrigger>
         <p>
           Choose a payload, then scan the generated label from Item details or
           use manual lookup. These examples never change master records.

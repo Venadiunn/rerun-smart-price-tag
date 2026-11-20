@@ -1,3 +1,5 @@
+import { DisclosureTrigger } from "../components/ui";
+import { Card } from "@/components/ui/card";
 import { Alert } from "@/components/ui/alert";
 import {
   NativeSelect,
@@ -113,12 +115,7 @@ export function Tags() {
       </div>
       <div className="tag-grid">
         {filtered.slice(0, limit).map((t) => (
-          <Button
-            type="button"
-            className="panel tag-card h-auto w-full whitespace-normal justify-start text-left"
-            key={t.id}
-            onClick={() => setSelected(t.id)}
-          >
+          <Card className="tag-card gap-0 py-0 ring-0" key={t.id}>
             <div className="tag-card-top">
               <Status value={t.status} />
             </div>
@@ -130,8 +127,17 @@ export function Tags() {
                 : "Ready for a future assignment"}
             </p>
             <small className="mono">{t.unit_id ?? "No active unit"}</small>
-            <span className="tag-manage">Manage tag</span>
-          </Button>
+            <div className="tag-manage">
+              <Button
+                type="button"
+                variant="outline"
+                aria-label={`Manage ${t.id}`}
+                onClick={() => setSelected(t.id)}
+              >
+                Manage tag
+              </Button>
+            </div>
+          </Card>
         ))}
       </div>
       {filtered.length === 0 && (
@@ -359,7 +365,9 @@ export function Tags() {
                 <p className="hint">No update attempts yet.</p>
               )}
               <details className="disclosure">
-                <summary>Assignment and recovery history</summary>
+                <DisclosureTrigger>
+                  Assignment and recovery history
+                </DisclosureTrigger>
                 {data.events
                   .filter((e) => e.entity_id === tag.id)
                   .map((e) => (

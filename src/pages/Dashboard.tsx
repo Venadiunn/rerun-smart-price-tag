@@ -1,4 +1,12 @@
 import {
+  Item,
+  ItemGroup,
+  ItemContent,
+  ItemTitle,
+  ItemDescription,
+  ItemActions,
+} from "@/components/ui/item";
+import {
   Empty as EmptyState,
   EmptyHeader,
   EmptyTitle,
@@ -61,9 +69,14 @@ export function Dashboard() {
             >
               Receive stock
             </Button>
-            <Link to="/scan" className="primary">
+            <Button
+              variant="default"
+              nativeButton={false}
+              role="link"
+              render={<Link to="/scan" />}
+            >
               Scan an item
-            </Link>
+            </Button>
           </>
         }
       />
@@ -85,30 +98,49 @@ export function Dashboard() {
                 Restocking queue <span className="count">{pending.length}</span>
               </h2>
             </div>
-            <Link to="/inventory">View inventory</Link>
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              role="link"
+              render={<Link to="/inventory" />}
+            >
+              View inventory
+            </Button>
           </div>
           {pending.length ? (
-            <div className="queue">
+            <ItemGroup className="queue gap-0">
               {pending.slice(0, 5).map((u) => {
                 const p = data.master.products.find(
                   (p) => p.id === u.product_id,
                 )!;
                 return (
-                  <Button
-                    type="button"
-                    className="queue-item h-auto w-full whitespace-normal justify-start text-left"
-                    key={u.id}
-                    onClick={() => openProduct(p.id, u.id)}
-                  >
-                    <span>
-                      <strong>{p.name}</strong>
-                      <small>{u.id}</small>
-                    </span>
-                    <span className="queue-dest">{u.destination_id}</span>
-                  </Button>
+                  <Item className="queue-item" role="listitem" key={u.id}>
+                    <ItemContent className="min-w-0">
+                      <ItemTitle className="line-clamp-none block break-words">
+                        {p.name}
+                      </ItemTitle>
+                      <ItemDescription className="line-clamp-none text-xs mono break-all">
+                        {u.id}
+                      </ItemDescription>
+                      <ItemDescription className="line-clamp-none text-xs">
+                        {u.destination_id}
+                      </ItemDescription>
+                    </ItemContent>
+                    <ItemActions>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        aria-label={"Review & place: " + u.id}
+                        onClick={() => openProduct(p.id, u.id)}
+                      >
+                        Review &amp; place
+                      </Button>
+                    </ItemActions>
+                  </Item>
                 );
               })}
-            </div>
+            </ItemGroup>
           ) : (
             <EmptyState className="calm-empty">
               <EmptyHeader>
@@ -125,7 +157,15 @@ export function Dashboard() {
             <div>
               <h2>Recent activity</h2>
             </div>
-            <Link to="/history">View history</Link>
+            <Button
+              variant="outline"
+              size="sm"
+              nativeButton={false}
+              role="link"
+              render={<Link to="/history" />}
+            >
+              View history
+            </Button>
           </div>
           <div className="timeline">
             {data.events.slice(0, 5).map((e) => (
@@ -146,7 +186,15 @@ export function Dashboard() {
           <div>
             <h2>Location capacity</h2>
           </div>
-          <Link to="/locations">Explore store map</Link>
+          <Button
+            variant="outline"
+            size="sm"
+            nativeButton={false}
+            role="link"
+            render={<Link to="/locations" />}
+          >
+            Explore store map
+          </Button>
         </div>
         <div className="mini-locations">
           {data.master.locations.slice(0, 4).map((l) => {

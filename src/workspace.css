@@ -641,7 +641,7 @@
   height: 20px;
   color: var(--muted-foreground);
 }
-.tag-card:hover {
+button.tag-card:hover {
   border-color: var(--ring);
 }
 .tag-workspace {
@@ -814,7 +814,7 @@
   display: block;
   padding: 10px;
 }
-.store-fixture:hover,
+button.store-fixture:hover,
 .store-fixture.selected {
   border-color: var(--ring);
   background: var(--primary-soft);
@@ -1749,12 +1749,12 @@
 
 /* Keep interactive surfaces discoverable without changing their dimensions. */
 :is(
-  .tag-card,
-  .unit-card,
-  .store-fixture,
-  .map-location,
-  .queue-item,
-  .product-cell,
+  button.tag-card,
+  button.unit-card,
+  button.store-fixture,
+  button.map-location,
+  button.queue-item,
+  button.product-cell,
   button[data-slot="item"],
   a[data-slot="item"],
   [data-variant="ghost"],
@@ -1767,12 +1767,12 @@
 }
 
 :is(
-    .tag-card,
-    .unit-card,
-    .store-fixture,
-    .map-location,
-    .queue-item,
-    .product-cell,
+    button.tag-card,
+    button.unit-card,
+    button.store-fixture,
+    button.map-location,
+    button.queue-item,
+    button.product-cell,
     button[data-slot="item"],
     a[data-slot="item"],
     [data-variant="ghost"],
@@ -1783,7 +1783,7 @@
   transform: none;
 }
 
-:is(.store-fixture, .map-location, [data-slot="tabs-trigger"]):is(
+:is(button.store-fixture, .map-location, [data-slot="tabs-trigger"]):is(
   .selected,
   [aria-pressed="true"],
   [data-active]
@@ -1793,12 +1793,12 @@
 }
 
 :is(
-  .tag-card,
-  .unit-card,
-  .store-fixture,
-  .map-location,
-  .queue-item,
-  .product-cell,
+  button.tag-card,
+  button.unit-card,
+  button.store-fixture,
+  button.map-location,
+  button.queue-item,
+  button.product-cell,
   button[data-slot="item"],
   a[data-slot="item"],
   [data-variant="ghost"],
@@ -1806,4 +1806,85 @@
 ):focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: -2px;
+}
+
+/* Labeled actions carry interaction; surrounding information stays readable. */
+.location-item [data-slot="item-actions"] {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.location-item {
+  cursor: default;
+  gap: 12px;
+}
+.destination-details [data-slot="item"] {
+  cursor: default;
+}
+.queue-item [data-slot="item-content"] {
+  min-width: 0;
+  flex: 1 1 180px;
+}
+.queue-item [data-slot="item-description"] {
+  overflow-wrap: anywhere;
+}
+.store-fixture,
+.map-location,
+.tag-card,
+.unit-card,
+.queue-item,
+.product-cell {
+  cursor: default;
+}
+.store-fixture {
+  align-items: stretch;
+}
+.store-fixture > [data-slot="button"],
+.map-location > [data-slot="button"] {
+  width: 100%;
+}
+.tag-manage {
+  width: 100%;
+}
+@media (max-width: 767px) {
+  .location-item [data-slot="item-actions"] {
+    width: 100%;
+  }
+  .queue-item [data-slot="item-actions"] {
+    width: 100%;
+  }
+}
+
+.disclosure-trigger,
+.disclosure .disclosure-trigger,
+.demo-scenarios .disclosure-trigger {
+  display: list-item;
+  list-style-position: inside;
+  width: fit-content;
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+  font-size: 14px;
+  line-height: 1.5;
+}
+details[open] > .disclosure-trigger {
+  background: var(--muted);
+}
+[data-slot="button"] {
+  overflow-wrap: anywhere;
+}
+.store-fixture > [data-slot="button"],
+.map-location > [data-slot="button"] {
+  height: auto;
+  min-height: 32px;
+  padding-inline: 8px;
+  white-space: nowrap;
+}
+@media (max-width: 767px) {
+  .store-fixture > [data-slot="button"],
+  .map-location > [data-slot="button"] {
+    min-height: 44px;
+  }
+  .disclosure-trigger {
+    min-height: 44px;
+  }
 }

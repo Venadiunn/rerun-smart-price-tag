@@ -1,3 +1,4 @@
+import { DisclosureTrigger } from "./ui";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -154,7 +155,9 @@ export function ProductDrawer({
               </div>
               {isManager(data.profile.role) && (
                 <details className="disclosure">
-                  <summary>Assign an overflow destination</summary>
+                  <DisclosureTrigger>
+                    Assign an overflow destination
+                  </DisclosureTrigger>
                   <form
                     className="stack"
                     onSubmit={(e) => {
@@ -214,7 +217,7 @@ export function ProductDrawer({
             </Alert>
           )}
           <details className="disclosure">
-            <summary>Receive additional stock</summary>
+            <DisclosureTrigger>Receive additional stock</DisclosureTrigger>
             <form
               className="inline-form"
               onSubmit={(e) => {

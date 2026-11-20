@@ -106,12 +106,22 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
       )}
       {compact ? (
         <div className="overview-sort-links">
-          <Link className="secondary" to="/inventory">
+          <Button
+            variant="outline"
+            nativeButton={false}
+            role="link"
+            render={<Link to="/inventory" />}
+          >
             Open restock route
-          </Link>
-          <Link className="secondary" to="/tags">
+          </Button>
+          <Button
+            variant="outline"
+            nativeButton={false}
+            role="link"
+            render={<Link to="/tags" />}
+          >
             View smart tags
-          </Link>
+          </Button>
         </div>
       ) : (
         <>

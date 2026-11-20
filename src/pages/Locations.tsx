@@ -49,9 +49,14 @@ export function Locations() {
         title="Store locations"
         description="Review placements, reservations, and available fixture capacity."
         actions={
-          <Link className="secondary" to="/master">
+          <Button
+            variant="outline"
+            nativeButton={false}
+            role="link"
+            render={<Link to="/master" />}
+          >
             Manage locations
-          </Link>
+          </Button>
         }
       />
       <div className="store-overview" aria-label="Store capacity summary">
@@ -150,11 +155,9 @@ export function Locations() {
                   const load = locationLoad(data.units, l.id),
                     full = l.capacity !== null && load.committed >= l.capacity;
                   return (
-                    <Button
-                      type="button"
+                    <Card
                       key={l.id}
-                      className={`map-location ${selected === l.id ? "selected" : ""} ${full ? "at-capacity" : ""}`}
-                      onClick={() => selectLocation(l.id)}
+                      className={`map-location gap-0 py-0 ring-0 ${selected === l.id ? "selected" : ""} ${full ? "at-capacity" : ""}`}
                     >
                       <small>{l.department}</small>
                       <strong>{l.aisle}</strong>
@@ -174,7 +177,17 @@ export function Locations() {
                         {load.confirmed} placed · {load.reserved} reserved /{" "}
                         {l.capacity ?? "∞"}
                       </small>
-                    </Button>
+                      <Button
+                        variant={selected === l.id ? "secondary" : "outline"}
+                        size="sm"
+                        className="mt-2 w-full"
+                        aria-label={`${selected === l.id ? "Selected" : "Select"} ${l.id}`}
+                        aria-pressed={selected === l.id}
+                        onClick={() => selectLocation(l.id)}
+                      >
+                        {selected === l.id ? "Selected" : "Select"}
+                      </Button>
+                    </Card>
                   );
                 })}
               </div>
@@ -238,11 +251,7 @@ export function Locations() {
                   .slice(0, detailLimit)
                   .map((p) => (
                     <div role="listitem" key={p.id}>
-                      <Item
-                        render={<button type="button" />}
-                        className="location-item"
-                        onClick={() => openProduct(p.id)}
-                      >
+                      <Item className="location-item">
                         <ItemContent className="min-w-0">
                           <ItemTitle className="line-clamp-none block w-full break-words text-left">
                             {p.name}
@@ -251,6 +260,16 @@ export function Locations() {
                             {p.id}
                           </ItemDescription>
                         </ItemContent>
+                        <ItemActions>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            aria-label={`View product: ${p.name} (${p.id})`}
+                            onClick={() => openProduct(p.id)}
+                          >
+                            View product
+                          </Button>
+                        </ItemActions>
                       </Item>
                     </div>
                   ))}
@@ -272,11 +291,7 @@ export function Locations() {
                   .filter((u) => u.destination_id === location.id)
                   .map((u) => (
                     <div role="listitem" key={u.id}>
-                      <Item
-                        render={<button type="button" />}
-                        className="location-item"
-                        onClick={() => openProduct(u.product_id, u.id)}
-                      >
+                      <Item className="location-item">
                         <ItemContent className="min-w-0">
                           <ItemTitle>{u.product_id}</ItemTitle>
                           <ItemDescription className="line-clamp-none text-xs mono break-all">
@@ -285,6 +300,14 @@ export function Locations() {
                         </ItemContent>
                         <ItemActions>
                           <Status value={u.status} />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            aria-label={`View unit ${u.id}`}
+                            onClick={() => openProduct(u.product_id, u.id)}
+                          >
+                            View unit
+                          </Button>
                         </ItemActions>
                       </Item>
                     </div>
@@ -299,11 +322,7 @@ export function Locations() {
                   .filter((u) => u.current_location_id === location.id)
                   .map((u) => (
                     <div role="listitem" key={u.id}>
-                      <Item
-                        render={<button type="button" />}
-                        className="location-item"
-                        onClick={() => openProduct(u.product_id, u.id)}
-                      >
+                      <Item className="location-item">
                         <ItemContent className="min-w-0">
                           <ItemDescription className="line-clamp-none text-xs mono break-all">
                             {u.id}
@@ -311,6 +330,14 @@ export function Locations() {
                         </ItemContent>
                         <ItemActions>
                           <Status value={u.status} />
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            aria-label={`View unit ${u.id}`}
+                            onClick={() => openProduct(u.product_id, u.id)}
+                          >
+                            View unit
+                          </Button>
                         </ItemActions>
                       </Item>
                     </div>

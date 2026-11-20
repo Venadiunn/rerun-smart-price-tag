@@ -1,3 +1,4 @@
+import { DisclosureTrigger } from "../components/ui";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Table,
@@ -144,7 +145,7 @@ export function History() {
                         </TableCell>
                         <TableCell>
                           <details>
-                            <summary>View details</summary>
+                            <DisclosureTrigger>View details</DisclosureTrigger>
                             <pre className="event-details">
                               {JSON.stringify(e.details, null, 2)}
                             </pre>
@@ -172,7 +173,7 @@ export function History() {
                       {s.master_revision.slice(0, 8)}
                     </p>
                     <details>
-                      <summary>Scanned values</summary>
+                      <DisclosureTrigger>Scanned values</DisclosureTrigger>
                       <pre>{JSON.stringify(s.raw, null, 2)}</pre>
                     </details>
                     {s.product_id && s.findings[0] !== "VALID ITEM" && (

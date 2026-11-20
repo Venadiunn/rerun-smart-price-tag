@@ -40,7 +40,11 @@ test.describe("administrator workspace", () => {
     );
     await page.getByLabel("Tag status filter").selectOption("Available");
     await expect(page.locator(".tag-card").first()).toBeVisible();
-    await page.locator(".tag-card").first().click();
+    await page
+      .locator(".tag-card")
+      .first()
+      .getByRole("button", { name: /^Manage / })
+      .click();
     await expect(page.getByRole("dialog").locator("canvas")).toBeVisible();
     await expect(page.getByRole("dialog")).toContainText(
       "Assign to an eligible unit",
@@ -250,7 +254,11 @@ test.describe("administrator workspace", () => {
       .click();
     await page.getByLabel("Search smart tags").fill("PROD-009");
     await expect(page.locator(".tag-card").first()).toBeVisible();
-    await page.locator(".tag-card").first().click();
+    await page
+      .locator(".tag-card")
+      .first()
+      .getByRole("button", { name: /^Manage / })
+      .click();
     await expect(page.locator(".digital-tag")).toContainText(
       "Everyday Oxford Shirt",
     );

@@ -45,7 +45,14 @@ const rootRoute = createRootRoute({
   notFoundComponent: () => (
     <div className="panel empty">
       <h1>Page not found</h1>
-      <Link to="/">Return to overview</Link>
+      <Button
+        variant="outline"
+        nativeButton={false}
+        role="link"
+        render={<Link to="/" />}
+      >
+        Return to overview
+      </Button>
     </div>
   ),
 });

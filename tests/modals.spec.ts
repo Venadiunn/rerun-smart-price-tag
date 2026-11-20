@@ -106,7 +106,11 @@ for (const viewport of [
       .click();
     await checkModal(page, "Request a price change");
     await page.goto("/tags");
-    await page.locator(".tag-card").first().click();
+    await page
+      .locator(".tag-card")
+      .first()
+      .getByRole("button", { name: /^Manage / })
+      .click();
     const tagTitle = await page
       .getByRole("dialog")
       .locator(".modal-top h2")

@@ -1,3 +1,4 @@
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 import type { Location, Unit } from "../lib/types";
@@ -48,13 +49,9 @@ export function StoreVisualization({
                     ? Math.max(30, load.committed)
                     : l.capacity;
                 return (
-                  <Button
-                    type="button"
+                  <Card
                     key={l.id}
-                    aria-label={`${l.id}: ${load.confirmed} placed, ${load.reserved} reserved, capacity ${l.capacity ?? "unlimited"}`}
-                    aria-pressed={selected === l.id}
-                    className={`store-fixture ${selected === l.id ? "selected" : ""} ${full ? "full" : ""}`}
-                    onClick={() => onSelect(l.id)}
+                    className={`store-fixture gap-0 py-0 ring-0 ${selected === l.id ? "selected" : ""} ${full ? "full" : ""}`}
                   >
                     <span className="fixture-top">
                       <strong>
@@ -80,7 +77,26 @@ export function StoreVisualization({
                       <span>{load.confirmed} placed</span>
                       <span>{load.reserved} reserved</span>
                     </span>
-                  </Button>
+                    <Button
+                      variant={selected === l.id ? "secondary" : "outline"}
+                      className="mt-2 w-full"
+                      size="sm"
+                      aria-label={
+                        (selected === l.id ? "Selected " : "Select ") +
+                        l.id +
+                        ": " +
+                        load.confirmed +
+                        " placed, " +
+                        load.reserved +
+                        " reserved, capacity " +
+                        (l.capacity ?? "unlimited")
+                      }
+                      aria-pressed={selected === l.id}
+                      onClick={() => onSelect(l.id)}
+                    >
+                      {selected === l.id ? "Selected" : "Select"}
+                    </Button>
+                  </Card>
                 );
               })}
             </div>

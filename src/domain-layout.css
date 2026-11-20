@@ -161,7 +161,7 @@
     text-align: left;
     border-top: 1px solid var(--border);
   }
-  .queue-item:hover {
+  button.queue-item:hover {
     background: var(--card);
   }
   .queue-item strong {
@@ -368,7 +368,7 @@
     padding: 0;
     color: var(--primary);
   }
-  .product-cell:hover strong {
+  button.product-cell:hover strong {
     color: var(--primary);
   }
   .product-cell small {
@@ -403,7 +403,7 @@
     gap: 10px;
     min-width: 0;
   }
-  .unit-card:hover {
+  button.unit-card:hover {
     border-color: var(--border);
     background: var(--card);
   }
@@ -770,7 +770,7 @@
     gap: 8px;
     min-width: 0;
   }
-  .map-location:hover,
+  button.map-location:hover,
   .map-location.selected {
     border-color: var(--border);
     background: var(--muted);
@@ -869,7 +869,7 @@
     gap: 15px;
     min-width: 0;
   }
-  .tag-card:hover {
+  button.tag-card:hover {
     border-color: var(--border);
   }
   .tag-card-top {
@@ -1685,7 +1685,7 @@
     box-shadow: none;
     min-width: 0;
   }
-  .store-fixture:hover {
+  button.store-fixture:hover {
     border-color: var(--border);
     transform: translateY(-1px);
   }

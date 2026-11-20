@@ -47,14 +47,7 @@ function Button({
 }: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
   const legacy = typeof className === "string" ? className : "";
   const resolvedVariant =
-    variant ??
-    (/(^|\s)primary(\s|$)/.test(legacy)
-      ? "default"
-      : /(^|\s)secondary(\s|$)/.test(legacy)
-        ? "outline"
-        : /text-button/.test(legacy)
-          ? "link"
-          : "ghost");
+    variant ?? (/(^|\s)primary(\s|$)/.test(legacy) ? "default" : "outline");
   const contentCard =
     /tag-card|unit-card|store-fixture|map-location|queue-item|location-item|product-cell/.test(
       legacy,

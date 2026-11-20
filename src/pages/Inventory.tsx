@@ -225,16 +225,12 @@ export function Inventory() {
                   return (
                     <TableRow key={p.id}>
                       <TableCell>
-                        <Button
-                          type="button"
-                          className="product-cell"
-                          onClick={() => openProduct(p.id)}
-                        >
+                        <div className="product-cell">
                           <span>
                             <strong>{p.name}</strong>
                             <small className="mono">{p.id}</small>
                           </span>
-                        </Button>
+                        </div>
                       </TableCell>
                       <TableCell>
                         {p.categoryId}
@@ -259,10 +255,12 @@ export function Inventory() {
                       <TableCell>
                         <Button
                           type="button"
-                          className="icon-button"
+                          variant="outline"
                           aria-label={`Open ${p.name}`}
                           onClick={() => openProduct(p.id)}
-                        ></Button>
+                        >
+                          Open
+                        </Button>
                       </TableCell>
                     </TableRow>
                   );
@@ -325,12 +323,7 @@ export function Inventory() {
                 a.product_id.localeCompare(b.product_id),
             )
             .map((u) => (
-              <Button
-                type="button"
-                key={u.id}
-                className="unit-card h-auto w-full whitespace-normal justify-start text-left"
-                onClick={() => openProduct(u.product_id, u.id)}
-              >
+              <Card key={u.id} className="unit-card gap-0 py-0 ring-0">
                 <Status value={u.status} />
                 <strong>
                   {
@@ -340,7 +333,15 @@ export function Inventory() {
                 </strong>
                 <small className="mono">{u.id}</small>
                 <span>{u.destination_id}</span>
-              </Button>
+                <Button
+                  variant="outline"
+                  className="mt-2"
+                  aria-label={`Review unit ${u.id}`}
+                  onClick={() => openProduct(u.product_id, u.id)}
+                >
+                  Review unit
+                </Button>
+              </Card>
             ))}
         </div>
       </Card>

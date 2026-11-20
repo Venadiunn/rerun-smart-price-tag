@@ -4,10 +4,17 @@ import {
   EmptyTitle,
   EmptyDescription,
 } from "./ui/empty";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type ReactNode,
+  type ComponentProps,
+} from "react";
+import { cn } from "cn";
 import { X, LoaderCircle } from "lucide-react";
 import { Badge as UiBadge } from "./ui/badge";
-import { Button } from "./ui/button";
+import { Button, buttonVariants } from "./ui/button";
 import {
   Dialog,
   DialogContent,
@@ -80,6 +87,21 @@ export function Empty({
         <EmptyDescription>{children}</EmptyDescription>
       </EmptyHeader>
     </UiEmpty>
+  );
+}
+export function DisclosureTrigger({
+  className,
+  ...props
+}: ComponentProps<"summary">) {
+  return (
+    <summary
+      className={cn(
+        buttonVariants({ variant: "outline" }),
+        "disclosure-trigger",
+        className,
+      )}
+      {...props}
+    />
   );
 }
 export function Modal({
