@@ -1,10 +1,11 @@
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Brand } from "./Brand";
 import { AppearanceMenu } from "./AppearanceMenu";
 import { useState } from "react";
-import { ArrowRight, ShieldCheck } from "lucide-react";
+
 import { supabase } from "../lib/supabase";
 export function Auth({ activation = false }: { activation?: boolean }) {
   const [busy, setBusy] = useState(false),
@@ -62,9 +63,6 @@ export function Auth({ activation = false }: { activation?: boolean }) {
         <Brand />
         <Card className="panel auth-panel gap-0 py-0 ring-0">
           <header>
-            <span className="auth-lock">
-              <ShieldCheck size={20} />
-            </span>
             <h1>{activation ? "Activate your account" : "Welcome back."}</h1>
             <p>
               {activation
@@ -111,9 +109,9 @@ export function Auth({ activation = false }: { activation?: boolean }) {
               </label>
             )}
             {message && (
-              <div className="inline-error" role="alert">
+              <Alert className="inline-error" role="alert">
                 {message}
-              </div>
+              </Alert>
             )}
             <Button
               type="submit"
@@ -125,7 +123,6 @@ export function Auth({ activation = false }: { activation?: boolean }) {
                 : activation
                   ? "Activate account"
                   : "Sign in"}
-              <ArrowRight size={18} />
             </Button>
           </form>
           <p className="auth-help">

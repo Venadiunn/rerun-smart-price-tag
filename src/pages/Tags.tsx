@@ -1,3 +1,4 @@
+import { Alert } from "@/components/ui/alert";
 import {
   NativeSelect,
   NativeSelectOption,
@@ -5,7 +6,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Plus, Tag as TagIcon, RefreshCw, ArrowRight } from "lucide-react";
+
 import { useWorkspace, isManager } from "../lib/context";
 import { command } from "../lib/api";
 import { money, dateTime } from "../lib/domain";
@@ -52,7 +53,6 @@ export function Tags() {
               className="primary"
               onClick={() => setRegister(true)}
             >
-              <Plus size={17} />
               Register tag
             </Button>
           )
@@ -120,7 +120,6 @@ export function Tags() {
             onClick={() => setSelected(t.id)}
           >
             <div className="tag-card-top">
-              <TagIcon size={22} />
               <Status value={t.status} />
             </div>
             <strong>{t.id}</strong>
@@ -131,10 +130,7 @@ export function Tags() {
                 : "Ready for a future assignment"}
             </p>
             <small className="mono">{t.unit_id ?? "No active unit"}</small>
-            <span className="tag-manage">
-              Manage tag
-              <ArrowRight size={16} />
-            </span>
+            <span className="tag-manage">Manage tag</span>
           </Button>
         ))}
       </div>
@@ -203,7 +199,6 @@ export function Tags() {
                         )
                       }
                     >
-                      <RefreshCw size={15} />
                       Recover tag
                     </Button>
                   </div>
@@ -257,10 +252,10 @@ export function Tags() {
                 </form>
               ) : tag.status === "Inspection" ? (
                 <div className="stack">
-                  <div className="notice">
+                  <Alert className="notice" role="note">
                     Inspect the recovered tag for readability and damage before
                     making it available again.
-                  </div>
+                  </Alert>
                   <Button
                     type="button"
                     className="primary"

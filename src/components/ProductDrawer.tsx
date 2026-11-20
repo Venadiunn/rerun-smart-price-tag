@@ -1,3 +1,4 @@
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -5,7 +6,7 @@ import {
   NativeSelectOption,
 } from "@/components/ui/native-select";
 import { useState } from "react";
-import { MapPin, ScanLine, PackagePlus, ArrowRight } from "lucide-react";
+
 import { useWorkspace, isManager } from "../lib/context";
 import { command } from "../lib/api";
 import { money, qrPayload, dateTime } from "../lib/domain";
@@ -46,13 +47,6 @@ export function ProductDrawer({
   return (
     <Modal title="Item details" onClose={onClose} wide>
       <div className="product-detail-head">
-        <div className="product-monogram large">
-          {p.name
-            .split(" ")
-            .map((s) => s[0])
-            .slice(0, 2)
-            .join("")}
-        </div>
         <div>
           <span className="eyebrow">
             {p.categoryId} / {p.subcategory}
@@ -65,7 +59,6 @@ export function ProductDrawer({
         <strong className="detail-price">{money(p.price)}</strong>
       </div>
       <div className="destination">
-        <MapPin />
         <div>
           <small>VERIFIED DESTINATION · MASTER v{data.revision.revision}</small>
           <strong>{u?.destination_id ?? p.locationId}</strong>
@@ -156,7 +149,6 @@ export function ProductDrawer({
                     {status === "Restocked"
                       ? "Confirm restocked"
                       : `Mark ${status}`}
-                    <ArrowRight size={15} />
                   </Button>
                 ))}
               </div>
@@ -217,15 +209,12 @@ export function ProductDrawer({
               </div>
             </>
           ) : (
-            <div className="notice">
-              <ScanLine size={18} />
+            <Alert className="notice" role="note">
               Select a physical unit to update its lifecycle or restock it.
-            </div>
+            </Alert>
           )}
           <details className="disclosure">
-            <summary>
-              <PackagePlus size={16} /> Receive additional stock
-            </summary>
+            <summary>Receive additional stock</summary>
             <form
               className="inline-form"
               onSubmit={(e) => {

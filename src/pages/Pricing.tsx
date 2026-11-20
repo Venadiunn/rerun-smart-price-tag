@@ -1,3 +1,10 @@
+import {
+  Empty as EmptyState,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from "@/components/ui/empty";
+import { Alert } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import {
   NativeSelect,
@@ -15,7 +22,7 @@ import {
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { BadgeDollarSign, Plus, ArrowRight } from "lucide-react";
+
 import { useWorkspace, isManager } from "../lib/context";
 import { command, publishMaster } from "../lib/api";
 import { money, markdownSuggestion, dateTime } from "../lib/domain";
@@ -46,20 +53,18 @@ export function Pricing() {
               })
             }
           >
-            <Plus size={17} />
             Request price change
           </Button>
         }
       />
-      <div className="notice">
-        <BadgeDollarSign size={21} />
+      <Alert className="notice" role="note">
         <span>
           Recommendations use explicit rules and fictional demonstration
           inventory. An approved change publishes a new master workbook. Tag
           previews and simulated writes are separate from physical displays and
           checkout systems.
         </span>
-      </div>
+      </Alert>
       <Card className="panel gap-0 py-0 ring-0">
         <div className="section-heading">
           <div>
@@ -85,7 +90,6 @@ export function Pricing() {
                   <strong>{money(p.price)}</strong>
                   {s.eligible && (
                     <>
-                      <ArrowRight size={16} />
                       <strong className="indigo-text">{money(s.price)}</strong>
                     </>
                   )}
@@ -204,12 +208,15 @@ export function Pricing() {
             </Table>
           </div>
         ) : (
-          <div className="calm-empty">
-            <h3>No price requests yet.</h3>
-            <p>
-              Suggestions become requests only when a staff member submits one.
-            </p>
-          </div>
+          <EmptyState className="calm-empty">
+            <EmptyHeader>
+              <EmptyTitle>No price requests yet.</EmptyTitle>
+              <EmptyDescription>
+                Suggestions become requests only when a staff member submits
+                one.
+              </EmptyDescription>
+            </EmptyHeader>
+          </EmptyState>
         )}
       </Card>
       {manager && (

@@ -1,10 +1,11 @@
+import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
-import { PackagePlus } from "lucide-react";
+
 import { useWorkspace } from "../lib/context";
 import { command } from "../lib/api";
 import { Modal, field } from "./ui";
@@ -12,12 +13,11 @@ export function ReceiveStockDialog({ onClose }: { onClose: () => void }) {
   const { data, run, busy } = useWorkspace();
   return (
     <Modal title="Receive stock" onClose={() => onClose()}>
-      <div className="notice">
-        <PackagePlus size={20} />
+      <Alert className="notice" role="note">
         Every received unit gets a permanent identifier. Existing labels and
         histories stay intact. Stock received in store is automatically sorted
         by product ID; full destinations and other holds remain in review.
-      </div>
+      </Alert>
       <form
         className="stack"
         onSubmit={async (e) => {

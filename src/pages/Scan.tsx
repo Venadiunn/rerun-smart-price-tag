@@ -1,3 +1,10 @@
+import {
+  Empty as EmptyState,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from "@/components/ui/empty";
+import { Alert } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import {
   NativeSelect,
@@ -7,16 +14,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
-import {
-  Camera,
-  ImageUp,
-  ScanLine,
-  ArrowRight,
-  Check,
-  RefreshCw,
-  Keyboard,
-  Square,
-} from "lucide-react";
 import type QrScanner from "qr-scanner";
 import { useWorkspace } from "../lib/context";
 import { command } from "../lib/api";
@@ -104,9 +101,7 @@ export function Scan() {
       <div className="scan-grid">
         <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
-            <h2>
-              <ScanLine size={20} /> QR scanner
-            </h2>
+            <h2>QR scanner</h2>
             <span className="live-label">
               {active ? "CAMERA ACTIVE" : "READY TO SCAN"}
             </span>
@@ -120,9 +115,6 @@ export function Scan() {
             />
             {!active && (
               <div className="camera-placeholder">
-                <div className="scan-brackets">
-                  <ScanLine size={60} />
-                </div>
                 <h3>Bring an item into focus.</h3>
                 <p>Camera access begins when you choose Start camera.</p>
               </div>
@@ -142,11 +134,9 @@ export function Scan() {
                   : start
               }
             >
-              {active ? <Square size={17} /> : <Camera size={17} />}{" "}
               {active ? "Stop camera" : "Start camera"}
             </Button>
             <label className="secondary upload-button">
-              <ImageUp size={17} />
               Upload QR image
               <Input
                 type="file"
@@ -192,10 +182,7 @@ export function Scan() {
             </label>
           )}
           <div className="manual-entry">
-            <h3>
-              <Keyboard size={17} />
-              Manual or external scanner input
-            </h3>
+            <h3>Manual or external scanner input</h3>
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -216,14 +203,13 @@ export function Scan() {
                 disabled={busy || !raw.trim()}
               >
                 Look up item
-                <ArrowRight size={16} />
               </Button>
             </form>
           </div>
           {error && (
-            <div role="alert" className="inline-error">
+            <Alert role="alert" className="inline-error">
               {error}
-            </div>
+            </Alert>
           )}
         </Card>
         <Card className="panel scan-result gap-0 py-0 ring-0">
@@ -239,7 +225,6 @@ export function Scan() {
                   setRaw("");
                 }}
               >
-                <RefreshCw size={15} />
                 Clear
               </Button>
             )}
@@ -284,7 +269,7 @@ export function Scan() {
                     </div>
                   </div>
                   {result.findings[0] !== "VALID ITEM" && (
-                    <div className="notice warning">
+                    <Alert className="notice warning" role="note">
                       <p>
                         These values differ from the master. Acknowledge the
                         alert to continue using the verified destination. Master
@@ -306,12 +291,11 @@ export function Scan() {
                             });
                         }}
                       >
-                        <Check size={16} />
                         {result.acknowledged_at
                           ? "Acknowledged"
                           : "Acknowledge discrepancy"}
                       </Button>
-                    </div>
+                    </Alert>
                   )}
                   <label>
                     Choose the physical unit
@@ -341,15 +325,14 @@ export function Scan() {
                     onClick={() => openProduct(product.id, unitId)}
                   >
                     Continue with this unit
-                    <ArrowRight size={17} />
                   </Button>
                 </>
               ) : (
-                <div className="notice danger">
+                <Alert className="notice danger" role="note">
                   {result.findings[0] === "UNASSIGNED TAG"
                     ? "This tag is not assigned to an item. Assign it from Tags first."
                     : "This item is not registered in the master. Ask a manager to review it; it cannot be treated as verified inventory."}
-                </div>
+                </Alert>
               )}
               <p className="hint">
                 Compared against an immutable master revision. Scan and
@@ -357,17 +340,18 @@ export function Scan() {
               </p>
             </>
           ) : (
-            <div className="calm-empty">
-              <ScanLine size={38} />
-              <h3>Ready when you are.</h3>
-              <p>
-                A scan brings up the verified product, destination, and any
-                discrepancies.
-              </p>
-              <span className="small-chip">
-                MASTER v{data.revision.revision} CONNECTED
-              </span>
-            </div>
+            <EmptyState className="calm-empty">
+              <EmptyHeader>
+                <EmptyTitle>Ready when you are.</EmptyTitle>
+                <EmptyDescription>
+                  A scan brings up the verified product, destination, and any
+                  discrepancies.
+                </EmptyDescription>
+                <span className="small-chip">
+                  MASTER v{data.revision.revision} CONNECTED
+                </span>
+              </EmptyHeader>
+            </EmptyState>
           )}
         </Card>
       </div>

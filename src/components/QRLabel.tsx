@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useEffect, useRef } from "react";
 import QrCreator from "qr-creator";
-import { Download, Printer } from "lucide-react";
+
 import { download } from "../lib/api";
 export function QRLabel({ value, label }: { value: string; label: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -44,7 +44,6 @@ export function QRLabel({ value, label }: { value: string; label: string }) {
             })
           }
         >
-          <Download size={15} />
           PNG
         </Button>
         <Button
@@ -63,7 +62,6 @@ export function QRLabel({ value, label }: { value: string; label: string }) {
             img.onload = () => win.print();
           }}
         >
-          <Printer size={15} />
           Print
         </Button>
       </div>

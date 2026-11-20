@@ -1,3 +1,10 @@
+import {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "./ui/breadcrumb";
 import { useState, type CSSProperties } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
 import {
@@ -10,12 +17,8 @@ import {
   History,
   FileSpreadsheet,
   Settings,
-  LogOut,
-  ChevronDown,
-  ChevronRight,
   PanelLeft,
   X,
-  CircleHelp,
 } from "lucide-react";
 import { useWorkspace } from "../lib/context";
 import { supabase } from "../lib/supabase";
@@ -112,7 +115,7 @@ function WorkspaceFrame() {
                           />
                         }
                       >
-                        <n.icon />
+                        {state === "collapsed" && !isMobile && <n.icon />}
                         <span>{n.label}</span>
                         {n.to === "/scan" && alerts > 0 && (
                           <Badge
@@ -131,19 +134,20 @@ function WorkspaceFrame() {
             </SidebarGroup>
           ))}
         </SidebarContent>
-        <SidebarFooter className="sidebar-store-info">
-          <div className="flex items-center gap-2.5 rounded-lg border border-border p-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:p-0">
-            <MapPin className="size-4 shrink-0 text-muted-foreground" />
-            <div className="min-w-0 group-data-[collapsible=icon]:hidden">
-              <strong className="block truncate text-xs font-medium">
-                Demonstration store
-              </strong>
-              <span className="text-xs text-muted-foreground">
-                WWT STEM · 2026–27
-              </span>
+        {(state !== "collapsed" || isMobile) && (
+          <SidebarFooter className="sidebar-store-info">
+            <div className="flex items-center gap-2.5 rounded-lg border border-border p-2.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:border-0 group-data-[collapsible=icon]:p-0">
+              <div className="min-w-0 group-data-[collapsible=icon]:hidden">
+                <strong className="block truncate text-xs font-medium">
+                  Demonstration store
+                </strong>
+                <span className="text-xs text-muted-foreground">
+                  WWT STEM · 2026–27
+                </span>
+              </div>
             </div>
-          </div>
-        </SidebarFooter>
+          </SidebarFooter>
+        )}
       </Sidebar>
       <div className="workspace-main min-w-0 flex-1">
         <header className="workspace-topbar">
@@ -157,17 +161,22 @@ function WorkspaceFrame() {
             >
               <PanelLeft />
             </Button>
-            {isMobile && !openMobile ? (
-              <Brand compact />
-            ) : (
-              <span className="hidden text-sm text-muted-foreground sm:inline">
-                Demo store
-              </span>
-            )}
-            <ChevronRight className="size-3.5 shrink-0 text-muted-foreground" />
-            <span className="truncate text-sm font-medium">
-              {current?.label ?? "Workspace"}
-            </span>
+            {isMobile && !openMobile && <Brand compact />}
+            <Breadcrumb className="min-w-0">
+              <BreadcrumbList className="flex-nowrap">
+                <BreadcrumbItem className="hidden sm:block">
+                  <span>Demo store</span>
+                </BreadcrumbItem>
+                <BreadcrumbSeparator className="hidden sm:block">
+                  /
+                </BreadcrumbSeparator>
+                <BreadcrumbItem className="min-w-0">
+                  <BreadcrumbPage className="truncate">
+                    {current?.label ?? "Workspace"}
+                  </BreadcrumbPage>
+                </BreadcrumbItem>
+              </BreadcrumbList>
+            </Breadcrumb>
           </div>
           <div className="flex shrink-0 items-center gap-1.5">
             <span className="connection-status hidden items-center gap-1.5 text-xs text-muted-foreground lg:flex">
@@ -188,7 +197,6 @@ function WorkspaceFrame() {
                 <span className="avatar">
                   {data.profile.email.slice(0, 2).toUpperCase()}
                 </span>
-                <ChevronDown className="size-3 text-muted-foreground" />
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
@@ -204,7 +212,6 @@ function WorkspaceFrame() {
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem render={<Link to="/settings" />}>
-                  <Settings />
                   Account settings
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -212,7 +219,6 @@ function WorkspaceFrame() {
                     void supabase.auth.signOut();
                   }}
                 >
-                  <LogOut />
                   Sign out
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -224,7 +230,6 @@ function WorkspaceFrame() {
         </main>
         <footer className="workspace-footer">
           <span className="flex items-center gap-1.5">
-            <CircleHelp className="size-3.5" />
             Demonstration workspace
           </span>
           <span>Fictional inventory · Display updates are simulated</span>

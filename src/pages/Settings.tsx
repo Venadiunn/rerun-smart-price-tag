@@ -18,7 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
-import { ShieldCheck, Plus, KeyRound, Copy } from "lucide-react";
+
 import { useWorkspace } from "../lib/context";
 import { supabase } from "../lib/supabase";
 import { command } from "../lib/api";
@@ -50,10 +50,7 @@ export function Settings() {
       <div className="settings-grid">
         <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
-            <h2>
-              <ShieldCheck size={20} />
-              Your account
-            </h2>
+            <h2>Your account</h2>
           </div>
           <div className="account-card">
             <Avatar className="avatar">
@@ -101,7 +98,6 @@ export function Settings() {
               />
             </label>
             <Button type="submit" className="secondary" disabled={busy}>
-              <KeyRound size={16} />
               Update password
             </Button>
           </form>
@@ -166,7 +162,6 @@ export function Settings() {
               className="primary"
               onClick={() => setCreate(true)}
             >
-              <Plus size={16} />
               Add employee
             </Button>
           </div>
@@ -346,7 +341,6 @@ export function Settings() {
               )
             }
           >
-            <Copy size={16} />
             Copy private link
           </Button>
         </Modal>

@@ -20,7 +20,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ReceiveStockDialog } from "../components/ReceiveStockDialog";
 import { useState, useDeferredValue } from "react";
-import { Search, Download, Plus, ArrowUpDown, ArrowRight } from "lucide-react";
+import { Search } from "lucide-react";
 import { useWorkspace } from "../lib/context";
 import { download, exportCSV } from "../lib/api";
 import { money } from "../lib/domain";
@@ -97,7 +97,6 @@ export function Inventory() {
                 )
               }
             >
-              <Download size={17} />
               Export JSON
             </Button>
             <Button
@@ -105,7 +104,6 @@ export function Inventory() {
               className="primary"
               onClick={() => setReceive(true)}
             >
-              <Plus size={18} />
               Receive stock
             </Button>
           </>
@@ -176,7 +174,6 @@ export function Inventory() {
             units
           </span>
           <div className="actions">
-            <ArrowUpDown size={14} />
             <NativeSelect
               aria-label="Sort inventory"
               value={sort}
@@ -233,13 +230,6 @@ export function Inventory() {
                           className="product-cell"
                           onClick={() => openProduct(p.id)}
                         >
-                          <span className="product-monogram">
-                            {p.name
-                              .split(" ")
-                              .map((s) => s[0])
-                              .slice(0, 2)
-                              .join("")}
-                          </span>
                           <span>
                             <strong>{p.name}</strong>
                             <small className="mono">{p.id}</small>
@@ -272,9 +262,7 @@ export function Inventory() {
                           className="icon-button"
                           aria-label={`Open ${p.name}`}
                           onClick={() => openProduct(p.id)}
-                        >
-                          <ArrowRight size={17} />
-                        </Button>
+                        ></Button>
                       </TableCell>
                     </TableRow>
                   );
@@ -351,10 +339,7 @@ export function Inventory() {
                   }
                 </strong>
                 <small className="mono">{u.id}</small>
-                <span>
-                  {u.destination_id}
-                  <ArrowRight size={15} />
-                </span>
+                <span>{u.destination_id}</span>
               </Button>
             ))}
         </div>

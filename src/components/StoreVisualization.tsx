@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ArrowDown, DoorOpen, ShoppingBag, PackageCheck } from "lucide-react";
+
 import type { Location, Unit } from "../lib/types";
 import { storeAisles } from "../lib/store-layout";
 import { locationLoad } from "../lib/sorting";
@@ -22,14 +22,11 @@ export function StoreVisualization({
       aria-label="Interactive store floor plan"
     >
       <div className="store-back-wall">
-        <span>
-          <PackageCheck size={17} /> Receiving & inspection
-        </span>
+        <span>Receiving & inspection</span>
         <span>STAFF ACCESS</span>
       </div>
       <div className="store-walkway">
         <span>REAR CROSS AISLE</span>
-        <ArrowDown size={16} />
       </div>
       <div className="store-aisles">
         {aisles.map((aisle) => (
@@ -97,12 +94,8 @@ export function StoreVisualization({
         <span>MAIN CUSTOMER WALKWAY</span>
       </div>
       <div className="store-front-wall">
-        <span>
-          <DoorOpen size={20} /> Entrance / exit
-        </span>
-        <span>
-          <ShoppingBag size={18} /> Checkout
-        </span>
+        <span>Entrance / exit</span>
+        <span>Checkout</span>
       </div>
       <div className="store-map-key">
         <span>

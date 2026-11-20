@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Search, Download, ChevronDown } from "lucide-react";
+import { Search } from "lucide-react";
 import { useWorkspace } from "../lib/context";
 import { download, exportCSV, command } from "../lib/api";
 import { dateTime } from "../lib/domain";
@@ -57,7 +57,6 @@ export function History() {
               )
             }
           >
-            <Download size={17} />
             Export all JSON
           </Button>
         }
@@ -209,7 +208,6 @@ export function History() {
                 onClick={() => setLimit(limit + 50)}
               >
                 Show more
-                <ChevronDown size={16} />
               </Button>
             )}
           </TabsContent>

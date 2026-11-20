@@ -1,3 +1,4 @@
+import { Alert } from "@/components/ui/alert";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   Pagination,
@@ -21,15 +22,6 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import {
-  Download,
-  Upload,
-  Plus,
-  FileSpreadsheet,
-  History,
-  Check,
-  PenLine,
-} from "lucide-react";
 import { useWorkspace, isManager } from "../lib/context";
 import {
   publishMaster,
@@ -156,7 +148,6 @@ export function MasterData() {
                 run(() => downloadMaster(data.revision.storage_path))
               }
             >
-              <Download size={17} />
               Download master XLSX
             </Button>
             <Button
@@ -169,12 +160,10 @@ export function MasterData() {
                 )
               }
             >
-              <Download size={17} />
               Products CSV
             </Button>
             {manager && (
               <label className="primary upload-button">
-                <Upload size={17} />
                 Import CSV / XLSX
                 <Input
                   type="file"
@@ -209,9 +198,6 @@ export function MasterData() {
         }
       />
       <div className="master-status">
-        <div className="master-file-icon">
-          <FileSpreadsheet size={28} />
-        </div>
         <div>
           <strong>ReRun Master Inventory.xlsx</strong>
           <span>
@@ -219,10 +205,7 @@ export function MasterData() {
             {dateTime(data.revision.created_at)}
           </span>
         </div>
-        <span className="small-chip">
-          <Check size={13} />
-          PUBLISHED
-        </span>
+        <span className="small-chip">PUBLISHED</span>
       </div>
       {draft && (
         <Card className="panel draft-review gap-0 py-0 ring-0">
@@ -264,10 +247,10 @@ export function MasterData() {
             ))}
           </ul>
           {draft.revision !== data.revision.id && (
-            <div className="inline-error">
+            <Alert className="inline-error" role="alert">
               Another revision was published. Discard this candidate and reapply
               your edits to the latest master.
-            </div>
+            </Alert>
           )}
           <p className="hint">
             Publication updates the workbook and searchable records together.
@@ -299,7 +282,6 @@ export function MasterData() {
                 className="secondary"
                 onClick={() => editor(tab)}
               >
-                <Plus size={16} />
                 Add {tab === "categories" ? "category" : tab.slice(0, -1)}
               </Button>
             )}
@@ -377,7 +359,6 @@ export function MasterData() {
                               className="text-button"
                               onClick={() => editor(tab, index)}
                             >
-                              <PenLine size={14} />
                               Edit
                             </Button>
                           )}
@@ -429,10 +410,7 @@ export function MasterData() {
       </Card>
       <Card className="panel gap-0 py-0 ring-0">
         <div className="section-heading">
-          <h2>
-            <History size={19} />
-            Revision history
-          </h2>
+          <h2>Revision history</h2>
         </div>
         {data.revisions.map((r) => (
           <div className="revision-row" key={r.id}>

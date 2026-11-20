@@ -1,3 +1,4 @@
+import { Alert } from "@/components/ui/alert";
 import {
   Table,
   TableHeader,
@@ -10,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
-import { Route, Download, ArrowRight } from "lucide-react";
+
 import { command, exportCSV } from "../lib/api";
 import { useWorkspace } from "../lib/context";
 import { restockRoute, type SortResult } from "../lib/sorting";
@@ -40,10 +41,7 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
     <Card className="panel sort-panel gap-0 py-0 ring-0">
       <div className="section-heading">
         <div>
-          <span className="eyebrow">PRODUCT ID → DESIGNATED LOCATION</span>
-          <h2>
-            <Route size={20} /> Automatic sorting
-          </h2>
+          <h2>Automatic sorting</h2>
         </div>
         <Button
           type="button"
@@ -78,7 +76,7 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
         )}
       </div>
       {result && result.waiting.length > 0 && (
-        <div className="notice" role="status">
+        <Alert className="notice" role="status">
           <div>
             <strong>Some units need attention</strong>
             {result.waiting.map((w) => (
@@ -98,21 +96,21 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
               sorting.
             </p>
           </div>
-        </div>
+        </Alert>
       )}
       {result?.tagging && result.tagging.held.length > 0 && (
-        <div className="notice" role="status">
+        <Alert className="notice" role="status">
           {result.tagging.held.length} tag assignments held for capacity review.
           Ask a manager to resolve location commitments.
-        </div>
+        </Alert>
       )}
       {compact ? (
         <div className="overview-sort-links">
           <Link className="secondary" to="/inventory">
-            Open restock route <ArrowRight size={16} />
+            Open restock route
           </Link>
           <Link className="secondary" to="/tags">
-            View smart tags <ArrowRight size={16} />
+            View smart tags
           </Link>
         </div>
       ) : (
@@ -149,7 +147,7 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
                 )
               }
             >
-              <Download size={16} /> Export restock route
+              Export restock route
             </Button>
           </div>
           <div className="table-scroll">
@@ -174,7 +172,7 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
                         className="text-button"
                         onClick={() => openProduct(u.product_id, u.id)}
                       >
-                        Review & place <ArrowRight size={15} />
+                        Review & place
                       </Button>
                     </TableCell>
                   </TableRow>

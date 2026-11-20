@@ -1,5 +1,11 @@
+import {
+  Empty as UiEmpty,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from "./ui/empty";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { X, LoaderCircle, PackageSearch } from "lucide-react";
+import { X, LoaderCircle } from "lucide-react";
 import { Badge as UiBadge } from "./ui/badge";
 import { Button } from "./ui/button";
 import {
@@ -68,14 +74,12 @@ export function Empty({
   children?: ReactNode;
 }) {
   return (
-    <div className="empty">
-      <PackageSearch
-        className="size-8 text-muted-foreground"
-        aria-hidden="true"
-      />
-      <h3>{title}</h3>
-      <p>{children}</p>
-    </div>
+    <UiEmpty className="empty">
+      <EmptyHeader>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{children}</EmptyDescription>
+      </EmptyHeader>
+    </UiEmpty>
   );
 }
 export function Modal({

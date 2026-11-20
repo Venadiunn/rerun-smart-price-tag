@@ -1,4 +1,4 @@
-import { Check, Monitor, Moon, Sun } from "lucide-react";
+import { Check, Moon, Sun } from "lucide-react";
 import { useAppearance, type Appearance } from "../lib/appearance";
 import { Button } from "./ui/button";
 import {
@@ -27,17 +27,16 @@ export function AppearanceMenu() {
       >
         {(
           [
-            { value: "light", label: "Light", icon: Sun },
-            { value: "dark", label: "Dark", icon: Moon },
-            { value: "system", label: "System", icon: Monitor },
+            { value: "light", label: "Light" },
+            { value: "dark", label: "Dark" },
+            { value: "system", label: "System" },
           ] as const
-        ).map(({ value, label, icon: Icon }) => (
+        ).map(({ value, label }) => (
           <DropdownMenuItem
             key={value}
             onClick={() => setAppearance(value as Appearance)}
             aria-current={appearance === value ? "true" : undefined}
           >
-            <Icon />
             <span className="flex-1">{label}</span>
             {appearance === value && <Check aria-hidden="true" />}
           </DropdownMenuItem>

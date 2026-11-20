@@ -1,6 +1,6 @@
 # ReRun workspace interface
 
-The interface uses the shadcn Base UI Nova components, with a neutral zinc palette, indigo actions, Geist typography, subtle borders, and compact desktop spacing. The [Asana screenshot gallery](https://www.saasui.design/application/asana) informed the workspace sidebar, header, and information density. Components follow [shadcn/ui](https://github.com/shadcn-ui/ui); ReRun retains its own logo and operational workflows.
+The interface uses the shadcn Base UI Nova components, with a neutral zinc palette, charcoal actions, Geist typography, subtle borders, and compact desktop spacing. The shadcn/ui repository and official registry are the design source for the entire interface. Decorative icons and monogram tiles are omitted; icons remain for essential controls and the collapsed navigation rail. Content rows grow with wrapped names and identifiers, with a minimum 12-pixel text size. Components follow [shadcn/ui](https://github.com/shadcn-ui/ui); ReRun retains its own logo and operational workflows.
 
 ## Navigation and appearance
 
@@ -12,7 +12,7 @@ The interface uses the shadcn Base UI Nova components, with a neutral zinc palet
 
 ## Shared components
 
-The application uses the checked-in components under `src/components/ui`: buttons, inputs, textareas, native selects, checkboxes, badges, cards, tables, tabs, pagination, dialogs, a navigation sheet, dropdown menus, tooltips, skeletons, separators, and avatars. Native selects retain native keyboard and mobile picker behavior. Forms continue using their existing validation and FormData command payloads.
+The application uses the checked-in components under `src/components/ui`: buttons, inputs, textareas, native selects, checkboxes, badges, cards, tables, tabs, pagination, dialogs, a navigation sheet, dropdown menus, tooltips, skeletons, separators, and avatars. Item, Empty, Alert, Breadcrumb, and Progress components come from the same official registry. Native selects retain native keyboard and mobile picker behavior. Forms continue using their existing validation and FormData command payloads.
 
 Semantic color variables live in `src/index.css`. Domain-specific layouts live in `src/domain-layout.css`; shared workspace and responsive rules live in `src/workspace.css`. QR paper and simulated digital labels retain a white background independently of appearance.
 

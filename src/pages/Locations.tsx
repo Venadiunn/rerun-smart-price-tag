@@ -1,3 +1,18 @@
+import {
+  Empty as EmptyState,
+  EmptyHeader,
+  EmptyTitle,
+  EmptyDescription,
+} from "@/components/ui/empty";
+import { Progress } from "@/components/ui/progress";
+import {
+  Item,
+  ItemGroup,
+  ItemContent,
+  ItemTitle,
+  ItemDescription,
+  ItemActions,
+} from "@/components/ui/item";
 import { Button } from "@/components/ui/button";
 import {
   NativeSelect,
@@ -5,7 +20,7 @@ import {
 } from "@/components/ui/native-select";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
-import { MapPin, ArrowRight, Layers3 } from "lucide-react";
+
 import { Link } from "@tanstack/react-router";
 import { useWorkspace } from "../lib/context";
 import { PageTitle, Status } from "../components/ui";
@@ -36,7 +51,6 @@ export function Locations() {
         actions={
           <Link className="secondary" to="/master">
             Manage locations
-            <ArrowRight size={16} />
           </Link>
         }
       />
@@ -80,10 +94,7 @@ export function Locations() {
       <div className="map-layout">
         <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
-            <h2>
-              <Layers3 size={19} />
-              Store schematic
-            </h2>
+            <h2>Store schematic</h2>
             <NativeSelect
               aria-label="Department filter"
               value={department}
@@ -145,21 +156,20 @@ export function Locations() {
                       className={`map-location ${selected === l.id ? "selected" : ""} ${full ? "at-capacity" : ""}`}
                       onClick={() => selectLocation(l.id)}
                     >
-                      <span className="map-pin">
-                        <MapPin size={20} />
-                      </span>
                       <small>{l.department}</small>
                       <strong>{l.aisle}</strong>
                       <span>
                         {[l.rack, l.shelf].filter(Boolean).join(" / ")}
                       </span>
-                      <div className="capacity-bar">
-                        <i
-                          style={{
-                            width: `${l.capacity ? Math.min(100, (load.committed / l.capacity) * 100) : 0}%`,
-                          }}
-                        />
-                      </div>
+                      <Progress
+                        className="capacity-bar"
+                        aria-label={`${l.id} capacity used`}
+                        value={
+                          l.capacity
+                            ? Math.min(100, (load.committed / l.capacity) * 100)
+                            : 0
+                        }
+                      />
                       <small>
                         {load.confirmed} placed · {load.reserved} reserved /{" "}
                         {l.capacity ?? "∞"}
@@ -222,71 +232,100 @@ export function Locations() {
                 </div>
               </div>
               <h3 className="subheading">Assigned products</h3>
-              {data.master.products
-                .filter((p) => p.locationId === location.id)
-                .slice(0, detailLimit)
-                .map((p) => (
-                  <Button
-                    type="button"
-                    className="location-item"
-                    key={p.id}
-                    onClick={() => openProduct(p.id)}
-                  >
-                    <span>
-                      {p.name}
-                      <small>{p.id}</small>
-                    </span>
-                    <ArrowRight size={16} />
-                  </Button>
-                ))}
+              <ItemGroup className="gap-0" aria-label="Assigned products">
+                {data.master.products
+                  .filter((p) => p.locationId === location.id)
+                  .slice(0, detailLimit)
+                  .map((p) => (
+                    <div role="listitem" key={p.id}>
+                      <Item
+                        render={<button type="button" />}
+                        className="location-item"
+                        onClick={() => openProduct(p.id)}
+                      >
+                        <ItemContent className="min-w-0">
+                          <ItemTitle className="line-clamp-none block w-full break-words text-left">
+                            {p.name}
+                          </ItemTitle>
+                          <ItemDescription className="line-clamp-none text-xs mono break-all">
+                            {p.id}
+                          </ItemDescription>
+                        </ItemContent>
+                      </Item>
+                    </div>
+                  ))}
+              </ItemGroup>
               {data.master.products.filter((p) => p.locationId === location.id)
                 .length > detailLimit && (
                 <Button
                   type="button"
-                  className="secondary"
+                  variant="outline"
+                  className="mt-3 w-full"
                   onClick={() => setDetailLimit(detailLimit + 30)}
                 >
                   Show more assigned products
                 </Button>
               )}
               <h3 className="subheading">Restock reservations</h3>
-              {restockRoute(data.units)
-                .filter((u) => u.destination_id === location.id)
-                .map((u) => (
-                  <Button
-                    type="button"
-                    className="location-item"
-                    key={u.id}
-                    onClick={() => openProduct(u.product_id, u.id)}
-                  >
-                    <span>
-                      {u.product_id}
-                      <small className="mono">{u.id}</small>
-                    </span>
-                    <Status value={u.status} />
-                  </Button>
-                ))}
+              <ItemGroup className="gap-0" aria-label="Restock reservations">
+                {restockRoute(data.units)
+                  .filter((u) => u.destination_id === location.id)
+                  .map((u) => (
+                    <div role="listitem" key={u.id}>
+                      <Item
+                        render={<button type="button" />}
+                        className="location-item"
+                        onClick={() => openProduct(u.product_id, u.id)}
+                      >
+                        <ItemContent className="min-w-0">
+                          <ItemTitle>{u.product_id}</ItemTitle>
+                          <ItemDescription className="line-clamp-none text-xs mono break-all">
+                            {u.id}
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Status value={u.status} />
+                        </ItemActions>
+                      </Item>
+                    </div>
+                  ))}
+              </ItemGroup>
               <h3 className="subheading">Last confirmed placements</h3>
-              {data.units
-                .filter((u) => u.current_location_id === location.id)
-                .map((u) => (
-                  <Button
-                    type="button"
-                    className="location-item"
-                    key={u.id}
-                    onClick={() => openProduct(u.product_id, u.id)}
-                  >
-                    <span className="mono">{u.id}</span>
-                    <Status value={u.status} />
-                  </Button>
-                ))}
+              <ItemGroup
+                className="gap-0"
+                aria-label="Last confirmed placements"
+              >
+                {data.units
+                  .filter((u) => u.current_location_id === location.id)
+                  .map((u) => (
+                    <div role="listitem" key={u.id}>
+                      <Item
+                        render={<button type="button" />}
+                        className="location-item"
+                        onClick={() => openProduct(u.product_id, u.id)}
+                      >
+                        <ItemContent className="min-w-0">
+                          <ItemDescription className="line-clamp-none text-xs mono break-all">
+                            {u.id}
+                          </ItemDescription>
+                        </ItemContent>
+                        <ItemActions>
+                          <Status value={u.status} />
+                        </ItemActions>
+                      </Item>
+                    </div>
+                  ))}
+              </ItemGroup>
             </>
           ) : (
-            <div className="calm-empty">
-              <MapPin size={32} />
-              <h3>Choose a destination.</h3>
-              <p>Select a rack or shelf to see products and capacity.</p>
-            </div>
+            <EmptyState className="calm-empty">
+              <EmptyHeader>
+                <EmptyTitle>Choose a destination.</EmptyTitle>
+                <EmptyDescription>
+                  Select a rack or shelf to see products and capacity.
+                </EmptyDescription>
+              </EmptyHeader>
+            </EmptyState>
           )}
         </Card>
       </div>

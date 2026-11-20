@@ -111,16 +111,6 @@
     flex-direction: column;
     min-height: 159px;
   }
-  .stat-icon {
-    width: 36px;
-    height: 36px;
-    position: absolute;
-    right: 20px;
-    top: 22px;
-    border-radius: 8px;
-    display: grid;
-    place-items: center;
-  }
   .indigo {
     background: var(--muted);
     color: var(--primary);
@@ -173,25 +163,6 @@
   }
   .queue-item:hover {
     background: var(--card);
-  }
-  .product-monogram {
-    width: 37px;
-    height: 40px;
-    flex-shrink: 0;
-    border: 1px solid var(--border);
-    border-radius: 7px;
-    background: var(--muted);
-    display: grid;
-    place-items: center;
-    color: var(--primary);
-    font-size: 12px;
-    font-weight: 650;
-    letter-spacing: 1px;
-  }
-  .product-monogram.large {
-    width: 60px;
-    height: 66px;
-    font-size: 17px;
   }
   .queue-item strong {
     font-size: 12px;
@@ -816,16 +787,6 @@
     font-size: 18px;
     letter-spacing: -0.5px;
   }
-  .map-location > span:not(.map-pin) {
-    font-size: 12px;
-    color: var(--muted-foreground);
-  }
-  .map-pin {
-    position: absolute;
-    right: 12px;
-    top: 15px;
-    color: var(--muted-foreground);
-  }
   .map-location .capacity-bar {
     width: 100%;
     margin-top: 7px;
@@ -1076,15 +1037,6 @@
     padding: 23px;
     margin-bottom: 24px;
   }
-  .master-file-icon {
-    width: 50px;
-    height: 50px;
-    background: var(--muted);
-    color: var(--success);
-    border-radius: 9px;
-    display: grid;
-    place-items: center;
-  }
   .master-status strong {
     display: block;
     font-size: 13px;
@@ -1263,12 +1215,6 @@
     .stat {
       padding: 20px 16px;
     }
-    .stat-icon {
-      right: 14px;
-      top: 18px;
-      width: 30px;
-      height: 30px;
-    }
     .stat > span {
       font-size: 12px;
     }
@@ -1363,14 +1309,6 @@
       font-size: 12px;
       line-height: 1.5;
     }
-    .stat-icon {
-      width: 29px;
-      height: 29px;
-      right: 13px;
-    }
-    .stat-icon svg {
-      width: 17px;
-    }
     .dashboard-grid {
       gap: 0;
     }
@@ -1450,10 +1388,6 @@
     }
     .product-detail-head h2 {
       font-size: 19px;
-    }
-    .product-monogram.large {
-      width: 45px;
-      height: 51px;
     }
     .product-detail-head > div:nth-child(2) {
       flex: 1;
@@ -1600,9 +1534,6 @@
     }
     .map-location small {
       font-size: 12px;
-    }
-    .map-pin svg {
-      width: 17px;
     }
     .map-legend {
       gap: 9px;
