@@ -904,7 +904,7 @@
   overflow-wrap: anywhere;
 }
 .modal {
-  translate: none;
+  translate: -50% -50%;
   position: fixed;
   display: flex;
   flex-direction: column;
@@ -914,7 +914,7 @@
   left: calc(
     var(--modal-viewport-left, 0px) + var(--modal-viewport-width, 100vw) / 2
   );
-  transform: translate(-50%, -50%);
+  transform: none;
   width: min(520px, calc(var(--modal-viewport-width, 100vw) - 24px));
   max-width: none;
   max-height: calc(var(--modal-viewport-height, 100dvh) - 24px);
