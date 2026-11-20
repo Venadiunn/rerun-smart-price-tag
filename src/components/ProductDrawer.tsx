@@ -1,3 +1,9 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
 import { useState } from "react";
 import { MapPin, ScanLine, PackagePlus, ArrowRight } from "lucide-react";
 import { useWorkspace, isManager } from "../lib/context";
@@ -87,18 +93,20 @@ export function ProductDrawer({
           </div>
           <label>
             Physical unit
-            <select
+            <NativeSelect
               aria-label="Physical unit"
               value={unitId}
               onChange={(e) => setUnitId(e.target.value)}
             >
-              <option value="">Select a unit ({units.length})</option>
+              <NativeSelectOption value="">
+                Select a unit ({units.length})
+              </NativeSelectOption>
               {units.map((u) => (
-                <option key={u.id} value={u.id}>
+                <NativeSelectOption key={u.id} value={u.id}>
                   {u.id} · {u.status}
-                </option>
+                </NativeSelectOption>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           {u ? (
             <>
@@ -116,7 +124,7 @@ export function ProductDrawer({
               {transitions[u.status].includes("Stocked Out") && (
                 <label>
                   Reason for stock-out
-                  <input
+                  <Input
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     placeholder="Required when removing a unit"
@@ -125,7 +133,8 @@ export function ProductDrawer({
               )}
               <div className="transition-actions">
                 {transitions[u.status].map((status) => (
-                  <button
+                  <Button
+                    type="button"
                     key={status}
                     className={status === "Restocked" ? "primary" : "secondary"}
                     disabled={busy}
@@ -148,7 +157,7 @@ export function ProductDrawer({
                       ? "Confirm restocked"
                       : `Mark ${status}`}
                     <ArrowRight size={15} />
-                  </button>
+                  </Button>
                 ))}
               </div>
               {isManager(data.profile.role) && (
@@ -173,19 +182,24 @@ export function ProductDrawer({
                   >
                     <label>
                       Destination
-                      <select name="locationId" defaultValue={u.destination_id}>
+                      <NativeSelect
+                        name="locationId"
+                        defaultValue={u.destination_id}
+                      >
                         {data.master.locations.map((l) => (
-                          <option key={l.id}>{l.id}</option>
+                          <NativeSelectOption key={l.id}>
+                            {l.id}
+                          </NativeSelectOption>
                         ))}
-                      </select>
+                      </NativeSelect>
                     </label>
                     <label>
                       Reason
-                      <input name="reason" minLength={3} required />
+                      <Input name="reason" minLength={3} required />
                     </label>
-                    <button className="secondary" disabled={busy}>
+                    <Button type="submit" className="secondary" disabled={busy}>
                       Assign destination
-                    </button>
+                    </Button>
                   </form>
                 </details>
               )}
@@ -229,7 +243,7 @@ export function ProductDrawer({
             >
               <label>
                 Units
-                <input
+                <Input
                   name="quantity"
                   type="number"
                   min={1}
@@ -238,26 +252,30 @@ export function ProductDrawer({
                   required
                 />
               </label>
-              <button className="primary" disabled={busy}>
+              <Button type="submit" className="primary" disabled={busy}>
                 Receive stock
-              </button>
+              </Button>
             </form>
           </details>
         </section>
         <aside className="label-sidebar">
           <label>
             QR label format
-            <select
+            <NativeSelect
               aria-label="QR label format"
               value={qrMode}
               onChange={(e) => setQrMode(e.target.value)}
             >
-              <option value="stable">Stable identifier</option>
-              <option value="snapshot">Product data snapshot</option>
-              <option value="tag" disabled={!smartTag}>
+              <NativeSelectOption value="stable">
+                Stable identifier
+              </NativeSelectOption>
+              <NativeSelectOption value="snapshot">
+                Product data snapshot
+              </NativeSelectOption>
+              <NativeSelectOption value="tag" disabled={!smartTag}>
                 Smart tag identifier
-              </option>
-            </select>
+              </NativeSelectOption>
+            </NativeSelect>
           </label>
           <QRLabel
             value={

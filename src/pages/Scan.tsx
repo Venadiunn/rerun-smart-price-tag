@@ -1,3 +1,11 @@
+import { Textarea } from "@/components/ui/textarea";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useEffect, useRef, useState } from "react";
 import {
   Camera,
@@ -90,11 +98,11 @@ export function Scan() {
     <>
       <PageTitle
         eyebrow="IDENTIFY & VERIFY"
-        title="The right item. The right place."
-        description="Scan a QR label or enter a code to compare it with the current master."
+        title="Scan & verify"
+        description="Identify a product, unit, or tag against the approved master."
       />
       <div className="scan-grid">
-        <section className="panel">
+        <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
             <h2>
               <ScanLine size={20} /> QR scanner
@@ -121,7 +129,8 @@ export function Scan() {
             )}
           </div>
           <div className="scanner-controls">
-            <button
+            <Button
+              type="button"
               className="primary"
               disabled={busy}
               onClick={
@@ -135,11 +144,11 @@ export function Scan() {
             >
               {active ? <Square size={17} /> : <Camera size={17} />}{" "}
               {active ? "Stop camera" : "Start camera"}
-            </button>
+            </Button>
             <label className="secondary upload-button">
               <ImageUp size={17} />
               Upload QR image
-              <input
+              <Input
                 type="file"
                 accept="image/*"
                 onChange={async (e) => {
@@ -167,7 +176,7 @@ export function Scan() {
           {active && cameras.length > 1 && (
             <label>
               Camera
-              <select
+              <NativeSelect
                 onChange={(e) =>
                   scanner.current
                     ?.setCamera(e.target.value)
@@ -175,11 +184,11 @@ export function Scan() {
                 }
               >
                 {cameras.map((c) => (
-                  <option key={c.id} value={c.id}>
+                  <NativeSelectOption key={c.id} value={c.id}>
                     {c.label}
-                  </option>
+                  </NativeSelectOption>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
           )}
           <div className="manual-entry">
@@ -194,17 +203,21 @@ export function Scan() {
                 void lookup(raw);
               }}
             >
-              <textarea
+              <Textarea
                 aria-label="Item code or QR JSON"
                 value={raw}
                 onChange={(e) => setRaw(e.target.value)}
                 placeholder={"PROD-001, UNIT-…, TAG-…, or product JSON"}
                 rows={3}
               />
-              <button className="secondary" disabled={busy || !raw.trim()}>
+              <Button
+                type="submit"
+                className="secondary"
+                disabled={busy || !raw.trim()}
+              >
                 Look up item
                 <ArrowRight size={16} />
-              </button>
+              </Button>
             </form>
           </div>
           {error && (
@@ -212,12 +225,13 @@ export function Scan() {
               {error}
             </div>
           )}
-        </section>
-        <section className="panel scan-result">
+        </Card>
+        <Card className="panel scan-result gap-0 py-0 ring-0">
           <div className="section-heading">
             <h2>Verification result</h2>
             {result && (
-              <button
+              <Button
+                type="button"
                 className="text-button"
                 onClick={() => {
                   locked.current = false;
@@ -227,7 +241,7 @@ export function Scan() {
               >
                 <RefreshCw size={15} />
                 Clear
-              </button>
+              </Button>
             )}
           </div>
           {result ? (
@@ -276,7 +290,8 @@ export function Scan() {
                         alert to continue using the verified destination. Master
                         values remain unchanged.
                       </p>
-                      <button
+                      <Button
+                        type="button"
                         className="secondary"
                         disabled={busy || !!result.acknowledged_at}
                         onClick={async () => {
@@ -295,24 +310,27 @@ export function Scan() {
                         {result.acknowledged_at
                           ? "Acknowledged"
                           : "Acknowledge discrepancy"}
-                      </button>
+                      </Button>
                     </div>
                   )}
                   <label>
                     Choose the physical unit
-                    <select
+                    <NativeSelect
                       value={unitId}
                       onChange={(e) => setUnitId(e.target.value)}
                     >
-                      <option value="">Select a unit</option>
+                      <NativeSelectOption value="">
+                        Select a unit
+                      </NativeSelectOption>
                       {units.map((u) => (
-                        <option key={u.id} value={u.id}>
+                        <NativeSelectOption key={u.id} value={u.id}>
                           {u.id} · {u.status}
-                        </option>
+                        </NativeSelectOption>
                       ))}
-                    </select>
+                    </NativeSelect>
                   </label>
-                  <button
+                  <Button
+                    type="button"
                     className="primary full"
                     disabled={
                       !unitId ||
@@ -324,7 +342,7 @@ export function Scan() {
                   >
                     Continue with this unit
                     <ArrowRight size={17} />
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <div className="notice danger">
@@ -351,7 +369,7 @@ export function Scan() {
               </span>
             </div>
           )}
-        </section>
+        </Card>
       </div>
       <details className="panel demo-scenarios">
         <summary>
@@ -370,7 +388,8 @@ export function Scan() {
             "Altered name",
             "Wrong location",
           ].map((label, i) => (
-            <button
+            <Button
+              type="button"
               className="secondary"
               key={label}
               onClick={() => {
@@ -390,7 +409,7 @@ export function Scan() {
               }}
             >
               {label}
-            </button>
+            </Button>
           ))}
         </div>
       </details>

@@ -46,9 +46,15 @@ async function checkModal(page: Page, title: string) {
   expect(bounds.fieldsReadable).toBe(true);
   expect(bounds.closeWidth).toBeGreaterThanOrEqual(44);
   expect(bounds.closeHeight).toBeGreaterThanOrEqual(44);
-  expect(await page.evaluate(() => document.body.style.overflow)).toBe(
-    "hidden",
-  );
+  expect(
+    await page.evaluate(() =>
+      [document.body, document.documentElement].some((e) =>
+        ["hidden", "clip"].includes(getComputedStyle(e).overflowY),
+      )
+        ? "hidden"
+        : "",
+    ),
+  ).toBe("hidden");
   const headerBefore = await dialog.locator(".modal-top").boundingBox();
   await dialog.locator(".modal-body").evaluate((e) => {
     e.scrollTop = e.scrollHeight;
@@ -62,9 +68,15 @@ async function checkModal(page: Page, title: string) {
     .getByRole("button", { name: "Close dialog", exact: true })
     .click();
   await expect(dialog).toHaveCount(0);
-  expect(await page.evaluate(() => document.body.style.overflow)).not.toBe(
-    "hidden",
-  );
+  expect(
+    await page.evaluate(() =>
+      [document.body, document.documentElement].some((e) =>
+        ["hidden", "clip"].includes(getComputedStyle(e).overflowY),
+      )
+        ? "hidden"
+        : "",
+    ),
+  ).not.toBe("hidden");
 }
 
 for (const viewport of [
@@ -120,12 +132,12 @@ for (const viewport of [
       .getByRole("button", { name: "Add product", exact: true })
       .click();
     await checkModal(page, "Add product");
-    await page.getByRole("button", { name: /^locations/ }).click();
+    await page.getByRole("tab", { name: /^locations/ }).click();
     await page
       .getByRole("button", { name: "Add location", exact: true })
       .click();
     await checkModal(page, "Add location");
-    await page.getByRole("button", { name: /^categories/ }).click();
+    await page.getByRole("tab", { name: /^categories/ }).click();
     await page
       .getByRole("button", { name: "Add category", exact: true })
       .click();

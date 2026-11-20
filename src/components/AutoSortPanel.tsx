@@ -1,3 +1,14 @@
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { Route, Download, ArrowRight } from "lucide-react";
 import { command, exportCSV } from "../lib/api";
@@ -26,7 +37,7 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
       .includes(query.toLowerCase()),
   );
   return (
-    <section className="panel sort-panel">
+    <Card className="panel sort-panel gap-0 py-0 ring-0">
       <div className="section-heading">
         <div>
           <span className="eyebrow">PRODUCT ID → DESIGNATED LOCATION</span>
@@ -34,7 +45,8 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
             <Route size={20} /> Automatic sorting
           </h2>
         </div>
-        <button
+        <Button
+          type="button"
           className="primary"
           disabled={busy}
           aria-label="Auto sort and assign smart tags"
@@ -47,7 +59,7 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
           }}
         >
           Auto sort & assign tags
-        </button>
+        </Button>
       </div>
       <p>
         New arrivals automatically match their product ID to the master index.
@@ -71,12 +83,13 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
             <strong>Some units need attention</strong>
             {result.waiting.map((w) => (
               <p key={w.unitId}>
-                <button
+                <Button
+                  type="button"
                   className="text-button"
                   onClick={() => openProduct(w.productId, w.unitId)}
                 >
                   {w.productId} · {w.unitId}
-                </button>{" "}
+                </Button>{" "}
                 → {w.locationId}: {w.reason}
               </p>
             ))}
@@ -106,7 +119,7 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
         <>
           <div className="table-toolbar">
             <label className="search-box">
-              <input
+              <Input
                 aria-label="Search restock route"
                 placeholder="Find a product ID, unit or destination…"
                 value={query}
@@ -116,7 +129,8 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
                 }}
               />
             </label>
-            <button
+            <Button
+              type="button"
               className="secondary"
               disabled={!route.length}
               onClick={() =>
@@ -136,47 +150,52 @@ export function AutoSortPanel({ compact = false }: { compact?: boolean }) {
               }
             >
               <Download size={16} /> Export restock route
-            </button>
+            </Button>
           </div>
           <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Destination</th>
-                  <th>Product ID</th>
-                  <th>Unit</th>
-                  <th>Placement</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Destination</TableHead>
+                  <TableHead>Product ID</TableHead>
+                  <TableHead>Unit</TableHead>
+                  <TableHead>Placement</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {visible.slice(0, limit).map((u) => (
-                  <tr key={u.id}>
-                    <td>{u.destination_id}</td>
-                    <td className="mono">{u.product_id}</td>
-                    <td className="mono">{u.id}</td>
-                    <td>
-                      <button
+                  <TableRow key={u.id}>
+                    <TableCell>{u.destination_id}</TableCell>
+                    <TableCell className="mono">{u.product_id}</TableCell>
+                    <TableCell className="mono">{u.id}</TableCell>
+                    <TableCell>
+                      <Button
+                        type="button"
                         className="text-button"
                         onClick={() => openProduct(u.product_id, u.id)}
                       >
                         Review & place <ArrowRight size={15} />
-                      </button>
-                    </td>
-                  </tr>
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
           {!visible.length && (
             <p className="hint">No matching units are ready for placement.</p>
           )}
           {visible.length > limit && (
-            <button className="secondary" onClick={() => setLimit(limit + 30)}>
+            <Button
+              type="button"
+              className="secondary"
+              onClick={() => setLimit(limit + 30)}
+            >
               Show more ({visible.length - limit} remaining)
-            </button>
+            </Button>
           )}
         </>
       )}
-    </section>
+    </Card>
   );
 }

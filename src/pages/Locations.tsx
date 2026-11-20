@@ -1,3 +1,9 @@
+import { Button } from "@/components/ui/button";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
+import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { MapPin, ArrowRight, Layers3 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -25,8 +31,8 @@ export function Locations() {
     <>
       <PageTitle
         eyebrow="DESTINATIONS & CAPACITY"
-        title="Make every location familiar."
-        description="Explore the store, find each product’s home, and see available space at a glance."
+        title="Store locations"
+        description="Review placements, reservations, and available fixture capacity."
         actions={
           <Link className="secondary" to="/master">
             Manage locations
@@ -72,13 +78,13 @@ export function Locations() {
         ))}
       </div>
       <div className="map-layout">
-        <section className="panel">
+        <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
             <h2>
               <Layers3 size={19} />
               Store schematic
             </h2>
-            <select
+            <NativeSelect
               aria-label="Department filter"
               value={department}
               onChange={(e) => {
@@ -86,33 +92,35 @@ export function Locations() {
                 setSelected("");
               }}
             >
-              <option value="">All departments</option>
+              <NativeSelectOption value="">All departments</NativeSelectOption>
               {[...new Set(data.master.locations.map((l) => l.department))].map(
                 (d) => (
-                  <option key={d}>{d}</option>
+                  <NativeSelectOption key={d}>{d}</NativeSelectOption>
                 ),
               )}
-            </select>
+            </NativeSelect>
           </div>
           <div
             className="store-view-controls"
             role="group"
             aria-label="Store view"
           >
-            <button
+            <Button
+              type="button"
               className={view === "floor" ? "primary" : "secondary"}
               aria-pressed={view === "floor"}
               onClick={() => setView("floor")}
             >
               Floor plan
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
               className={view === "grid" ? "primary" : "secondary"}
               aria-pressed={view === "grid"}
               onClick={() => setView("grid")}
             >
               Capacity grid
-            </button>
+            </Button>
           </div>
           {view === "floor" ? (
             <StoreVisualization
@@ -131,7 +139,8 @@ export function Locations() {
                   const load = locationLoad(data.units, l.id),
                     full = l.capacity !== null && load.committed >= l.capacity;
                   return (
-                    <button
+                    <Button
+                      type="button"
                       key={l.id}
                       className={`map-location ${selected === l.id ? "selected" : ""} ${full ? "at-capacity" : ""}`}
                       onClick={() => selectLocation(l.id)}
@@ -155,7 +164,7 @@ export function Locations() {
                         {load.confirmed} placed · {load.reserved} reserved /{" "}
                         {l.capacity ?? "∞"}
                       </small>
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -179,8 +188,8 @@ export function Locations() {
             Schematic only. ReRun shows where an item belongs and its last
             confirmed placement; it does not locate merchandise automatically.
           </p>
-        </section>
-        <section className="panel destination-details">
+        </Card>
+        <Card className="panel destination-details gap-0 py-0 ring-0">
           <div className="section-heading">
             <h2>Destination details</h2>
           </div>
@@ -217,7 +226,8 @@ export function Locations() {
                 .filter((p) => p.locationId === location.id)
                 .slice(0, detailLimit)
                 .map((p) => (
-                  <button
+                  <Button
+                    type="button"
                     className="location-item"
                     key={p.id}
                     onClick={() => openProduct(p.id)}
@@ -227,22 +237,24 @@ export function Locations() {
                       <small>{p.id}</small>
                     </span>
                     <ArrowRight size={16} />
-                  </button>
+                  </Button>
                 ))}
               {data.master.products.filter((p) => p.locationId === location.id)
                 .length > detailLimit && (
-                <button
+                <Button
+                  type="button"
                   className="secondary"
                   onClick={() => setDetailLimit(detailLimit + 30)}
                 >
                   Show more assigned products
-                </button>
+                </Button>
               )}
               <h3 className="subheading">Restock reservations</h3>
               {restockRoute(data.units)
                 .filter((u) => u.destination_id === location.id)
                 .map((u) => (
-                  <button
+                  <Button
+                    type="button"
                     className="location-item"
                     key={u.id}
                     onClick={() => openProduct(u.product_id, u.id)}
@@ -252,20 +264,21 @@ export function Locations() {
                       <small className="mono">{u.id}</small>
                     </span>
                     <Status value={u.status} />
-                  </button>
+                  </Button>
                 ))}
               <h3 className="subheading">Last confirmed placements</h3>
               {data.units
                 .filter((u) => u.current_location_id === location.id)
                 .map((u) => (
-                  <button
+                  <Button
+                    type="button"
                     className="location-item"
                     key={u.id}
                     onClick={() => openProduct(u.product_id, u.id)}
                   >
                     <span className="mono">{u.id}</span>
                     <Status value={u.status} />
-                  </button>
+                  </Button>
                 ))}
             </>
           ) : (
@@ -275,7 +288,7 @@ export function Locations() {
               <p>Select a rack or shelf to see products and capacity.</p>
             </div>
           )}
-        </section>
+        </Card>
       </div>
     </>
   );

@@ -1,3 +1,19 @@
+import { Textarea } from "@/components/ui/textarea";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { BadgeDollarSign, Plus, ArrowRight } from "lucide-react";
 import { useWorkspace, isManager } from "../lib/context";
@@ -16,10 +32,11 @@ export function Pricing() {
     <>
       <PageTitle
         eyebrow="CONTROLLED PRICE CHANGES"
-        title="A thoughtful approach to pricing."
-        description="Transparent suggestions, deliberate approvals, and a record of every change."
+        title="Pricing"
+        description="Review suggestions and manage controlled price changes."
         actions={
-          <button
+          <Button
+            type="button"
             className="primary"
             onClick={() =>
               setRequest({
@@ -31,7 +48,7 @@ export function Pricing() {
           >
             <Plus size={17} />
             Request price change
-          </button>
+          </Button>
         }
       />
       <div className="notice">
@@ -43,7 +60,7 @@ export function Pricing() {
           checkout systems.
         </span>
       </div>
-      <section className="panel">
+      <Card className="panel gap-0 py-0 ring-0">
         <div className="section-heading">
           <div>
             <span className="eyebrow">RULE-BASED RECOMMENDATIONS</span>
@@ -85,7 +102,8 @@ export function Pricing() {
                     Cost not supplied; no margin floor available.
                   </small>
                 )}
-                <button
+                <Button
+                  type="button"
                   className="secondary"
                   disabled={!s.eligible}
                   onClick={() =>
@@ -97,32 +115,32 @@ export function Pricing() {
                   }
                 >
                   Request review
-                </button>
+                </Button>
               </article>
             );
           })}
         </div>
-      </section>
-      <section className="panel">
+      </Card>
+      <Card className="panel gap-0 py-0 ring-0">
         <div className="section-heading">
           <h2>Price change requests</h2>
         </div>
         {data.prices.length ? (
           <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Proposed price</th>
-                  <th>Reason</th>
-                  <th>Status</th>
-                  <th>Review</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Proposed price</TableHead>
+                  <TableHead>Reason</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Review</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {data.prices.map((r) => (
-                  <tr key={r.id}>
-                    <td>
+                  <TableRow key={r.id}>
+                    <TableCell>
                       <strong>
                         {
                           data.master.products.find(
@@ -131,16 +149,17 @@ export function Pricing() {
                         }
                       </strong>
                       <small>{dateTime(r.created_at)}</small>
-                    </td>
-                    <td className="mono">{money(r.price)}</td>
-                    <td className="reason-cell">{r.reason}</td>
-                    <td>
+                    </TableCell>
+                    <TableCell className="mono">{money(r.price)}</TableCell>
+                    <TableCell className="reason-cell">{r.reason}</TableCell>
+                    <TableCell>
                       <Status value={r.status} />
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       {manager && r.status === "Pending" && (
                         <div className="actions">
-                          <button
+                          <Button
+                            type="button"
                             className="primary small"
                             disabled={busy}
                             onClick={() => {
@@ -158,8 +177,9 @@ export function Pricing() {
                             }}
                           >
                             Approve & publish
-                          </button>
-                          <button
+                          </Button>
+                          <Button
+                            type="button"
                             className="secondary small"
                             disabled={busy}
                             onClick={() =>
@@ -174,14 +194,14 @@ export function Pricing() {
                             }
                           >
                             Reject
-                          </button>
+                          </Button>
                         </div>
                       )}
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
         ) : (
           <div className="calm-empty">
@@ -191,9 +211,9 @@ export function Pricing() {
             </p>
           </div>
         )}
-      </section>
+      </Card>
       {manager && (
-        <section className="panel">
+        <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
             <h2>Markdown rules</h2>
           </div>
@@ -215,7 +235,7 @@ export function Pricing() {
           >
             <label>
               Minimum history (days)
-              <input
+              <Input
                 name="ageDays"
                 type="number"
                 min={1}
@@ -226,7 +246,7 @@ export function Pricing() {
             </label>
             <label>
               Sell-through below (%)
-              <input
+              <Input
                 name="sellThrough"
                 type="number"
                 min={0}
@@ -237,7 +257,7 @@ export function Pricing() {
             </label>
             <label>
               Suggested discount (%)
-              <input
+              <Input
                 name="discount"
                 type="number"
                 min={1}
@@ -246,11 +266,11 @@ export function Pricing() {
                 required
               />
             </label>
-            <button className="secondary" disabled={busy}>
+            <Button type="submit" className="secondary" disabled={busy}>
               Save rules
-            </button>
+            </Button>
           </form>
-        </section>
+        </Card>
       )}
       {request && (
         <Modal title="Request a price change" onClose={() => setRequest(null)}>
@@ -275,17 +295,17 @@ export function Pricing() {
           >
             <label>
               Product
-              <select name="productId" defaultValue={request.productId}>
+              <NativeSelect name="productId" defaultValue={request.productId}>
                 {data.master.products.map((p) => (
-                  <option key={p.id} value={p.id}>
+                  <NativeSelectOption key={p.id} value={p.id}>
                     {p.name}
-                  </option>
+                  </NativeSelectOption>
                 ))}
-              </select>
+              </NativeSelect>
             </label>
             <label>
               Proposed price (USD)
-              <input
+              <Input
                 name="price"
                 type="number"
                 min={0}
@@ -296,7 +316,7 @@ export function Pricing() {
             </label>
             <label>
               Reason
-              <textarea
+              <Textarea
                 name="reason"
                 minLength={3}
                 maxLength={1000}
@@ -305,9 +325,9 @@ export function Pricing() {
                 rows={3}
               />
             </label>
-            <button className="primary" disabled={busy}>
+            <Button type="submit" className="primary" disabled={busy}>
               Submit for approval
-            </button>
+            </Button>
           </form>
         </Modal>
       )}

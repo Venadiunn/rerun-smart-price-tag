@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { ArrowDown, DoorOpen, ShoppingBag, PackageCheck } from "lucide-react";
 import type { Location, Unit } from "../lib/types";
 import { storeAisles } from "../lib/store-layout";
@@ -50,7 +51,8 @@ export function StoreVisualization({
                     ? Math.max(30, load.committed)
                     : l.capacity;
                 return (
-                  <button
+                  <Button
+                    type="button"
                     key={l.id}
                     aria-label={`${l.id}: ${load.confirmed} placed, ${load.reserved} reserved, capacity ${l.capacity ?? "unlimited"}`}
                     aria-pressed={selected === l.id}
@@ -81,7 +83,7 @@ export function StoreVisualization({
                       <span>{load.confirmed} placed</span>
                       <span>{load.reserved} reserved</span>
                     </span>
-                  </button>
+                  </Button>
                 );
               })}
             </div>

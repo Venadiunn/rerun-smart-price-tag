@@ -4,8 +4,25 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/rerun-mark.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#5550df" />
-    <meta name="description" content="ReRun Smart Price Tag: a connected inventory and restocking workspace." />
+    <meta name="theme-color" content="#ffffff" />
+    <script>
+      try {
+        var appearance = localStorage.getItem("rerun:appearance") || "system";
+        var dark =
+          appearance === "dark" ||
+          (appearance !== "light" &&
+            matchMedia("(prefers-color-scheme: dark)").matches);
+        document.documentElement.classList.toggle("dark", dark);
+        document.documentElement.style.colorScheme = dark ? "dark" : "light";
+        document.querySelector('meta[name="theme-color"]').content = dark
+          ? "#18181b"
+          : "#ffffff";
+      } catch (_) {}
+    </script>
+    <meta
+      name="description"
+      content="ReRun Smart Price Tag: a connected inventory and restocking workspace."
+    />
     <title>ReRun · Smart Price Tag</title>
   </head>
   <body>

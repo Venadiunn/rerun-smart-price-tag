@@ -59,9 +59,7 @@ test.describe("administrator workspace", () => {
     page,
   }) => {
     await page.goto("/");
-    await expect(
-      page.getByRole("heading", { name: "A clearer view of your floor." }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
     await page.screenshot({
       path: ".private/overview-desktop.png",
       fullPage: true,
@@ -85,12 +83,12 @@ test.describe("administrator workspace", () => {
   });
   test("all screens load and desktop navigation works", async ({ page }) => {
     for (const [route, title] of [
-      ["/locations", "Make every location familiar."],
-      ["/tags", "A new chapter for every tag."],
-      ["/pricing", "A thoughtful approach to pricing."],
-      ["/history", "Nothing gets lost in the process."],
-      ["/master", "One trusted source of truth."],
-      ["/settings", "A workspace your team can trust."],
+      ["/locations", "Store locations"],
+      ["/tags", "Reusable tags"],
+      ["/pricing", "Pricing"],
+      ["/history", "Activity history"],
+      ["/master", "Master data"],
+      ["/settings", "Settings"],
     ]) {
       await page.goto(route);
       await expect(page.getByRole("heading", { name: title })).toBeVisible();
@@ -126,7 +124,7 @@ test.describe("administrator workspace", () => {
     ).toBeDisabled();
     await page.reload();
     await page.goto("/history");
-    await page.getByRole("button", { name: /Scan records/ }).click();
+    await page.getByRole("tab", { name: /Scan records/ }).click();
     await expect(
       page
         .locator(".scan-history")
@@ -157,9 +155,7 @@ test.describe("administrator workspace", () => {
   test("mobile layout and navigation", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto("/");
-    await expect(
-      page.getByRole("heading", { name: "A clearer view of your floor." }),
-    ).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -172,7 +168,7 @@ test.describe("administrator workspace", () => {
     await page.getByLabel("Toggle navigation").click();
     await page.getByRole("link", { name: "Scan & verify" }).click();
     await expect(
-      page.getByRole("heading", { name: "The right item. The right place." }),
+      page.getByRole("heading", { name: "Scan & verify" }),
     ).toBeVisible();
     expect(
       await page.evaluate(
@@ -183,6 +179,9 @@ test.describe("administrator workspace", () => {
   test("Nimiq-generated QR decodes through image upload and a simulated camera stream", async ({
     page,
   }) => {
+    await page.addInitScript(() =>
+      localStorage.setItem("rerun:appearance", "dark"),
+    );
     await page.goto("/inventory");
     await page
       .getByRole("textbox", { name: "Search inventory" })
@@ -289,9 +288,7 @@ test("associate authenticates with password and cannot access employee/master co
   await page.getByLabel("Email address").fill(user.email);
   await page.getByLabel("Password", { exact: true }).fill(user.password);
   await page.getByRole("button", { name: "Sign in", exact: true }).click();
-  await expect(
-    page.getByRole("heading", { name: "A clearer view of your floor." }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
   await page.goto("/master");
   await expect(
     page.getByText("Import CSV / XLSX", { exact: true }),
@@ -343,9 +340,7 @@ test("employee activation validates confirmation before consuming the private to
   await page
     .getByRole("button", { name: "Activate account", exact: true })
     .click();
-  await expect(
-    page.getByRole("heading", { name: "A clearer view of your floor." }),
-  ).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Overview" })).toBeVisible();
   users.associate.password = password;
   fs.writeFileSync(".private/test-users.json", JSON.stringify(users));
   expect(page.url()).not.toContain("token_hash");

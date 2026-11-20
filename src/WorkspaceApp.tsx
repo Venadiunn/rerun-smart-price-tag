@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { WorkspaceShell } from "./components/WorkspaceShell";
 import { useEffect, useState, lazy, Suspense } from "react";
 import type { Session } from "@supabase/supabase-js";
 import {
@@ -11,29 +13,12 @@ import {
   createRoute,
   createRouter,
   RouterProvider,
-  Outlet,
   Link,
 } from "@tanstack/react-router";
-import {
-  LayoutDashboard,
-  Boxes,
-  ScanLine,
-  MapPin,
-  Tag,
-  BadgeDollarSign,
-  History,
-  FileSpreadsheet,
-  Settings,
-  LogOut,
-  Menu,
-  X,
-  ArrowUpRight,
-  CheckCircle2,
-  AlertCircle,
-} from "lucide-react";
+import { X, CheckCircle2, AlertCircle } from "lucide-react";
 import { supabase } from "./lib/supabase";
 import { snapshot } from "./lib/api";
-import { WorkspaceContext, useWorkspace } from "./lib/context";
+import { WorkspaceContext } from "./lib/context";
 import { Auth } from "./components/Auth";
 import { Busy } from "./components/ui";
 import { Dashboard } from "./pages/Dashboard";
@@ -55,123 +40,8 @@ const client = new QueryClient({
     queries: { staleTime: 15000, retry: 1, refetchOnWindowFocus: true },
   },
 });
-const nav = [
-  { to: "/", label: "Overview", icon: LayoutDashboard },
-  { to: "/inventory", label: "Inventory", icon: Boxes },
-  { to: "/scan", label: "Scan & verify", icon: ScanLine },
-  { to: "/locations", label: "Store locations", icon: MapPin },
-  { to: "/tags", label: "Reusable tags", icon: Tag },
-  { to: "/pricing", label: "Pricing", icon: BadgeDollarSign },
-  { to: "/history", label: "Activity history", icon: History },
-  { to: "/master", label: "Master data", icon: FileSpreadsheet },
-  { to: "/settings", label: "Settings", icon: Settings },
-] as const;
-function Shell() {
-  const { data } = useWorkspace(),
-    [menu, setMenu] = useState(false);
-  return (
-    <div className="app-layout">
-      <aside className={`sidebar ${menu ? "open" : ""}`}>
-        <Link to="/" className="brand">
-          <img src="/rerun-logo.png" alt="ReRun" />
-          <span>
-            RE<span className="brand-run">RUN</span>
-            <small>SMART PRICE TAG</small>
-          </span>
-        </Link>
-        <span className="nav-label">YOUR WORKSPACE</span>
-        <nav aria-label="Main navigation">
-          {nav.map((n) => (
-            <Link
-              key={n.to}
-              to={n.to}
-              activeOptions={{ exact: true }}
-              activeProps={{ className: "nav-item selected" }}
-              inactiveProps={{ className: "nav-item" }}
-              onClick={() => setMenu(false)}
-            >
-              <n.icon size={19} />
-              {n.label}
-              {n.to === "/scan" && (
-                <ArrowUpRight size={15} className="nav-arrow" />
-              )}
-            </Link>
-          ))}
-        </nav>
-        <div className="sidebar-note">
-          <div className="store-avatar">
-            <MapPin size={18} />
-          </div>
-          <div>
-            <strong>ReRun demo store</strong>
-            <small>Single-store workspace</small>
-          </div>
-          <span className="connection-dot" />
-        </div>
-        <div className="sidebar-bottom">
-          <span className="small-chip">WWT STEM · 2026–27</span>
-          <p>A place for everything.</p>
-        </div>
-      </aside>
-      {menu && (
-        <button
-          className="sidebar-shade"
-          aria-label="Close navigation"
-          onClick={() => setMenu(false)}
-        />
-      )}
-      <div className="main-wrap">
-        <header className="topbar">
-          <div className="topbar-left">
-            <button
-              className="icon-button mobile-menu"
-              aria-label="Toggle navigation"
-              onClick={() => setMenu(!menu)}
-            >
-              {menu ? <X size={21} /> : <Menu size={21} />}
-            </button>
-            <span className="store-wordmark">
-              RE<span>RUN</span>
-            </span>
-            <span className="topbar-divider" />
-            <span>Store operations</span>
-          </div>
-          <div className="topbar-right">
-            <span className="connection-status">
-              <i />
-              Master v{data.revision.revision} connected
-            </span>
-            <div className="avatar">
-              {data.profile.email.slice(0, 2).toUpperCase()}
-            </div>
-            <div className="user-text">
-              <strong>{data.profile.email.split("@")[0]}</strong>
-              <small>{data.profile.role}</small>
-            </div>
-            <button
-              className="icon-button"
-              aria-label="Sign out"
-              onClick={() => {
-                void supabase.auth.signOut();
-              }}
-            >
-              <LogOut size={17} />
-            </button>
-          </div>
-        </header>
-        <main id="main">
-          <Outlet />
-        </main>
-        <footer className="app-footer">
-          <span>ReRun / Smart Price Tag</span>
-          <span>Fictional demonstration data · Physical tag simulator</span>
-        </footer>
-      </div>
-    </div>
-  );
-}
 const rootRoute = createRootRoute({
-  component: Shell,
+  component: WorkspaceShell,
   notFoundComponent: () => (
     <div className="panel empty">
       <h1>Page not found</h1>
@@ -272,12 +142,20 @@ function Runtime() {
           {query.error?.message ?? "The master inventory is being initialized."}
         </p>
         <div className="actions">
-          <button className="primary" onClick={() => query.refetch()}>
+          <Button
+            type="button"
+            className="primary"
+            onClick={() => query.refetch()}
+          >
             Try again
-          </button>
-          <button className="secondary" onClick={() => supabase.auth.signOut()}>
+          </Button>
+          <Button
+            type="button"
+            className="secondary"
+            onClick={() => supabase.auth.signOut()}
+          >
             Sign out
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -320,12 +198,13 @@ function Runtime() {
         >
           {toast.error ? <AlertCircle size={20} /> : <CheckCircle2 size={20} />}
           <span>{toast.message}</span>
-          <button
+          <Button
+            type="button"
             aria-label="Dismiss notification"
             onClick={() => setToast(null)}
           >
             <X size={16} />
-          </button>
+          </Button>
         </div>
       )}
       {pending > 0 && (

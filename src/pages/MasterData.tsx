@@ -1,3 +1,25 @@
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import {
   Download,
@@ -19,7 +41,7 @@ import { productCsvRows } from "../lib/csv";
 import { supabase } from "../lib/supabase";
 import { dateTime, validateMaster, money } from "../lib/domain";
 import type { Master, Product, Location, Category } from "../lib/types";
-import { PageTitle, Modal, field } from "../components/ui";
+import { PageTitle, Modal, Empty, field } from "../components/ui";
 type Kind = keyof Master;
 type Edit = { kind: Kind; index: number; value: Record<string, unknown> };
 export function MasterData() {
@@ -30,9 +52,18 @@ export function MasterData() {
       revision: string;
     } | null>(null),
     [edit, setEdit] = useState<Edit | null>(null),
-    [tab, setTab] = useState<Kind>("products");
+    [tab, setTab] = useState<Kind>("products"),
+    [query, setQuery] = useState(""),
+    [page, setPage] = useState(1);
   const manager = isManager(data.profile.role),
     master = draft?.master ?? data.master;
+  const records = master[tab]
+    .map((row, index) => ({ row, index }))
+    .filter(({ row }) =>
+      JSON.stringify(row).toLowerCase().includes(query.toLowerCase()),
+    );
+  const pages = Math.max(1, Math.ceil(records.length / 50));
+  const currentPage = Math.min(page, pages);
   function stage(next: Master) {
     setDraft(
       draft
@@ -113,11 +144,12 @@ export function MasterData() {
     <>
       <PageTitle
         eyebrow="AUTHORITATIVE MASTER"
-        title="One trusted source of truth."
-        description="Review, publish, and download immutable Excel revisions of product and location data."
+        title="Master data"
+        description="Review, stage, and publish approved product and location definitions."
         actions={
           <>
-            <button
+            <Button
+              type="button"
               className="secondary"
               disabled={busy}
               onClick={() =>
@@ -126,8 +158,9 @@ export function MasterData() {
             >
               <Download size={17} />
               Download master XLSX
-            </button>
-            <button
+            </Button>
+            <Button
+              type="button"
               className="secondary"
               onClick={() =>
                 exportCSV(
@@ -138,12 +171,12 @@ export function MasterData() {
             >
               <Download size={17} />
               Products CSV
-            </button>
+            </Button>
             {manager && (
               <label className="primary upload-button">
                 <Upload size={17} />
                 Import CSV / XLSX
-                <input
+                <Input
                   type="file"
                   accept=".xlsx,.csv"
                   disabled={busy}
@@ -192,7 +225,7 @@ export function MasterData() {
         </span>
       </div>
       {draft && (
-        <section className="panel draft-review">
+        <Card className="panel draft-review gap-0 py-0 ring-0">
           <div className="section-heading">
             <div>
               <span className="eyebrow">UNPUBLISHED CANDIDATE</span>
@@ -201,14 +234,16 @@ export function MasterData() {
               </h2>
             </div>
             <div className="actions">
-              <button
+              <Button
+                type="button"
                 className="secondary"
                 disabled={busy}
                 onClick={() => setDraft(null)}
               >
                 Discard draft
-              </button>
-              <button
+              </Button>
+              <Button
+                type="button"
                 className="primary"
                 disabled={busy || !changes.length}
                 onClick={async () => {
@@ -220,7 +255,7 @@ export function MasterData() {
                 }}
               >
                 Publish new revision
-              </button>
+              </Button>
             </div>
           </div>
           <ul className="change-list">
@@ -238,94 +273,161 @@ export function MasterData() {
             Publication updates the workbook and searchable records together.
             Operational histories remain intact.
           </p>
-        </section>
+        </Card>
       )}
-      <section className="panel">
-        <div className="master-tabs">
-          <div className="tabs">
-            {(["products", "locations", "categories"] as Kind[]).map((t) => (
-              <button
-                className={tab === t ? "active" : ""}
-                key={t}
-                onClick={() => setTab(t)}
-              >
-                {t}
-                <span>{master[t].length}</span>
-              </button>
-            ))}
-          </div>
-          {manager && (
-            <button className="secondary" onClick={() => editor(tab)}>
-              <Plus size={16} />
-              Add {tab === "categories" ? "category" : tab.slice(0, -1)}
-            </button>
-          )}
-        </div>
-        <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Identifier</th>
-                <th>
-                  {tab === "products"
-                    ? "Product"
-                    : tab === "locations"
-                      ? "Destination"
-                      : "Name"}
-                </th>
-                <th>
-                  {tab === "products"
-                    ? "Price / category"
-                    : tab === "locations"
-                      ? "Capacity"
-                      : " "}
-                </th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {master[tab].map((row, i) => (
-                <tr key={row.id}>
-                  <td className="mono">{row.id}</td>
-                  <td>
-                    {tab === "products"
-                      ? (row as Product).name
-                      : tab === "locations"
-                        ? [
-                            (row as Location).department,
-                            (row as Location).aisle,
-                            (row as Location).rack,
-                            (row as Location).shelf,
-                          ]
-                            .filter(Boolean)
-                            .join(" → ")
-                        : (row as Category).name}
-                  </td>
-                  <td>
-                    {tab === "products"
-                      ? `${money((row as Product).price)} · ${(row as Product).categoryId}`
-                      : tab === "locations"
-                        ? ((row as Location).capacity ?? "Unlimited")
-                        : ""}
-                  </td>
-                  <td>
-                    {manager && (
-                      <button
-                        className="text-button"
-                        onClick={() => editor(tab, i)}
-                      >
-                        <PenLine size={14} />
-                        Edit
-                      </button>
-                    )}
-                  </td>
-                </tr>
+      <Card className="panel gap-0 py-0 ring-0">
+        <Tabs
+          value={tab}
+          onValueChange={(value) => {
+            setTab(value as Kind);
+            setPage(1);
+            setQuery("");
+          }}
+        >
+          <div className="master-tabs">
+            <TabsList aria-label="Master records">
+              {(["products", "locations", "categories"] as Kind[]).map((t) => (
+                <TabsTrigger key={t} value={t}>
+                  {t}
+                  <span>{master[t].length}</span>
+                </TabsTrigger>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
-      <section className="panel">
+            </TabsList>
+            {manager && (
+              <Button
+                type="button"
+                className="secondary"
+                onClick={() => editor(tab)}
+              >
+                <Plus size={16} />
+                Add {tab === "categories" ? "category" : tab.slice(0, -1)}
+              </Button>
+            )}
+          </div>
+          <TabsContent value={tab}>
+            <div className="table-toolbar">
+              <label className="search-box">
+                <Input
+                  aria-label="Search master records"
+                  placeholder="Search identifiers, names, or destinations…"
+                  value={query}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setPage(1);
+                  }}
+                />
+              </label>
+              <span className="text-sm text-muted-foreground">
+                {records.length.toLocaleString()} matching records
+              </span>
+            </div>
+            <div className="table-scroll">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Identifier</TableHead>
+                    <TableHead>
+                      {tab === "products"
+                        ? "Product"
+                        : tab === "locations"
+                          ? "Destination"
+                          : "Name"}
+                    </TableHead>
+                    <TableHead>
+                      {tab === "products"
+                        ? "Price / category"
+                        : tab === "locations"
+                          ? "Capacity"
+                          : " "}
+                    </TableHead>
+                    <TableHead>Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {records
+                    .slice((currentPage - 1) * 50, currentPage * 50)
+                    .map(({ row, index }) => (
+                      <TableRow key={row.id}>
+                        <TableCell className="mono">{row.id}</TableCell>
+                        <TableCell>
+                          {tab === "products"
+                            ? (row as Product).name
+                            : tab === "locations"
+                              ? [
+                                  (row as Location).department,
+                                  (row as Location).aisle,
+                                  (row as Location).rack,
+                                  (row as Location).shelf,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" → ")
+                              : (row as Category).name}
+                        </TableCell>
+                        <TableCell>
+                          {tab === "products"
+                            ? `${money((row as Product).price)} · ${(row as Product).categoryId}`
+                            : tab === "locations"
+                              ? ((row as Location).capacity ?? "Unlimited")
+                              : ""}
+                        </TableCell>
+                        <TableCell>
+                          {manager && (
+                            <Button
+                              type="button"
+                              className="text-button"
+                              onClick={() => editor(tab, index)}
+                            >
+                              <PenLine size={14} />
+                              Edit
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </div>
+            {!records.length && (
+              <Empty title="No matching records">
+                Try another identifier, name, or destination.
+              </Empty>
+            )}
+            {pages > 1 && (
+              <Pagination
+                className="master-pagination"
+                aria-label="Master record pages"
+              >
+                <PaginationContent className="w-full justify-between gap-3 flex-wrap">
+                  <PaginationItem>
+                    <Button
+                      variant="outline"
+                      disabled={currentPage === 1}
+                      onClick={() => setPage(currentPage - 1)}
+                    >
+                      Previous page
+                    </Button>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <span className="text-xs text-muted-foreground">
+                      Page {currentPage} of {pages} · 50 records per page
+                    </span>
+                  </PaginationItem>
+                  <PaginationItem>
+                    <Button
+                      variant="outline"
+                      disabled={currentPage === pages}
+                      onClick={() => setPage(currentPage + 1)}
+                    >
+                      Next page
+                    </Button>
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            )}
+          </TabsContent>
+        </Tabs>
+      </Card>
+      <Card className="panel gap-0 py-0 ring-0">
         <div className="section-heading">
           <h2>
             <History size={19} />
@@ -340,7 +442,8 @@ export function MasterData() {
             </div>
             <span className="mono muted">{r.id.slice(0, 8)}</span>
             <div className="actions">
-              <button
+              <Button
+                type="button"
                 className="secondary"
                 disabled={busy}
                 onClick={() =>
@@ -353,9 +456,10 @@ export function MasterData() {
                 }
               >
                 Download
-              </button>
+              </Button>
               {manager && r.id !== data.revision.id && (
-                <button
+                <Button
+                  type="button"
                   className="text-button"
                   disabled={busy}
                   onClick={() =>
@@ -371,12 +475,12 @@ export function MasterData() {
                   }
                 >
                   Stage as new revision
-                </button>
+                </Button>
               )}
             </div>
           </div>
         ))}
-      </section>
+      </Card>
       {edit && (
         <Modal
           title={`${edit.index < 0 ? "Add" : "Edit"} ${edit.kind === "categories" ? "category" : edit.kind.slice(0, -1)}`}
@@ -418,7 +522,7 @@ export function MasterData() {
                   .replace(/([A-Z])/g, " $1")
                   .replace(/^./, (s) => s.toUpperCase())}
                 {["price", "cost"].includes(key) ? (
-                  <input
+                  <Input
                     name={key}
                     type="number"
                     step="0.01"
@@ -427,20 +531,24 @@ export function MasterData() {
                     defaultValue={value === null ? "" : Number(value) / 100}
                   />
                 ) : key === "taxable" ? (
-                  <input type="checkbox" name={key} defaultChecked={!!value} />
+                  <Checkbox
+                    name={key}
+                    aria-label="Taxable"
+                    defaultChecked={!!value}
+                  />
                 ) : key === "categoryId" || key === "locationId" ? (
-                  <select name={key} defaultValue={String(value)}>
+                  <NativeSelect name={key} defaultValue={String(value)}>
                     {(key === "categoryId"
                       ? master.categories
                       : master.locations
                     ).map((c) => (
-                      <option key={c.id} value={c.id}>
+                      <NativeSelectOption key={c.id} value={c.id}>
                         {c.id}
-                      </option>
+                      </NativeSelectOption>
                     ))}
-                  </select>
+                  </NativeSelect>
                 ) : (
-                  <input
+                  <Input
                     name={key}
                     disabled={key === "id" && edit.index >= 0}
                     type={
@@ -470,9 +578,9 @@ export function MasterData() {
                 Prices and costs use USD. Empty capacity means unlimited.
                 Changes require publication.
               </p>
-              <button className="primary" disabled={busy}>
+              <Button type="submit" className="primary" disabled={busy}>
                 Stage changes
-              </button>
+              </Button>
             </div>
           </form>
         </Modal>
@@ -480,4 +588,3 @@ export function MasterData() {
     </>
   );
 }
-

@@ -1,3 +1,7 @@
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { ReceiveStockDialog } from "../components/ReceiveStockDialog";
 import {
   ArrowRight,
   Boxes,
@@ -15,6 +19,7 @@ import { PageTitle, Status } from "../components/ui";
 import { AutoSortPanel } from "../components/AutoSortPanel";
 import { locationLoad, restockRoute } from "../lib/sorting";
 export function Dashboard() {
+  const [receive, setReceive] = useState(false);
   const { data, openProduct } = useWorkspace(),
     pending = restockRoute(data.units),
     restocked = data.units.filter((u) => u.status === "Restocked");
@@ -55,13 +60,22 @@ export function Dashboard() {
     <>
       <PageTitle
         eyebrow="STORE OVERVIEW"
-        title="A clearer view of your floor."
-        description="Everything you need to get merchandise back where it belongs."
+        title="Overview"
+        description="Scan merchandise, resolve alerts, and keep restocking moving."
         actions={
-          <Link to="/scan" className="primary">
-            <ScanLine size={18} />
-            Scan an item
-          </Link>
+          <>
+            <Button
+              type="button"
+              className="secondary"
+              onClick={() => setReceive(true)}
+            >
+              Receive stock
+            </Button>
+            <Link to="/scan" className="primary">
+              <ScanLine size={18} />
+              Scan an item
+            </Link>
+          </>
         }
       />
       <div className="stats">
@@ -77,36 +91,8 @@ export function Dashboard() {
         ))}
       </div>
       <AutoSortPanel compact />
-      <section className="workflow-banner">
-        <div>
-          <span className="eyebrow">THE RESTOCKING WORKFLOW</span>
-          <h2>A quick scan. A clear destination.</h2>
-          <p>
-            Verify the item, check its assigned location, and confirm placement.
-          </p>
-          <Link to="/scan">
-            Start scanning <ArrowRight size={17} />
-          </Link>
-        </div>
-        <div className="workflow-visual">
-          <span>
-            <ScanLine />
-            <small>01 / IDENTIFY</small>
-          </span>
-          <i />
-          <span>
-            <MapPin />
-            <small>02 / LOCATE</small>
-          </span>
-          <i />
-          <span>
-            <PackageCheck />
-            <small>03 / RESTOCK</small>
-          </span>
-        </div>
-      </section>
       <div className="dashboard-grid">
-        <section className="panel">
+        <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
             <div>
               <span className="eyebrow">UP NEXT</span>
@@ -125,8 +111,9 @@ export function Dashboard() {
                   (p) => p.id === u.product_id,
                 )!;
                 return (
-                  <button
-                    className="queue-item"
+                  <Button
+                    type="button"
+                    className="queue-item h-auto w-full whitespace-normal justify-start text-left"
                     key={u.id}
                     onClick={() => openProduct(p.id, u.id)}
                   >
@@ -146,7 +133,7 @@ export function Dashboard() {
                       {u.destination_id}
                       <ArrowRight size={16} />
                     </span>
-                  </button>
+                  </Button>
                 );
               })}
             </div>
@@ -157,8 +144,8 @@ export function Dashboard() {
               <p>Received items appear here when marked pending restock.</p>
             </div>
           )}
-        </section>
-        <section className="panel">
+        </Card>
+        <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
             <div>
               <span className="eyebrow">WORKSPACE PULSE</span>
@@ -184,9 +171,9 @@ export function Dashboard() {
               </div>
             ))}
           </div>
-        </section>
+        </Card>
       </div>
-      <section className="panel locations-strip">
+      <Card className="panel locations-strip gap-0 py-0 ring-0">
         <div className="section-heading">
           <div>
             <span className="eyebrow">ON THE FLOOR</span>
@@ -227,7 +214,8 @@ export function Dashboard() {
             );
           })}
         </div>
-      </section>
+      </Card>
+      {receive && <ReceiveStockDialog onClose={() => setReceive(false)} />}
     </>
   );
 }

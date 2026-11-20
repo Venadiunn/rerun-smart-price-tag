@@ -21,7 +21,15 @@ export default defineConfig([
     rules: {
       "react-refresh/only-export-components": [
         "error",
-        { allowExportNames: ["field"] },
+        {
+          allowExportNames: [
+            "field",
+            "buttonVariants",
+            "badgeVariants",
+            "tabsListVariants",
+            "useSidebar",
+          ],
+        },
       ],
     },
   },

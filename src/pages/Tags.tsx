@@ -1,3 +1,9 @@
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Plus, Tag as TagIcon, RefreshCw, ArrowRight } from "lucide-react";
 import { useWorkspace, isManager } from "../lib/context";
@@ -37,14 +43,18 @@ export function Tags() {
     <>
       <PageTitle
         eyebrow="ASSIGN · RECOVER · REUSE"
-        title="A new chapter for every tag."
-        description="One reusable smart tag for each capacity slot. Assigned tags follow units; available tags cover unoccupied slots."
+        title="Reusable tags"
+        description="Manage the tag pool, assignments, recovery, and simulated displays."
         actions={
           isManager(data.profile.role) && (
-            <button className="primary" onClick={() => setRegister(true)}>
+            <Button
+              type="button"
+              className="primary"
+              onClick={() => setRegister(true)}
+            >
               <Plus size={17} />
               Register tag
-            </button>
+            </Button>
           )
         }
       />
@@ -76,7 +86,7 @@ export function Tags() {
       </div>
       <div className="panel table-toolbar">
         <label className="search-box">
-          <input
+          <Input
             aria-label="Search smart tags"
             placeholder="Search tag, unit, product or location…"
             value={query}
@@ -86,7 +96,7 @@ export function Tags() {
             }}
           />
         </label>
-        <select
+        <NativeSelect
           aria-label="Tag status filter"
           value={statusFilter}
           onChange={(e) => {
@@ -94,17 +104,18 @@ export function Tags() {
             setLimit(40);
           }}
         >
-          <option value="">All tag statuses</option>
+          <NativeSelectOption value="">All tag statuses</NativeSelectOption>
           {["Assigned", "Available", "Inspection", "Retired"].map((s) => (
-            <option key={s}>{s}</option>
+            <NativeSelectOption key={s}>{s}</NativeSelectOption>
           ))}
-        </select>
+        </NativeSelect>
         <span>{filtered.length} matching tags</span>
       </div>
       <div className="tag-grid">
         {filtered.slice(0, limit).map((t) => (
-          <button
-            className="panel tag-card"
+          <Button
+            type="button"
+            className="panel tag-card h-auto w-full whitespace-normal justify-start text-left"
             key={t.id}
             onClick={() => setSelected(t.id)}
           >
@@ -124,16 +135,20 @@ export function Tags() {
               Manage tag
               <ArrowRight size={16} />
             </span>
-          </button>
+          </Button>
         ))}
       </div>
       {filtered.length === 0 && (
         <p className="notice">No smart tags match this search.</p>
       )}
       {filtered.length > limit && (
-        <button className="secondary" onClick={() => setLimit(limit + 40)}>
+        <Button
+          type="button"
+          className="secondary"
+          onClick={() => setLimit(limit + 40)}
+        >
           Show more tags ({filtered.length - limit} remaining)
-        </button>
+        </Button>
       )}
       {tag && (
         <Modal title={`Manage ${tag.id}`} onClose={() => setSelected("")} wide>
@@ -159,7 +174,8 @@ export function Tags() {
                     connected.
                   </p>
                   <div className="actions">
-                    <button
+                    <Button
+                      type="button"
                       className="primary"
                       disabled={busy}
                       onClick={() =>
@@ -170,8 +186,9 @@ export function Tags() {
                       }
                     >
                       Prepare simulated update
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      type="button"
                       className="secondary"
                       disabled={busy}
                       onClick={() =>
@@ -188,7 +205,7 @@ export function Tags() {
                     >
                       <RefreshCw size={15} />
                       Recover tag
-                    </button>
+                    </Button>
                   </div>
                 </>
               ) : tag.status === "Available" ? (
@@ -211,8 +228,10 @@ export function Tags() {
                 >
                   <label>
                     Assign to an eligible unit
-                    <select name="unitId" required>
-                      <option value="">Select a physical unit</option>
+                    <NativeSelect name="unitId" required>
+                      <NativeSelectOption value="">
+                        Select a physical unit
+                      </NativeSelectOption>
                       {data.units
                         .filter(
                           (u) =>
@@ -221,20 +240,20 @@ export function Tags() {
                             ) && !data.tags.some((t) => t.unit_id === u.id),
                         )
                         .map((u) => (
-                          <option key={u.id} value={u.id}>
+                          <NativeSelectOption key={u.id} value={u.id}>
                             {u.id} ·{" "}
                             {
                               data.master.products.find(
                                 (p) => p.id === u.product_id,
                               )?.name
                             }
-                          </option>
+                          </NativeSelectOption>
                         ))}
-                    </select>
+                    </NativeSelect>
                   </label>
-                  <button className="primary" disabled={busy}>
+                  <Button type="submit" className="primary" disabled={busy}>
                     Confirm assignment
-                  </button>
+                  </Button>
                 </form>
               ) : tag.status === "Inspection" ? (
                 <div className="stack">
@@ -242,7 +261,8 @@ export function Tags() {
                     Inspect the recovered tag for readability and damage before
                     making it available again.
                   </div>
-                  <button
+                  <Button
+                    type="button"
                     className="primary"
                     disabled={busy}
                     onClick={() =>
@@ -258,14 +278,15 @@ export function Tags() {
                     }
                   >
                     Confirm tag passed inspection
-                  </button>
+                  </Button>
                 </div>
               ) : (
                 <p className="hint">This tag has been retired.</p>
               )}
               {isManager(data.profile.role) &&
                 ["Available", "Inspection"].includes(tag.status) && (
-                  <button
+                  <Button
+                    type="button"
                     className="text-button danger-text"
                     disabled={busy}
                     onClick={() =>
@@ -281,7 +302,7 @@ export function Tags() {
                     }
                   >
                     Retire damaged tag
-                  </button>
+                  </Button>
                 )}
               <h3 className="subheading">Simulated display updates</h3>
               {updates.length ? (
@@ -312,7 +333,8 @@ export function Tags() {
                             ? ["Pending"]
                             : []
                       ).map((status) => (
-                        <button
+                        <Button
+                          type="button"
                           className="secondary"
                           key={status}
                           disabled={busy}
@@ -333,7 +355,7 @@ export function Tags() {
                             : status === "Pending"
                               ? "Retry"
                               : `Simulate ${status.toLowerCase()}`}
-                        </button>
+                        </Button>
                       ))}
                     </div>
                   </article>
@@ -385,7 +407,7 @@ export function Tags() {
           >
             <label>
               Tag identifier
-              <input
+              <Input
                 name="id"
                 pattern="TAG-[A-Za-z0-9-]+"
                 placeholder="TAG-0021"
@@ -396,9 +418,9 @@ export function Tags() {
               Use a unique TAG- identifier. Registration does not assign a
               product.
             </p>
-            <button className="primary" disabled={busy}>
+            <Button type="submit" className="primary" disabled={busy}>
               Register tag
-            </button>
+            </Button>
           </form>
         </Modal>
       )}

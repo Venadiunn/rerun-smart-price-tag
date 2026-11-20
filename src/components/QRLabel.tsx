@@ -1,3 +1,4 @@
+import { Button } from "@/components/ui/button";
 import { useEffect, useRef } from "react";
 import QrCreator from "qr-creator";
 import { Download, Printer } from "lucide-react";
@@ -33,7 +34,8 @@ export function QRLabel({ value, label }: { value: string; label: string }) {
         <small>ReRun · Scan to look up</small>
       </div>
       <div className="actions">
-        <button
+        <Button
+          type="button"
           className="secondary"
           onClick={() =>
             ref.current?.toBlob(async (b) => {
@@ -44,8 +46,9 @@ export function QRLabel({ value, label }: { value: string; label: string }) {
         >
           <Download size={15} />
           PNG
-        </button>
-        <button
+        </Button>
+        <Button
+          type="button"
           className="secondary"
           onClick={() => {
             const win = window.open("", "_blank");
@@ -62,7 +65,7 @@ export function QRLabel({ value, label }: { value: string; label: string }) {
         >
           <Printer size={15} />
           Print
-        </button>
+        </Button>
       </div>
     </div>
   );

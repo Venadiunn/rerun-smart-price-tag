@@ -1,3 +1,15 @@
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Search, Download, ChevronDown } from "lucide-react";
 import { useWorkspace } from "../lib/context";
@@ -19,10 +31,11 @@ export function History() {
     <>
       <PageTitle
         eyebrow="A RECORD OF EVERY STEP"
-        title="Nothing gets lost in the process."
-        description="Review lifecycle events, scan findings, tag recovery, and approved master changes."
+        title="Activity history"
+        description="Search operational events, scan findings, and recorded decisions."
         actions={
-          <button
+          <Button
+            type="button"
             className="secondary"
             onClick={() =>
               download(
@@ -46,160 +59,162 @@ export function History() {
           >
             <Download size={17} />
             Export all JSON
-          </button>
+          </Button>
         }
       />
-      <section className="panel">
-        <div className="table-toolbar">
-          <div className="tabs">
-            <button
-              className={tab === "events" ? "active" : ""}
-              onClick={() => {
-                setTab("events");
-                setLimit(50);
-              }}
-            >
-              Activity <span>{data.events.length}</span>
-            </button>
-            <button
-              className={tab === "scans" ? "active" : ""}
-              onClick={() => {
-                setTab("scans");
-                setLimit(50);
-              }}
-            >
-              Scan records <span>{data.scans.length}</span>
-            </button>
-          </div>
-          <label className="search-box">
-            <Search size={17} />
-            <input
-              aria-label="Search history"
-              placeholder="Search codes, actions or alerts…"
-              value={query}
-              onChange={(e) => {
-                setQuery(e.target.value);
-                setLimit(50);
-              }}
-            />
-          </label>
-          <button
-            className="text-button"
-            onClick={() =>
-              exportCSV(
-                (tab === "events" ? events : scans).map((e) =>
-                  Object.fromEntries(
-                    Object.entries(e).map(([k, v]) => [
-                      k,
-                      typeof v === "object" ? JSON.stringify(v) : v,
-                    ]),
+      <Card className="panel gap-0 py-0 ring-0">
+        <Tabs
+          value={tab}
+          onValueChange={(value) => {
+            setTab(String(value));
+            setLimit(50);
+          }}
+        >
+          <div className="table-toolbar">
+            <TabsList aria-label="History records">
+              <TabsTrigger value="events">
+                Activity <span>{data.events.length}</span>
+              </TabsTrigger>
+              <TabsTrigger value="scans">
+                Scan records <span>{data.scans.length}</span>
+              </TabsTrigger>
+            </TabsList>
+            <label className="search-box">
+              <Search size={17} />
+              <Input
+                aria-label="Search history"
+                placeholder="Search codes, actions or alerts…"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setLimit(50);
+                }}
+              />
+            </label>
+            <Button
+              type="button"
+              className="text-button"
+              onClick={() =>
+                exportCSV(
+                  (tab === "events" ? events : scans).map((e) =>
+                    Object.fromEntries(
+                      Object.entries(e).map(([k, v]) => [
+                        k,
+                        typeof v === "object" ? JSON.stringify(v) : v,
+                      ]),
+                    ),
                   ),
-                ),
-                "rerun-history.csv",
-              )
-            }
-          >
-            Export CSV
-          </button>
-        </div>
-        {tab === "events" ? (
-          <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Time · Central</th>
-                  <th>Event</th>
-                  <th>Item / record</th>
-                  <th>Responsible staff</th>
-                  <th>Details</th>
-                </tr>
-              </thead>
-              <tbody>
-                {events.slice(0, limit).map((e) => (
-                  <tr key={e.id}>
-                    <td>{dateTime(e.created_at)}</td>
-                    <td>
-                      <span className="event-name">
-                        {e.action.replaceAll("_", " ")}
-                      </span>
-                    </td>
-                    <td className="mono">{e.entity_id}</td>
-                    <td>
-                      {e.actor === data.profile.id
-                        ? "You"
-                        : (data.profiles.find((p) => p.id === e.actor)?.email ??
-                          (e.actor
-                            ? `Staff ${e.actor.slice(0, 8)}`
-                            : "Fictional seed"))}
-                    </td>
-                    <td>
-                      <details>
-                        <summary>View details</summary>
-                        <pre className="event-details">
-                          {JSON.stringify(e.details, null, 2)}
-                        </pre>
-                      </details>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                  "rerun-history.csv",
+                )
+              }
+            >
+              Export CSV
+            </Button>
           </div>
-        ) : (
-          <div className="scan-history">
-            {scans.slice(0, limit).map((s) => (
-              <article key={s.id}>
-                <div className="scan-history-top">
-                  <div className="actions">
-                    {s.findings.map((f) => (
-                      <Status value={f} key={f} />
+          <TabsContent value={tab}>
+            {tab === "events" ? (
+              <div className="table-scroll">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Time · Central</TableHead>
+                      <TableHead>Event</TableHead>
+                      <TableHead>Item / record</TableHead>
+                      <TableHead>Responsible staff</TableHead>
+                      <TableHead>Details</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {events.slice(0, limit).map((e) => (
+                      <TableRow key={e.id}>
+                        <TableCell>{dateTime(e.created_at)}</TableCell>
+                        <TableCell>
+                          <span className="event-name">
+                            {e.action.replaceAll("_", " ")}
+                          </span>
+                        </TableCell>
+                        <TableCell className="mono">{e.entity_id}</TableCell>
+                        <TableCell>
+                          {e.actor === data.profile.id
+                            ? "You"
+                            : (data.profiles.find((p) => p.id === e.actor)
+                                ?.email ??
+                              (e.actor
+                                ? `Staff ${e.actor.slice(0, 8)}`
+                                : "Fictional seed"))}
+                        </TableCell>
+                        <TableCell>
+                          <details>
+                            <summary>View details</summary>
+                            <pre className="event-details">
+                              {JSON.stringify(e.details, null, 2)}
+                            </pre>
+                          </details>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                  </div>
-                  <time>{dateTime(s.created_at)}</time>
-                </div>
-                <p className="mono">
-                  {s.product_id ?? "Unverified identifier"} · master{" "}
-                  {s.master_revision.slice(0, 8)}
-                </p>
-                <details>
-                  <summary>Scanned values</summary>
-                  <pre>{JSON.stringify(s.raw, null, 2)}</pre>
-                </details>
-                {s.product_id && s.findings[0] !== "VALID ITEM" && (
-                  <button
-                    className="secondary small"
-                    disabled={busy || !!s.acknowledged_at}
-                    onClick={() =>
-                      run(
-                        () => command("acknowledge", { id: s.id }),
-                        "Discrepancy acknowledged.",
-                      )
-                    }
-                  >
-                    {s.acknowledged_at
-                      ? "Acknowledged"
-                      : "Acknowledge discrepancy"}
-                  </button>
-                )}
-              </article>
-            ))}
-          </div>
-        )}
-        {(tab === "events" ? events : scans).length === 0 && (
-          <Empty title="No matching history">
-            Events will appear as staff use the workspace.
-          </Empty>
-        )}
-        {(tab === "events" ? events : scans).length > limit && (
-          <button
-            className="load-more secondary"
-            onClick={() => setLimit(limit + 50)}
-          >
-            Show more
-            <ChevronDown size={16} />
-          </button>
-        )}
-      </section>
+                  </TableBody>
+                </Table>
+              </div>
+            ) : (
+              <div className="scan-history">
+                {scans.slice(0, limit).map((s) => (
+                  <article key={s.id}>
+                    <div className="scan-history-top">
+                      <div className="actions">
+                        {s.findings.map((f) => (
+                          <Status value={f} key={f} />
+                        ))}
+                      </div>
+                      <time>{dateTime(s.created_at)}</time>
+                    </div>
+                    <p className="mono">
+                      {s.product_id ?? "Unverified identifier"} · master{" "}
+                      {s.master_revision.slice(0, 8)}
+                    </p>
+                    <details>
+                      <summary>Scanned values</summary>
+                      <pre>{JSON.stringify(s.raw, null, 2)}</pre>
+                    </details>
+                    {s.product_id && s.findings[0] !== "VALID ITEM" && (
+                      <Button
+                        type="button"
+                        className="secondary small"
+                        disabled={busy || !!s.acknowledged_at}
+                        onClick={() =>
+                          run(
+                            () => command("acknowledge", { id: s.id }),
+                            "Discrepancy acknowledged.",
+                          )
+                        }
+                      >
+                        {s.acknowledged_at
+                          ? "Acknowledged"
+                          : "Acknowledge discrepancy"}
+                      </Button>
+                    )}
+                  </article>
+                ))}
+              </div>
+            )}
+            {(tab === "events" ? events : scans).length === 0 && (
+              <Empty title="No matching history">
+                Events will appear as staff use the workspace.
+              </Empty>
+            )}
+            {(tab === "events" ? events : scans).length > limit && (
+              <Button
+                type="button"
+                className="load-more secondary"
+                onClick={() => setLimit(limit + 50)}
+              >
+                Show more
+                <ChevronDown size={16} />
+              </Button>
+            )}
+          </TabsContent>
+        </Tabs>
+      </Card>
     </>
   );
 }

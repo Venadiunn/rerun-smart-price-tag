@@ -1,20 +1,34 @@
-import { useState, useDeferredValue } from "react";
 import {
-  Search,
-  Download,
-  Plus,
-  ArrowUpDown,
-  ArrowRight,
-  PackagePlus,
-} from "lucide-react";
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ReceiveStockDialog } from "../components/ReceiveStockDialog";
+import { useState, useDeferredValue } from "react";
+import { Search, Download, Plus, ArrowUpDown, ArrowRight } from "lucide-react";
 import { useWorkspace } from "../lib/context";
-import { command, download, exportCSV } from "../lib/api";
+import { download, exportCSV } from "../lib/api";
 import { money } from "../lib/domain";
 import { productCsvRows } from "../lib/csv";
-import { PageTitle, Status, Modal, Empty, field } from "../components/ui";
+import { PageTitle, Status, Empty } from "../components/ui";
 import { AutoSortPanel } from "../components/AutoSortPanel";
 export function Inventory() {
-  const { data, openProduct, run, busy } = useWorkspace(),
+  const { data, openProduct } = useWorkspace(),
     [search, setSearch] = useState(""),
     [category, setCategory] = useState(""),
     [status, setStatus] = useState(""),
@@ -61,11 +75,12 @@ export function Inventory() {
     <>
       <PageTitle
         eyebrow="PRODUCTS & PHYSICAL UNITS"
-        title="Your inventory, in its place."
-        description="Find a product, verify its destination, and keep every unit moving."
+        title="Inventory"
+        description="Find products and units, receive stock, and review designated locations."
         actions={
           <>
-            <button
+            <Button
+              type="button"
               className="secondary"
               onClick={() =>
                 download(
@@ -84,20 +99,24 @@ export function Inventory() {
             >
               <Download size={17} />
               Export JSON
-            </button>
-            <button className="primary" onClick={() => setReceive(true)}>
+            </Button>
+            <Button
+              type="button"
+              className="primary"
+              onClick={() => setReceive(true)}
+            >
               <Plus size={18} />
               Receive stock
-            </button>
+            </Button>
           </>
         }
       />
       <AutoSortPanel />
-      <section className="panel">
+      <Card className="panel gap-0 py-0 ring-0">
         <div className="table-toolbar">
           <label className="search-box">
             <Search size={18} />
-            <input
+            <Input
               aria-label="Search inventory"
               value={search}
               onChange={(e) => {
@@ -108,7 +127,7 @@ export function Inventory() {
             />
           </label>
           <div className="filter-row">
-            <select
+            <NativeSelect
               aria-label="Category filter"
               value={category}
               onChange={(e) => {
@@ -116,14 +135,14 @@ export function Inventory() {
                 setPage(1);
               }}
             >
-              <option value="">All categories</option>
+              <NativeSelectOption value="">All categories</NativeSelectOption>
               {data.master.categories.map((c) => (
-                <option value={c.id} key={c.id}>
+                <NativeSelectOption value={c.id} key={c.id}>
                   {c.name}
-                </option>
+                </NativeSelectOption>
               ))}
-            </select>
-            <select
+            </NativeSelect>
+            <NativeSelect
               aria-label="Status filter"
               value={status}
               onChange={(e) => {
@@ -131,12 +150,12 @@ export function Inventory() {
                 setPage(1);
               }}
             >
-              <option value="">All statuses</option>
+              <NativeSelectOption value="">All statuses</NativeSelectOption>
               {[...new Set(data.units.map((u) => u.status))].map((s) => (
-                <option key={s}>{s}</option>
+                <NativeSelectOption key={s}>{s}</NativeSelectOption>
               ))}
-            </select>
-            <select
+            </NativeSelect>
+            <NativeSelect
               aria-label="Location filter"
               value={location}
               onChange={(e) => {
@@ -144,11 +163,11 @@ export function Inventory() {
                 setPage(1);
               }}
             >
-              <option value="">All locations</option>
+              <NativeSelectOption value="">All locations</NativeSelectOption>
               {data.master.locations.map((l) => (
-                <option key={l.id}>{l.id}</option>
+                <NativeSelectOption key={l.id}>{l.id}</NativeSelectOption>
               ))}
-            </select>
+            </NativeSelect>
           </div>
         </div>
         <div className="table-caption">
@@ -158,7 +177,7 @@ export function Inventory() {
           </span>
           <div className="actions">
             <ArrowUpDown size={14} />
-            <select
+            <NativeSelect
               aria-label="Sort inventory"
               value={sort}
               onChange={(e) => {
@@ -166,36 +185,39 @@ export function Inventory() {
                 setPage(1);
               }}
             >
-              <option value="name">Product name</option>
-              <option value="price">Price, low to high</option>
-              <option value="id">Product ID</option>
-            </select>
-            <button
+              <NativeSelectOption value="name">Product name</NativeSelectOption>
+              <NativeSelectOption value="price">
+                Price, low to high
+              </NativeSelectOption>
+              <NativeSelectOption value="id">Product ID</NativeSelectOption>
+            </NativeSelect>
+            <Button
+              type="button"
               className="text-button"
               onClick={() =>
                 exportCSV(productCsvRows(products), "rerun-products.csv")
               }
             >
               CSV
-            </button>
+            </Button>
           </div>
         </div>
         <div className="table-scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Product / identification</th>
-                <th>Category</th>
-                <th>Variant</th>
-                <th>Price</th>
-                <th>Assigned destination</th>
-                <th>Units</th>
-                <th>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Product / identification</TableHead>
+                <TableHead>Category</TableHead>
+                <TableHead>Variant</TableHead>
+                <TableHead>Price</TableHead>
+                <TableHead>Assigned destination</TableHead>
+                <TableHead>Units</TableHead>
+                <TableHead>
                   <span className="sr-only">Details</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {products
                 .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                 .map((p) => {
@@ -204,9 +226,10 @@ export function Inventory() {
                       (u) => u.status === "Pending Restock",
                     ).length;
                   return (
-                    <tr key={p.id}>
-                      <td>
-                        <button
+                    <TableRow key={p.id}>
+                      <TableCell>
+                        <Button
+                          type="button"
                           className="product-cell"
                           onClick={() => openProduct(p.id)}
                         >
@@ -221,70 +244,81 @@ export function Inventory() {
                             <strong>{p.name}</strong>
                             <small className="mono">{p.id}</small>
                           </span>
-                        </button>
-                      </td>
-                      <td>
+                        </Button>
+                      </TableCell>
+                      <TableCell>
                         {p.categoryId}
                         <small>{p.subcategory}</small>
-                      </td>
-                      <td>
+                      </TableCell>
+                      <TableCell>
                         {p.size}
                         <small>{p.color}</small>
-                      </td>
-                      <td className="mono">{money(p.price)}</td>
-                      <td>
+                      </TableCell>
+                      <TableCell className="mono">{money(p.price)}</TableCell>
+                      <TableCell>
                         <span className="location-pill">{p.locationId}</span>
-                      </td>
-                      <td>
+                      </TableCell>
+                      <TableCell>
                         <strong>{units.length}</strong>
                         {pending > 0 && (
                           <small className="amber-text">
                             {pending} pending
                           </small>
                         )}
-                      </td>
-                      <td>
-                        <button
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          type="button"
                           className="icon-button"
                           aria-label={`Open ${p.name}`}
                           onClick={() => openProduct(p.id)}
                         >
                           <ArrowRight size={17} />
-                        </button>
-                      </td>
-                    </tr>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
                   );
                 })}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
         {!products.length && (
           <Empty title="No matching products">
             Try another name, code, or filter.
           </Empty>
         )}
-      </section>
-      <nav className="inventory-pagination" aria-label="Inventory pages">
-        <button
-          className="secondary"
-          disabled={currentPage === 1}
-          onClick={() => setPage(currentPage - 1)}
-        >
-          Previous page
-        </button>
-        <span>
-          Page {currentPage} of {totalPages} · up to {pageSize} products per
-          page
-        </span>
-        <button
-          className="secondary"
-          disabled={currentPage === totalPages}
-          onClick={() => setPage(currentPage + 1)}
-        >
-          Next page
-        </button>
-      </nav>
-      <section className="panel unit-list">
+      </Card>
+      <Pagination className="inventory-pagination" aria-label="Inventory pages">
+        <PaginationContent className="w-full justify-between flex-wrap gap-3">
+          <PaginationItem>
+            <Button
+              type="button"
+              className="secondary"
+              disabled={currentPage === 1}
+              onClick={() => setPage(currentPage - 1)}
+            >
+              Previous page
+            </Button>
+          </PaginationItem>
+          <PaginationItem>
+            <span>
+              Page {currentPage} of {totalPages} · up to {pageSize} products per
+              page
+            </span>
+          </PaginationItem>
+          <PaginationItem>
+            <Button
+              type="button"
+              className="secondary"
+              disabled={currentPage === totalPages}
+              onClick={() => setPage(currentPage + 1)}
+            >
+              Next page
+            </Button>
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
+      <Card className="panel unit-list gap-0 py-0 ring-0">
         <div className="section-heading">
           <div>
             <span className="eyebrow">THE NEXT ACTION</span>
@@ -303,9 +337,10 @@ export function Inventory() {
                 a.product_id.localeCompare(b.product_id),
             )
             .map((u) => (
-              <button
+              <Button
+                type="button"
                 key={u.id}
-                className="unit-card"
+                className="unit-card h-auto w-full whitespace-normal justify-start text-left"
                 onClick={() => openProduct(u.product_id, u.id)}
               >
                 <Status value={u.status} />
@@ -320,71 +355,11 @@ export function Inventory() {
                   {u.destination_id}
                   <ArrowRight size={15} />
                 </span>
-              </button>
+              </Button>
             ))}
         </div>
-      </section>
-      {receive && (
-        <Modal title="Receive stock" onClose={() => setReceive(false)}>
-          <div className="notice">
-            <PackagePlus size={20} />
-            Every received unit gets a permanent identifier. Existing labels and
-            histories stay intact. Stock received in store is automatically
-            sorted by product ID; full destinations and other holds remain in
-            review.
-          </div>
-          <form
-            className="stack"
-            onSubmit={async (e) => {
-              e.preventDefault();
-              const f = new FormData(e.currentTarget);
-              const done = await run(
-                () =>
-                  command("receive", {
-                    productId: field(f, "productId"),
-                    quantity: Number(f.get("quantity")),
-                    status: field(f, "initialStatus"),
-                  }),
-                "Stock received. Check Automatic sorting for routes and holds.",
-              );
-              if (done) setReceive(false);
-            }}
-          >
-            <label>
-              Product
-              <select name="productId">
-                {data.master.products.map((p) => (
-                  <option key={p.id} value={p.id}>
-                    {p.name} · {p.id}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              Initial lifecycle
-              <select name="initialStatus">
-                <option>Received in Store</option>
-                <option>Offered</option>
-                <option>In-Transit</option>
-              </select>
-            </label>
-            <label>
-              Quantity
-              <input
-                type="number"
-                name="quantity"
-                min={1}
-                max={100}
-                defaultValue={1}
-                required
-              />
-            </label>
-            <button className="primary" disabled={busy}>
-              Receive units
-            </button>
-          </form>
-        </Modal>
-      )}
+      </Card>
+      {receive && <ReceiveStockDialog onClose={() => setReceive(false)} />}
     </>
   );
 }

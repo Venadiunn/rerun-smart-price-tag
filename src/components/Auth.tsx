@@ -1,5 +1,10 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
+import { Brand } from "./Brand";
+import { AppearanceMenu } from "./AppearanceMenu";
 import { useState } from "react";
-import { ArrowRight, ShieldCheck, MapPin, ScanLine } from "lucide-react";
+import { ArrowRight, ShieldCheck } from "lucide-react";
 import { supabase } from "../lib/supabase";
 export function Auth({ activation = false }: { activation?: boolean }) {
   const [busy, setBusy] = useState(false),
@@ -46,120 +51,94 @@ export function Auth({ activation = false }: { activation?: boolean }) {
     }
   }
   return (
-    <div className="auth-layout">
-      <section className="auth-story">
-        <a className="brand" href="/">
-          <img src="/rerun-logo.png" alt="ReRun" />
-          <span>
-            RE<span className="brand-run">RUN</span>
-            <small>SMART PRICE TAG</small>
-          </span>
-        </a>
-        <div className="auth-story-copy">
-          <span className="eyebrow">A PLACE FOR EVERYTHING.</span>
-          <h1>
-            Back where
-            <br />
-            it belongs.
-          </h1>
-          <p>
-            Clear destinations. Confident restocking.
-            <br />
-            One connected workspace for your store.
-          </p>
-          <div className="auth-steps">
-            <span>
-              <ScanLine size={19} /> Scan the tag
-            </span>
-            <i />
-            <span>
-              <MapPin size={19} /> Find its place
-            </span>
-          </div>
-        </div>
-        <small className="auth-foot">WWT STEM Student Forum · 2026–27</small>
-        <div className="abstract-map">
-          <div />
-          <div />
-          <div />
-          <div />
-          <span>↗</span>
-        </div>
-      </section>
-      <section className="auth-form-wrap">
-        <form className="auth-form" onSubmit={submit}>
-          <div className="secure-icon">
-            <ShieldCheck size={25} />
-          </div>
-          <span className="eyebrow">YOUR STORE, CONNECTED</span>
-          <h2>{activation ? "Activate your account" : "Welcome back."}</h2>
-          <p>
-            {activation
-              ? "Choose a private password to finish setting up your staff account."
-              : "Sign in to your ReRun staff workspace."}
-          </p>
-          {!activation && (
-            <label>
-              Email address
-              <input
-                name="email"
-                type="email"
-                autoComplete="username"
-                required
-                placeholder="you@store.com"
-              />
-            </label>
-          )}
-          <label>
-            {activation ? "New password" : "Password"}
-            <input
-              name="password"
-              type="password"
-              autoComplete={activation ? "new-password" : "current-password"}
-              minLength={activation ? 12 : 1}
-              required
-              placeholder={
-                activation ? "At least 12 characters" : "Enter your password"
-              }
-            />
-          </label>
-          {activation && (
-            <label>
-              Confirm password
-              <input
-                name="confirm"
-                type="password"
-                autoComplete="new-password"
-                minLength={12}
-                required
-              />
-            </label>
-          )}
-          {message && (
-            <div className="inline-error" role="alert">
-              {message}
-            </div>
-          )}
-          <button className="primary full" disabled={busy || done}>
-            {busy
-              ? "Please wait…"
-              : activation
-                ? "Activate account"
-                : "Sign in"}
-            <ArrowRight size={18} />
-          </button>
-          <div className="auth-help">
-            Staff access is managed by your administrator.
-            <br />
-            For account activation or password recovery, request a new private
-            activation link.
-          </div>
-        </form>
-        <span className="auth-bottom">
-          ReRun · Single-store demonstration workspace
+    <div className="auth-page">
+      <div className="auth-topbar">
+        <span className="text-xs text-muted-foreground">
+          WWT STEM · 2026–27
         </span>
-      </section>
+        <AppearanceMenu />
+      </div>
+      <main className="auth-main">
+        <Brand />
+        <Card className="panel auth-panel gap-0 py-0 ring-0">
+          <header>
+            <span className="auth-lock">
+              <ShieldCheck size={20} />
+            </span>
+            <h1>{activation ? "Activate your account" : "Welcome back."}</h1>
+            <p>
+              {activation
+                ? "Choose a private password to finish setting up your staff account."
+                : "Sign in to your ReRun staff workspace."}
+            </p>
+          </header>
+          <form className="auth-form" onSubmit={submit}>
+            {!activation && (
+              <label>
+                Email address
+                <Input
+                  name="email"
+                  type="email"
+                  autoComplete="username"
+                  required
+                  placeholder="you@store.com"
+                />
+              </label>
+            )}
+            <label>
+              {activation ? "New password" : "Password"}
+              <Input
+                name="password"
+                type="password"
+                autoComplete={activation ? "new-password" : "current-password"}
+                minLength={activation ? 12 : 1}
+                required
+                placeholder={
+                  activation ? "At least 12 characters" : "Enter your password"
+                }
+              />
+            </label>
+            {activation && (
+              <label>
+                Confirm password
+                <Input
+                  name="confirm"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={12}
+                  required
+                />
+              </label>
+            )}
+            {message && (
+              <div className="inline-error" role="alert">
+                {message}
+              </div>
+            )}
+            <Button
+              type="submit"
+              className="primary full"
+              disabled={busy || done}
+            >
+              {busy
+                ? "Please wait…"
+                : activation
+                  ? "Activate account"
+                  : "Sign in"}
+              <ArrowRight size={18} />
+            </Button>
+          </form>
+          <p className="auth-help">
+            Staff access is managed by your administrator. For activation or
+            password recovery, request a new private activation link.
+          </p>
+        </Card>
+        <p className="auth-demo-note">
+          Single-store demonstration workspace
+          <br />
+          Fictional inventory · Simulated display updates
+        </p>
+      </main>
     </div>
   );
 }
-

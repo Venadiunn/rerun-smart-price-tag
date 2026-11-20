@@ -1,3 +1,22 @@
+import { AppearanceMenu } from "../components/AppearanceMenu";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  NativeSelect,
+  NativeSelectOption,
+} from "@/components/ui/native-select";
+import {
+  Table,
+  TableHeader,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { ShieldCheck, Plus, KeyRound, Copy } from "lucide-react";
 import { useWorkspace } from "../lib/context";
@@ -25,11 +44,11 @@ export function Settings() {
     <>
       <PageTitle
         eyebrow="WORKSPACE & ACCESS"
-        title="A workspace your team can trust."
-        description="Manage employee access and your account settings."
+        title="Settings"
+        description="Manage your account, appearance, and employee access."
       />
       <div className="settings-grid">
-        <section className="panel">
+        <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
             <h2>
               <ShieldCheck size={20} />
@@ -37,9 +56,11 @@ export function Settings() {
             </h2>
           </div>
           <div className="account-card">
-            <div className="avatar">
-              {data.profile.email.slice(0, 2).toUpperCase()}
-            </div>
+            <Avatar className="avatar">
+              <AvatarFallback>
+                {data.profile.email.slice(0, 2).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
             <strong>{data.profile.email}</strong>
             <Status value={data.profile.role} />
           </div>
@@ -61,7 +82,7 @@ export function Settings() {
             <h3>Change your password</h3>
             <label>
               New password
-              <input
+              <Input
                 type="password"
                 name="password"
                 minLength={12}
@@ -71,7 +92,7 @@ export function Settings() {
             </label>
             <label>
               Confirm password
-              <input
+              <Input
                 type="password"
                 name="confirm"
                 minLength={12}
@@ -79,15 +100,22 @@ export function Settings() {
                 required
               />
             </label>
-            <button className="secondary" disabled={busy}>
+            <Button type="submit" className="secondary" disabled={busy}>
               <KeyRound size={16} />
               Update password
-            </button>
+            </Button>
           </form>
-        </section>
-        <section className="panel">
+        </Card>
+        <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
             <h2>Workspace details</h2>
+          </div>
+          <div className="appearance-setting">
+            <div>
+              <strong>Appearance</strong>
+              <p>Choose light, dark, or your device setting.</p>
+            </div>
+            <AppearanceMenu />
           </div>
           <dl className="workspace-facts">
             <div>
@@ -115,8 +143,8 @@ export function Settings() {
             <div>
               <dt>Data provenance</dt>
               <dd>
-                Eight fictional products from WWT Tech 26-27 with fictional
-                sample unit histories.
+                {data.master.products.length.toLocaleString()} fictional
+                products with demonstration stock and unit histories.
               </dd>
             </div>
           </dl>
@@ -124,44 +152,49 @@ export function Settings() {
             Inventory writes require a connection. Retry after an error; the
             workspace never reports an unconfirmed write as successful.
           </p>
-        </section>
+        </Card>
       </div>
       {data.profile.role === "administrator" && (
-        <section className="panel">
+        <Card className="panel gap-0 py-0 ring-0">
           <div className="section-heading">
             <div>
               <span className="eyebrow">ADMINISTRATOR CONTROLS</span>
               <h2>Employees</h2>
             </div>
-            <button className="primary" onClick={() => setCreate(true)}>
+            <Button
+              type="button"
+              className="primary"
+              onClick={() => setCreate(true)}
+            >
               <Plus size={16} />
               Add employee
-            </button>
+            </Button>
           </div>
           <div className="table-scroll">
-            <table>
-              <thead>
-                <tr>
-                  <th>Email</th>
-                  <th>Role</th>
-                  <th>Access</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Access</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 {data.profiles.map((p) => (
-                  <tr key={p.id}>
-                    <td>
+                  <TableRow key={p.id}>
+                    <TableCell>
                       {p.email}
                       {p.id === data.profile.id && <small>Your account</small>}
-                    </td>
-                    <td>{p.role}</td>
-                    <td>
+                    </TableCell>
+                    <TableCell>{p.role}</TableCell>
+                    <TableCell>
                       <Status value={p.active ? "Active" : "Disabled"} />
-                    </td>
-                    <td>
+                    </TableCell>
+                    <TableCell>
                       <div className="actions">
-                        <button
+                        <Button
+                          type="button"
                           className="secondary small"
                           disabled={busy || !p.active}
                           onClick={() =>
@@ -178,27 +211,28 @@ export function Settings() {
                           }
                         >
                           Activation / recovery
-                        </button>
-                        <button
+                        </Button>
+                        <Button
+                          type="button"
                           className="text-button"
                           disabled={p.id === data.profile.id}
                           onClick={() => setEmployee(p)}
                         >
                           Edit access
-                        </button>
+                        </Button>
                       </div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
           <p className="hint">
             Administrators manage access. Managers manage master data and price
             approvals. Associates perform daily inventory, scanning, and tag
             workflows.
           </p>
-        </section>
+        </Card>
       )}
       {create && (
         <Modal title="Add employee" onClose={() => setCreate(false)}>
@@ -222,23 +256,23 @@ export function Settings() {
           >
             <label>
               Email
-              <input name="email" type="email" required autoComplete="off" />
+              <Input name="email" type="email" required autoComplete="off" />
             </label>
             <label>
               Role
-              <select name="role">
-                <option>associate</option>
-                <option>manager</option>
-                <option>administrator</option>
-              </select>
+              <NativeSelect name="role">
+                <NativeSelectOption>associate</NativeSelectOption>
+                <NativeSelectOption>manager</NativeSelectOption>
+                <NativeSelectOption>administrator</NativeSelectOption>
+              </NativeSelect>
             </label>
             <p className="hint">
               ReRun generates a private activation link. No email is sent
               automatically.
             </p>
-            <button className="primary" disabled={busy}>
+            <Button type="submit" className="primary" disabled={busy}>
               Create employee
-            </button>
+            </Button>
           </form>
         </Modal>
       )}
@@ -266,23 +300,23 @@ export function Settings() {
             <strong>{employee.email}</strong>
             <label>
               Role
-              <select name="role" defaultValue={employee.role}>
-                <option>associate</option>
-                <option>manager</option>
-                <option>administrator</option>
-              </select>
+              <NativeSelect name="role" defaultValue={employee.role}>
+                <NativeSelectOption>associate</NativeSelectOption>
+                <NativeSelectOption>manager</NativeSelectOption>
+                <NativeSelectOption>administrator</NativeSelectOption>
+              </NativeSelect>
             </label>
             <label className="checkbox-label">
-              <input
-                type="checkbox"
+              <Checkbox
                 name="active"
+                aria-label="Active staff access"
                 defaultChecked={employee.active}
               />
               Active staff access
             </label>
-            <button className="primary" disabled={busy}>
+            <Button type="submit" className="primary" disabled={busy}>
               Save access
-            </button>
+            </Button>
           </form>
         </Modal>
       )}
@@ -296,13 +330,14 @@ export function Settings() {
             privately with the intended employee. It expires according to the
             Auth link lifetime and can be used once.
           </p>
-          <textarea
+          <Textarea
             readOnly
             aria-label="Private activation link"
             value={activation}
             rows={4}
           />
-          <button
+          <Button
+            type="button"
             className="primary"
             onClick={() =>
               run(
@@ -313,7 +348,7 @@ export function Settings() {
           >
             <Copy size={16} />
             Copy private link
-          </button>
+          </Button>
         </Modal>
       )}
     </>
