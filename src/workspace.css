@@ -895,7 +895,35 @@ button.store-fixture:hover,
 .map-location {
   display: flex;
   flex-direction: column;
-  align-items: start;
+  align-items: stretch;
+  padding: 16px;
+  gap: 8px;
+  min-width: 0;
+}
+.map-location > .capacity-bar {
+  flex-shrink: 0;
+}
+.map-location > small:last-of-type {
+  min-height: 3em;
+  line-height: 1.5;
+}
+.map-location > [data-slot="button"] {
+  margin-top: auto;
+}
+.map-legend i {
+  width: 12px;
+  height: 12px;
+  flex-shrink: 0;
+  border: 1px solid var(--input);
+  background: var(--card);
+}
+.map-legend .amber {
+  background: var(--warning-soft);
+  border: 2px dashed var(--warning);
+}
+.map-legend .indigo {
+  background: var(--muted);
+  border-color: var(--foreground);
 }
 .map-location.selected {
   background: var(--primary-soft);

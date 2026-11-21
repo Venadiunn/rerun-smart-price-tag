@@ -192,7 +192,7 @@ export function Locations() {
                         {l.capacity ?? "∞"}
                       </small>
                       <Button
-                        variant={selected === l.id ? "secondary" : "outline"}
+                        variant="outline"
                         size="sm"
                         className="mt-2 w-full"
                         aria-label={`${selected === l.id ? "Selected" : "Select"} ${l.id}`}
