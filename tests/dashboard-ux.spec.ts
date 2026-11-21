@@ -63,7 +63,7 @@ for (const width of [1440, 390])
       await page.locator("main h1").waitFor();
       await page.addStyleTag({
         content:
-          "html {font-size: 200% !important} main * {line-height: 1.5 !important; letter-spacing: .12em !important; word-spacing: .16em !important} main p {margin-bottom: 2em !important}",
+          "html {font-size: 230% !important} main * {line-height: 1.5 !important; letter-spacing: .12em !important; word-spacing: .16em !important} main p {margin-bottom: 2em !important}",
       });
       expect(
         await page.evaluate(

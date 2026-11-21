@@ -22,6 +22,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { Search } from "lucide-react";
 import { useWorkspace, isManager } from "../lib/context";
 import {
   publishMaster,
@@ -271,8 +272,8 @@ export function MasterData() {
             <TabsList aria-label="Master records">
               {(["products", "locations", "categories"] as Kind[]).map((t) => (
                 <TabsTrigger key={t} value={t}>
-                  {t}
-                  <span>{master[t].length}</span>
+                  <span className="tab-label">{t}</span>{" "}
+                  <span className="tab-count">{master[t].length}</span>
                 </TabsTrigger>
               ))}
             </TabsList>
@@ -289,6 +290,7 @@ export function MasterData() {
           <TabsContent value={tab}>
             <div className="table-toolbar">
               <label className="search-box">
+                <Search aria-hidden="true" />
                 <Input
                   aria-label="Search master records"
                   placeholder="Search identifiers, names, or destinations…"
@@ -315,14 +317,12 @@ export function MasterData() {
                           ? "Destination"
                           : "Name"}
                     </TableHead>
-                    <TableHead>
-                      {tab === "products"
-                        ? "Price / category"
-                        : tab === "locations"
-                          ? "Capacity"
-                          : " "}
-                    </TableHead>
-                    <TableHead>Action</TableHead>
+                    {tab !== "categories" && (
+                      <TableHead>
+                        {tab === "products" ? "Price / category" : "Capacity"}
+                      </TableHead>
+                    )}
+                    {manager && <TableHead>Action</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -345,15 +345,15 @@ export function MasterData() {
                                   .join(" → ")
                               : (row as Category).name}
                         </TableCell>
-                        <TableCell>
-                          {tab === "products"
-                            ? `${money((row as Product).price)} · ${(row as Product).categoryId}`
-                            : tab === "locations"
-                              ? ((row as Location).capacity ?? "Unlimited")
-                              : ""}
-                        </TableCell>
-                        <TableCell>
-                          {manager && (
+                        {tab !== "categories" && (
+                          <TableCell>
+                            {tab === "products"
+                              ? `${money((row as Product).price)} · ${(row as Product).categoryId}`
+                              : ((row as Location).capacity ?? "Unlimited")}
+                          </TableCell>
+                        )}
+                        {manager && (
+                          <TableCell>
                             <Button
                               type="button"
                               className="text-button"
@@ -361,8 +361,8 @@ export function MasterData() {
                             >
                               Edit
                             </Button>
-                          )}
-                        </TableCell>
+                          </TableCell>
+                        )}
                       </TableRow>
                     ))}
                 </TableBody>

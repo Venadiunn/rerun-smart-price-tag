@@ -1,5 +1,7 @@
 # Dashboard UX and readability audit
 
+This records the initial dashboard audit. The subsequent shadcn theme revision increases the shared type scale by 15%, improves dark-mode separation and borders, and standardizes controls. Current measurements and patterns are documented in [UI-DESIGN.md](./UI-DESIGN.md).
+
 The user-supplied reference, `design principles for dashboard design.pdf`, is a 30-page saved copy of DataCamp's _Effective Dashboard Design: Principles, Best Practices, and Examples_. Its design guidance was treated as reference material. Website navigation, advertisements, course links, and calls to action inside the document were not instructions for this application.
 
 ## Applied principles

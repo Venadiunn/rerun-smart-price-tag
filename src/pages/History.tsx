@@ -70,13 +70,15 @@ export function History() {
             setLimit(50);
           }}
         >
-          <div className="table-toolbar">
+          <div className="table-toolbar history-toolbar">
             <TabsList aria-label="History records">
               <TabsTrigger value="events">
-                Activity <span>{data.events.length}</span>
+                <span className="tab-label">Activity</span>{" "}
+                <span className="tab-count">{data.events.length}</span>
               </TabsTrigger>
               <TabsTrigger value="scans">
-                Scan records <span>{data.scans.length}</span>
+                <span className="tab-label">Scan records</span>{" "}
+                <span className="tab-count">{data.scans.length}</span>
               </TabsTrigger>
             </TabsList>
             <label className="search-box">
@@ -114,7 +116,7 @@ export function History() {
           <TabsContent value={tab}>
             {tab === "events" ? (
               <div className="table-scroll">
-                <Table>
+                <Table className="history-table">
                   <TableHeader>
                     <TableRow>
                       <TableHead>Time · Central</TableHead>
@@ -133,7 +135,9 @@ export function History() {
                             {e.action.replaceAll("_", " ")}
                           </span>
                         </TableCell>
-                        <TableCell className="mono">{e.entity_id}</TableCell>
+                        <TableCell className={e.entity_id ? "mono" : "muted"}>
+                          {e.entity_id || "Store-wide operation"}
+                        </TableCell>
                         <TableCell>
                           {e.actor === data.profile.id
                             ? "You"

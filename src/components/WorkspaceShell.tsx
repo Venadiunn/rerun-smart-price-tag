@@ -190,6 +190,7 @@ function WorkspaceFrame() {
                 render={
                   <Button
                     variant="ghost"
+                    size="icon"
                     className="account-trigger"
                     aria-label="Account menu"
                   />

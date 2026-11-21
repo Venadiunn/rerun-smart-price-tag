@@ -12,7 +12,7 @@ import {
   type ComponentProps,
 } from "react";
 import { cn } from "cn";
-import { X, LoaderCircle } from "lucide-react";
+import { X, LoaderCircle, ChevronRight } from "lucide-react";
 import { Badge as UiBadge } from "./ui/badge";
 import { Button, buttonVariants } from "./ui/button";
 import {
@@ -91,6 +91,7 @@ export function Empty({
 }
 export function DisclosureTrigger({
   className,
+  children,
   ...props
 }: ComponentProps<"summary">) {
   return (
@@ -101,7 +102,10 @@ export function DisclosureTrigger({
         className,
       )}
       {...props}
-    />
+    >
+      <ChevronRight aria-hidden="true" className="disclosure-chevron" />
+      <span className="disclosure-label">{children}</span>
+    </summary>
   );
 }
 export function Modal({

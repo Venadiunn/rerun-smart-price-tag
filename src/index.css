@@ -55,6 +55,8 @@
 
 :root {
   --radius: 0.5rem;
+  --tab-active: var(--card);
+  --tab-tray: var(--muted);
   --background: #fafafa;
   --foreground: #27272a;
   --card: #ffffff;
@@ -76,8 +78,8 @@
   --success-soft: #ecfdf5;
   --warning: #92400e;
   --warning-soft: #fffbeb;
-  --border: #e4e4e7;
-  --input: #d4d4d8;
+  --border: #d4d4d8;
+  --input: #a1a1aa;
   --ring: #71717a;
   --sidebar: #f8f8f9;
   --sidebar-foreground: #52525b;
@@ -94,20 +96,22 @@
   --chart-5: #be123c;
 }
 .dark {
-  --background: #18181b;
-  --foreground: #f4f4f5;
-  --card: #202023;
-  --card-foreground: #f4f4f5;
-  --popover: #26262b;
-  --popover-foreground: #f4f4f5;
+  --tab-active: #3a3a43;
+  --tab-tray: #17171b;
+  --background: #101012;
+  --foreground: #fafafa;
+  --card: #1e1e23;
+  --card-foreground: #fafafa;
+  --popover: #28282f;
+  --popover-foreground: #fafafa;
   --primary: #e4e4e7;
-  --primary-foreground: #18181b;
-  --primary-soft: #2c2c31;
-  --secondary: #2c2c31;
+  --primary-foreground: #101012;
+  --primary-soft: #303037;
+  --secondary: #303037;
   --secondary-foreground: #e4e4e7;
-  --muted: #2c2c31;
-  --muted-foreground: #a1a1aa;
-  --accent: #313136;
+  --muted: #303037;
+  --muted-foreground: #bcbcc6;
+  --accent: #3a3a43;
   --accent-foreground: #fafafa;
   --destructive: #fda4af;
   --danger-soft: #41252e;
@@ -115,16 +119,16 @@
   --success-soft: #173a30;
   --warning: #fcd34d;
   --warning-soft: #3e321e;
-  --border: #3b3b42;
-  --input: #52525b;
+  --border: #494952;
+  --input: #686873;
   --ring: #e4e4e7;
-  --sidebar: #1c1c1f;
+  --sidebar: #17171b;
   --sidebar-foreground: #d4d4d8;
   --sidebar-primary: #e4e4e7;
-  --sidebar-primary-foreground: #18181b;
-  --sidebar-accent: #2c2c31;
+  --sidebar-primary-foreground: #101012;
+  --sidebar-accent: #303037;
   --sidebar-accent-foreground: #fafafa;
-  --sidebar-border: #3b3b42;
+  --sidebar-border: #494952;
   --sidebar-ring: #e4e4e7;
 }
 @layer base {
@@ -141,6 +145,7 @@
   html {
     @apply font-sans;
     font-synthesis: none;
+    font-size: 115%;
   }
   h1,
   h2,
