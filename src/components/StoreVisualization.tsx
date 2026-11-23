@@ -1,18 +1,19 @@
 import { useState } from "react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import { Button } from "./ui/button";
 import { isOnHand } from "../lib/opening-stock";
 import { storeSummary } from "../lib/store-layout";
 import type { Location, Unit, Product } from "../lib/types";
 
-const zones = [
-  "Household, Health & Beauty",
-  "Dairy & Refrigerated",
-  "Frozen Foods",
-  "Dry Grocery & Snacks",
-  "Beverages",
-  "Produce & Floral",
-  "Meat, Seafood, Deli & Bakery",
-];
+const floorZones = new Map([
+  ["Dairy & Refrigerated", "dairy"],
+  ["Household, Health & Beauty", "household"],
+  ["Frozen Foods", "frozen"],
+  ["Dry Grocery & Snacks", "grocery"],
+  ["Beverages", "beverages"],
+  ["Produce & Floral", "produce"],
+  ["Meat, Seafood, Deli & Bakery", "fresh"],
+]);
 const format = (n: number) => n.toLocaleString();
 export function StoreVisualization({
   locations,
@@ -30,9 +31,17 @@ export function StoreVisualization({
   onSelect: (id: string) => void;
 }) {
   const [choice, setChoice] = useState("");
-  const groups = [...new Set(locations.map((l) => l.department))].sort(
-    (a, b) => zones.indexOf(a) - zones.indexOf(b),
+  const departments = [...new Set(locations.map((l) => l.department))];
+  const mappedDepartments = [...floorZones.keys()].filter((name) =>
+    departments.includes(name),
   );
+  const groups = [
+    ...mappedDepartments,
+    ...departments.filter((name) => !floorZones.has(name)),
+  ];
+  const fullPlan =
+    groups.length === floorZones.size &&
+    mappedDepartments.length === floorZones.size;
   const department = groups.includes(choice)
     ? choice
     : groups.includes("Dry Grocery & Snacks")
@@ -54,8 +63,12 @@ export function StoreVisualization({
     const d = homes.get(u.current_location_id ?? u.destination_id);
     if (d) onHand.set(d, (onHand.get(d) ?? 0) + 1);
   }
+  const departmentLocations = locations.filter(
+    (l) => l.department === department,
+  );
+  const load = storeSummary(departmentLocations, units, opening);
   return (
-    <div
+    <section
       className="store-visualization"
       aria-label="Interactive store floor plan"
     >
@@ -63,70 +76,60 @@ export function StoreVisualization({
         <span>Receiving & inspection</span>
         <span>Staff entrance</span>
       </div>
-      <div
-        className={
-          groups.length === 7 ? "grocery-plan full-plan" : "grocery-plan"
-        }
-        aria-label="Departments"
-      >
-        {groups.map((name) => {
-          const load = storeSummary(
-            locations.filter((l) => l.department === name),
-            units,
-            opening,
-          );
-          const used = load.placed + load.reserved;
-          return (
-            <button
-              key={name}
-              type="button"
-              className="department-zone"
-              aria-pressed={department === name}
-              onClick={() => {
-                setChoice(name);
-                onSelect("");
-              }}
-            >
-              <strong>{name}</strong>
-              <span>
-                <b>{format(onHand.get(name) ?? 0)}</b> on hand
-              </span>
-              <small>{format(variants.get(name) ?? 0)} product variants</small>
-              <meter
-                aria-label={name + " capacity used"}
-                min={0}
-                max={load.capacity || 1}
-                value={Math.min(used, load.capacity)}
-              />
-              <small>
-                {format(load.available)} slots free
-                {load.unlimited ? " + unlimited" : ""}
-              </small>
-            </button>
-          );
-        })}
-      </div>
-      <div className="store-front-wall">
-        <span>↑ Entrance</span>
-        <strong>Checkouts</strong>
-        <span>Exit ↓</span>
+      <div className={fullPlan ? "grocery-plan full-plan" : "grocery-plan"}>
+        {groups.map((name) => (
+          <button
+            key={name}
+            type="button"
+            className="department-zone"
+            data-zone={floorZones.get(name)}
+            aria-pressed={department === name}
+            onClick={() => {
+              setChoice(name);
+              onSelect("");
+            }}
+          >
+            <strong>{name}</strong>
+            <span>
+              <b>{format(onHand.get(name) ?? 0)}</b> on hand
+            </span>
+            <small>{format(variants.get(name) ?? 0)} product variants</small>
+          </button>
+        ))}
+        <div className="store-checkout">
+          <span>
+            <ArrowUp aria-hidden="true" /> Entrance
+          </span>
+          <strong>Checkouts</strong>
+          <span>
+            Exit <ArrowDown aria-hidden="true" />
+          </span>
+        </div>
       </div>
       {department && (
         <section className="bay-section">
-          <h3>{department}</h3>
-          {locations.some(
-            (l) => l.department === department && /^G[1-7]-BAY-/.test(l.id),
-          ) && (
+          <div className="bay-heading">
+            <h3>{department}</h3>
+            <span>
+              {format(load.available)} slots free
+              {load.unlimited ? " + unlimited" : ""}
+            </span>
+            {load.capacity > 0 && (
+              <meter
+                aria-label={department + " capacity used"}
+                min={0}
+                max={load.capacity}
+                value={Math.min(load.placed + load.reserved, load.capacity)}
+              />
+            )}
+          </div>
+          {departmentLocations.some((l) => /^G[1-7]-BAY-/.test(l.id)) && (
             <p className="muted">
               Grocery bays group multiple fixtures and their backstock.
             </p>
           )}
           <div className="bay-list">
-            {storeSummary(
-              locations.filter((l) => l.department === department),
-              units,
-              opening,
-            ).loads.map((l) => (
+            {load.loads.map((l) => (
               <Button
                 key={l.id}
                 variant={selected === l.id ? "secondary" : "outline"}
@@ -146,6 +149,6 @@ export function StoreVisualization({
           </div>
         </section>
       )}
-    </div>
+    </section>
   );
 }

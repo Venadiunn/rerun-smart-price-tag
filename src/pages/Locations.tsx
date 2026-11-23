@@ -37,7 +37,7 @@ export function Locations() {
   const detailHeading = useRef<HTMLHeadingElement>(null);
   const schematicHeading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
-    if (selected && matchMedia("(max-width: 1100px)").matches) {
+    if (selected) {
       detailHeading.current?.focus({ preventScroll: true });
       detailHeading.current?.scrollIntoView({ block: "start" });
     }
@@ -269,7 +269,6 @@ export function Locations() {
             </h2>
             {location && (
               <Button
-                className="location-back"
                 size="sm"
                 variant="outline"
                 onClick={() => {
