@@ -7,6 +7,8 @@ import {
 } from "./ui/breadcrumb";
 import { useState, type CSSProperties } from "react";
 import { Link, Outlet, useRouterState } from "@tanstack/react-router";
+import { SpeedInsights } from "@vercel/speed-insights/react";
+import type { BeforeSendMiddleware } from "@vercel/speed-insights";
 import {
   LayoutDashboard,
   Boxes,
@@ -61,6 +63,11 @@ const navigation = [
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
+const redactPerformanceUrl: BeforeSendMiddleware = (event) => {
+  const url = new URL(event.url, window.location.origin);
+  return { ...event, url: url.origin + url.pathname };
+};
+
 function WorkspaceFrame() {
   const { data, updatedAt, refreshing, refreshFailed, refresh } =
     useWorkspace();
@@ -73,6 +80,7 @@ function WorkspaceFrame() {
   ).length;
   return (
     <>
+      <SpeedInsights route={path} beforeSend={redactPerformanceUrl} />
       <Sidebar collapsible="icon" className="workspace-sidebar">
         <SidebarHeader className="sidebar-brand-row">
           <Brand compact={state === "collapsed" && !isMobile} />
