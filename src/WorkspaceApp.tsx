@@ -14,22 +14,15 @@ import {
   createRouter,
   RouterProvider,
   Link,
+  lazyRouteComponent,
 } from "@tanstack/react-router";
 import { X, CheckCircle2, AlertCircle } from "lucide-react";
 import { supabase } from "./lib/supabase";
-import { snapshot, SnapshotError } from "./lib/api";
+import { snapshot, resetWorkspaceCache, SnapshotError } from "./lib/api";
 import { WorkspaceContext } from "./lib/context";
 import { Auth } from "./components/Auth";
 import { Busy } from "./components/ui";
 import { Dashboard } from "./pages/Dashboard";
-import { Inventory } from "./pages/Inventory";
-import { Scan } from "./pages/Scan";
-import { Locations } from "./pages/Locations";
-import { Tags } from "./pages/Tags";
-import { Pricing } from "./pages/Pricing";
-import { History as HistoryPage } from "./pages/History";
-import { MasterData } from "./pages/MasterData";
-import { Settings as SettingsPage } from "./pages/Settings";
 const ProductDrawer = lazy(() =>
   import("./components/ProductDrawer").then((m) => ({
     default: m.ProductDrawer,
@@ -58,14 +51,26 @@ const rootRoute = createRootRoute({
 });
 const pages = [
   ["/", Dashboard],
-  ["/inventory", Inventory],
-  ["/scan", Scan],
-  ["/locations", Locations],
-  ["/tags", Tags],
-  ["/pricing", Pricing],
-  ["/history", HistoryPage],
-  ["/master", MasterData],
-  ["/settings", SettingsPage],
+  [
+    "/inventory",
+    lazyRouteComponent(() => import("./pages/Inventory"), "Inventory"),
+  ],
+  ["/scan", lazyRouteComponent(() => import("./pages/Scan"), "Scan")],
+  [
+    "/locations",
+    lazyRouteComponent(() => import("./pages/Locations"), "Locations"),
+  ],
+  ["/tags", lazyRouteComponent(() => import("./pages/Tags"), "Tags")],
+  ["/pricing", lazyRouteComponent(() => import("./pages/Pricing"), "Pricing")],
+  ["/history", lazyRouteComponent(() => import("./pages/History"), "History")],
+  [
+    "/master",
+    lazyRouteComponent(() => import("./pages/MasterData"), "MasterData"),
+  ],
+  [
+    "/settings",
+    lazyRouteComponent(() => import("./pages/Settings"), "Settings"),
+  ],
 ] as const;
 const routes = pages.map(([path, component]) =>
   createRoute({ getParentRoute: () => rootRoute, path, component }),
@@ -91,14 +96,17 @@ function Runtime() {
     void supabase.auth.getSession().then(({ data }) => {
       if (mounted) setSession(data.session);
     });
+    let account: string | undefined;
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
-      if (!next) {
+      if (!next || (account && account !== next.user.id)) {
         queryClient.clear();
+        resetWorkspaceCache();
         setSelected(null);
       }
+      account = next?.user.id;
     });
     return () => {
       mounted = false;
@@ -110,9 +118,17 @@ function Runtime() {
     const timer = setTimeout(() => setToast(null), 6500);
     return () => clearTimeout(timer);
   }, [toast]);
+  const key = ["workspace", session?.user.id] as const;
   const query = useQuery({
-    queryKey: ["workspace", session?.user.id],
-    queryFn: snapshot,
+    queryKey: key,
+    queryFn: ({ signal }) =>
+      snapshot(
+        session!.user.id,
+        signal,
+        window.location.pathname === "/" && !queryClient.getQueryData(key)
+          ? (overview) => queryClient.setQueryData(key, overview)
+          : undefined,
+      ),
     enabled: !!session,
     refetchInterval: 20000,
   });
@@ -123,7 +139,7 @@ function Runtime() {
     setPending((p) => p + 1);
     try {
       const result = await work();
-      await queryClient.invalidateQueries({ queryKey: ["workspace"] });
+      await queryClient.invalidateQueries({ queryKey: key, exact: true });
       if (success) setToast({ message: success, error: false });
       return result;
     } catch (error) {
@@ -189,7 +205,7 @@ function Runtime() {
         Skip to content
       </a>
       <RouterProvider router={router} />
-      {selected && (
+      {selected && query.data.full && (
         <Suspense
           fallback={
             <div className="drawer-loading">

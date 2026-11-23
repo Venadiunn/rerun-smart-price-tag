@@ -2,7 +2,11 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
 import { gzipSync, gunzipSync } from "node:zlib";
 import { randomUUID } from "node:crypto";
-import type { Location, Category } from "../src/lib/types.js";
+import type { Location, Category, Master } from "../src/lib/types.js";
+import {
+  applyCatalogPrices,
+  type RevisionAssets,
+} from "../src/lib/catalog-prices.js";
 import { validateMaster } from "../src/lib/domain.js";
 import { makeWorkbook, readWorkbook } from "../server-lib/workbook.js";
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -10,6 +14,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== "POST")
     return res.status(405).json({ error: "POST required" });
   try {
+    const started = performance.now();
     const token = req.headers.authorization;
     if (!token?.startsWith("Bearer "))
       return res.status(401).json({ error: "Sign in first" });
@@ -32,6 +37,55 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .select("role,active")
       .eq("id", user.id)
       .single();
+    const input =
+      typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const body = input.gzip
+      ? JSON.parse(
+          gunzipSync(Buffer.from(input.gzip, "base64"), {
+            maxOutputLength: 32 * 1024 * 1024,
+          }).toString(),
+        )
+      : input;
+    if (body.action === "download") {
+      if (!profile?.active)
+        return res.status(403).json({ error: "Staff access required" });
+      const receipt = await sb.rpc("rerun_revision_assets", {
+        revision_id: body.revisionId,
+      });
+      if (receipt.error) throw receipt.error;
+      const assets = receipt.data as RevisionAssets;
+      const archive = await sb.storage
+        .from("master-workbooks")
+        .download(assets.path.replace(/\.xlsx$/i, ".json.gz"));
+      let base: Master;
+      if (archive.data)
+        base = JSON.parse(
+          gunzipSync(Buffer.from(await archive.data.arrayBuffer())).toString(),
+        );
+      else {
+        const row = await sb
+          .from("master_revisions")
+          .select("payload")
+          .eq("id", assets.baseId)
+          .single();
+        if (row.error) throw row.error;
+        base = row.data.payload;
+      }
+      const workbook = await makeWorkbook(
+        applyCatalogPrices(base, assets.prices),
+        body.revisionId,
+        assets.previous,
+      );
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      );
+      res.setHeader(
+        "Server-Timing",
+        `workbook;dur=${Math.round(performance.now() - started)}`,
+      );
+      return res.end(Buffer.from(workbook));
+    }
     if (
       !profile?.active ||
       !["manager", "administrator"].includes(profile.role)
@@ -45,15 +99,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       revision: config?.active_revision ? { id: config.active_revision } : null,
     };
     if (snapshotError) throw snapshotError;
-    const input =
-      typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-    const body = input.gzip
-      ? JSON.parse(
-          gunzipSync(Buffer.from(input.gzip, "base64"), {
-            maxOutputLength: 32 * 1024 * 1024,
-          }).toString(),
-        )
-      : input;
     if (body.action === "import") {
       if (typeof body.base64 !== "string" || body.base64.length > 22000000)
         throw new Error("Maximum upload size is 16 MB.");
@@ -94,23 +139,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       throw new Error("Master changed. Refresh and review again.");
     const revisionId = randomUUID(),
       path = `${user.id}/${revisionId}.xlsx`;
+    const generation = performance.now();
     const bytes = await makeWorkbook(master, revisionId, body.expectedRevision);
-    const { error: uploadError } = await sb.storage
-      .from("master-workbooks")
-      .upload(path, bytes, {
+    const workbookDuration = performance.now() - generation;
+    const uploads = performance.now();
+    const [workbook, archive] = await Promise.all([
+      sb.storage.from("master-workbooks").upload(path, bytes, {
         contentType:
           "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         upsert: false,
-      });
-    if (uploadError) throw uploadError;
-    const archive = await sb.storage
-      .from("master-workbooks")
-      .upload(
-        path.replace(/\.xlsx$/, ".json.gz"),
-        gzipSync(JSON.stringify(master)),
-        { contentType: "application/gzip" },
-      );
-    if (archive.error) throw archive.error;
+      }),
+      sb.storage
+        .from("master-workbooks")
+        .upload(
+          path.replace(/\.xlsx$/, ".json.gz"),
+          gzipSync(JSON.stringify(master)),
+          { contentType: "application/gzip" },
+        ),
+    ]);
+    if (workbook.error || archive.error) throw workbook.error ?? archive.error;
+    const uploadDuration = performance.now() - uploads;
+    const publication = performance.now();
     const { data, error } = await sb.rpc("rerun_publish_master", {
       candidate: master,
       expected_revision: body.expectedRevision,
@@ -119,6 +168,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       price_request_id: body.priceRequestId ?? null,
     });
     if (error) throw error;
+    res.setHeader(
+      "Server-Timing",
+      [
+        `workbook;dur=${Math.round(workbookDuration)}`,
+        `storage;dur=${Math.round(uploadDuration)}`,
+        `database;dur=${Math.round(performance.now() - publication)}`,
+      ].join(", "),
+    );
     return res.json({ revisionId: data });
   } catch (e) {
     return res.status(400).json({

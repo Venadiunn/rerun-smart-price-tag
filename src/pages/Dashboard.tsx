@@ -37,7 +37,7 @@ export function Dashboard() {
     {
       label: "Items on hand",
       value: data.stock.total + data.units.filter(isOnHand).length,
-      sub: `${data.master.products.length.toLocaleString()} product variants`,
+      sub: `${data.productCount.toLocaleString()} product variants`,
     },
     {
       label: "Pending restock",
@@ -66,6 +66,7 @@ export function Dashboard() {
             <Button
               type="button"
               className="secondary"
+              disabled={!data.full}
               onClick={() => setReceive(true)}
             >
               Receive stock

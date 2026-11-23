@@ -151,9 +151,7 @@ export function MasterData() {
               type="button"
               className="secondary"
               disabled={busy}
-              onClick={() =>
-                run(() => downloadMaster(data.revision.storage_path))
-              }
+              onClick={() => run(() => downloadMaster(data.revision))}
             >
               Download master XLSX
             </Button>
@@ -432,10 +430,7 @@ export function MasterData() {
                 disabled={busy}
                 onClick={() =>
                   run(() =>
-                    downloadMaster(
-                      r.storage_path,
-                      `ReRun Master v${r.revision}.xlsx`,
-                    ),
+                    downloadMaster(r, `ReRun Master v${r.revision}.xlsx`),
                   )
                 }
               >

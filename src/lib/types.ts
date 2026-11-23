@@ -68,6 +68,7 @@ export interface Tag {
   version: number;
 }
 export interface Revision {
+  price_only?: boolean;
   id: string;
   revision: number;
   payload: Master;
@@ -113,6 +114,8 @@ export interface DisplayUpdate {
   created_at: string;
 }
 export interface Snapshot {
+  full: boolean;
+  productCount: number;
   reserveCount: number;
   stock: ReturnType<typeof import("./opening-stock.js").stockIndex>;
   profile: Profile;

@@ -22,7 +22,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
 import { useWorkspace, isManager } from "../lib/context";
-import { command, publishMaster } from "../lib/api";
+import { command, approvePrice } from "../lib/api";
 import { money, markdownSuggestion, dateTime } from "../lib/domain";
 import { PageTitle, Status, Modal, field } from "../components/ui";
 export function Pricing() {
@@ -189,19 +189,12 @@ export function Pricing() {
                             type="button"
                             className="primary small"
                             disabled={busy}
-                            onClick={() => {
-                              const next = structuredClone(data.master);
-                              next.products = next.products.map((p) =>
-                                p.id === r.product_id
-                                  ? { ...p, price: r.price }
-                                  : p,
-                              );
-                              void run(
-                                () =>
-                                  publishMaster(next, data.revision.id, r.id),
+                            onClick={() =>
+                              run(
+                                () => approvePrice(r.id, data.revision.id),
                                 "Price approved and new master revision published.",
-                              );
-                            }}
+                              )
+                            }
                           >
                             Approve & publish
                           </Button>

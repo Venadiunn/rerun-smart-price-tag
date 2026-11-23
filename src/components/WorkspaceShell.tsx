@@ -242,7 +242,13 @@ function WorkspaceFrame() {
               data. Use Refresh data below to try again.
             </div>
           )}
-          <Outlet />
+          {path === "/" || data.full ? (
+            <Outlet />
+          ) : (
+            <p className="hint" role="status">
+              Loading the full inventory…
+            </p>
+          )}
         </main>
         <footer className="workspace-footer">
           <div className="workspace-freshness">

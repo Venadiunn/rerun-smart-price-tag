@@ -19,7 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ReceiveStockDialog } from "../components/ReceiveStockDialog";
-import { useState, useDeferredValue } from "react";
+import { useState, useDeferredValue, useMemo } from "react";
 import { Search } from "lucide-react";
 import { useWorkspace } from "../lib/context";
 import { download, exportCSV } from "../lib/api";
@@ -28,6 +28,7 @@ import { money } from "../lib/domain";
 import { productCsvRows } from "../lib/csv";
 import { PageTitle, Status, Empty } from "../components/ui";
 import { AutoSortPanel } from "../components/AutoSortPanel";
+const idOrder = new Intl.Collator("en", { numeric: true });
 export function Inventory() {
   const { data, openProduct } = useWorkspace(),
     [search, setSearch] = useState(""),
@@ -46,45 +47,55 @@ export function Inventory() {
   }
   const tagByUnit = new Map(data.tags.map((t) => [t.unit_id, t.id]));
   const scanned = /^(?:unit|tag)-(gr-[1-7]\d{5})-([1-9]\d?)$/i.exec(q.trim());
-  const products = data.master.products
-    .filter((p) => {
-      const units = unitsByProduct.get(p.id) ?? [];
-      const text = [
-        p.id,
-        p.name,
-        p.sku,
-        p.barcode,
-        ...units.map((u) => u.id),
-        ...units.map((u) => tagByUnit.get(u.id)),
-      ]
-        .join(" ")
-        .toLowerCase();
-      return (
-        (text.includes(q) ||
-          (scanned &&
-            scanned[1].toUpperCase() === p.id &&
-            Number(scanned[2]) <=
-              (data.stock.byProduct.get(p.id)?.quantity ?? 0) &&
-            !units.some((u) => u.id === "UNIT-" + p.id + "-" + scanned[2]))) &&
-        (!category || p.categoryId === category) &&
-        (!location ||
-          p.locationId === location ||
-          (data.stock.byProduct.get(p.id)?.location_id === location &&
-            (data.stock.byProduct.get(p.id)?.remaining ?? 0) > 0) ||
-          units.some((u) => u.destination_id === location)) &&
-        (!status ||
-          (status === "Restocked" &&
-            (data.stock.byProduct.get(p.id)?.remaining ?? 0) > 0) ||
-          units.some((u) => u.status === status))
-      );
-    })
-    .toSorted((a, b) =>
-      sort === "price"
-        ? a.price - b.price
-        : sort === "id"
-          ? a.id.localeCompare(b.id, "en", { numeric: true })
-          : a.name.localeCompare(b.name),
-    );
+  const ordered = useMemo(
+    () =>
+      data.master.products.toSorted((a, b) =>
+        sort === "price"
+          ? a.price - b.price
+          : sort === "id"
+            ? idOrder.compare(a.id, b.id)
+            : a.name.localeCompare(b.name),
+      ),
+    [data.master.products, sort],
+  );
+  const products =
+    q || category || status || location
+      ? ordered.filter((p) => {
+          const units = unitsByProduct.get(p.id) ?? [];
+          const text = q
+            ? [
+                p.id,
+                p.name,
+                p.sku,
+                p.barcode,
+                ...units.map((u) => u.id),
+                ...units.map((u) => tagByUnit.get(u.id)),
+              ]
+                .join(" ")
+                .toLowerCase()
+            : "";
+          return (
+            (text.includes(q) ||
+              (scanned &&
+                scanned[1].toUpperCase() === p.id &&
+                Number(scanned[2]) <=
+                  (data.stock.byProduct.get(p.id)?.quantity ?? 0) &&
+                !units.some(
+                  (u) => u.id === "UNIT-" + p.id + "-" + scanned[2],
+                ))) &&
+            (!category || p.categoryId === category) &&
+            (!location ||
+              p.locationId === location ||
+              (data.stock.byProduct.get(p.id)?.location_id === location &&
+                (data.stock.byProduct.get(p.id)?.remaining ?? 0) > 0) ||
+              units.some((u) => u.destination_id === location)) &&
+            (!status ||
+              (status === "Restocked" &&
+                (data.stock.byProduct.get(p.id)?.remaining ?? 0) > 0) ||
+              units.some((u) => u.status === status))
+          );
+        })
+      : ordered;
   const pageSize = 50,
     totalPages = Math.max(1, Math.ceil(products.length / pageSize)),
     currentPage = Math.min(page, totalPages);
