@@ -956,20 +956,21 @@ button.store-fixture:hover,
   }
 }
 .modal {
+  transition: none;
   translate: -50% -50%;
   position: fixed;
   display: flex;
   flex-direction: column;
   top: calc(
-    var(--modal-viewport-top, 0px) + var(--modal-viewport-height, 100dvh) / 2
+    var(--modal-viewport-top, 0px) + min(100dvh, var(--modal-viewport-height, 100dvh)) / 2
   );
   left: calc(
-    var(--modal-viewport-left, 0px) + var(--modal-viewport-width, 100vw) / 2
+    var(--modal-viewport-left, 0px) + min(100vw, var(--modal-viewport-width, 100vw)) / 2
   );
   transform: none;
-  width: min(520px, calc(var(--modal-viewport-width, 100vw) - 24px));
+  width: min(520px, calc(min(100vw, var(--modal-viewport-width, 100vw)) - 24px));
   max-width: none;
-  max-height: calc(var(--modal-viewport-height, 100dvh) - 24px);
+  max-height: calc(min(100dvh, var(--modal-viewport-height, 100dvh)) - 24px);
   padding: 0;
   gap: 0;
   border: 1px solid var(--border);
@@ -981,7 +982,7 @@ button.store-fixture:hover,
   animation: none;
 }
 .modal.wide {
-  width: min(1040px, calc(var(--modal-viewport-width, 100vw) - 24px));
+  width: min(1040px, calc(min(100vw, var(--modal-viewport-width, 100vw)) - 24px));
 }
 .modal-top {
   display: flex;

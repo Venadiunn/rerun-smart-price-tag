@@ -20,5 +20,9 @@ begin
  perform public.rerun_command('transition',jsonb_build_object('id',uid,'status','Scanned at Register','version',(select version from public.units where id=uid)),gen_random_uuid());
  perform public.rerun_command('transition',jsonb_build_object('id',uid,'status','Sold','version',(select version from public.units where id=uid)),gen_random_uuid());
  assert exists(select from public.units where id=uid and status='Sold' and current_location_id is null),'Sale must release its placement';
+ -- A master destination edit reserves space and retains each original placement until staff confirm the move.
+ update public.products set location_id='G2-BAY-1',data=jsonb_set(data,'{locationId}','"G2-BAY-1"') where id=lot.product_id;
+ assert (select remaining=0 from rerun_internal.opening_lots where product_id=lot.product_id),'Moved stock must be individually addressable';
+ assert (select count(*)=lot.quantity-1 from public.units where product_id=lot.product_id and destination_id='G2-BAY-1' and current_location_id=lot.location_id and status='Pending Restock'),'All untouched units must reserve new home positions';
 end $$;
 rollback;

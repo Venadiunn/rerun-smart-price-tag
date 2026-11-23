@@ -114,6 +114,13 @@ export function StoreVisualization({
       {department && (
         <section className="bay-section">
           <h3>{department}</h3>
+          {locations.some(
+            (l) => l.department === department && /^G[1-7]-BAY-/.test(l.id),
+          ) && (
+            <p className="muted">
+              Grocery bays group multiple fixtures and their backstock.
+            </p>
+          )}
           <div className="bay-list">
             {storeSummary(
               locations.filter((l) => l.department === department),

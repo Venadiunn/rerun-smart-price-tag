@@ -32,6 +32,6 @@ test("seven grocery departments reconcile with store totals and grocery tag look
   ).toBeLessThanOrEqual(1);
   await page.goto("/inventory");
   await page.getByLabel("Search inventory").fill("TAG-GR-100001-1");
-  await expect(page.locator("tbody tr")).toHaveCount(1);
-  await expect(page.locator("tbody")).toContainText("GR-100001");
+  await expect(page.locator(".product-cell")).toHaveCount(1);
+  await expect(page.locator(".product-cell")).toContainText("GR-100001");
 });

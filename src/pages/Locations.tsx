@@ -58,6 +58,20 @@ export function Locations() {
   const variants = data.master.products.filter((p) =>
     ids.has(p.locationId),
   ).length;
+  const placedByProduct = new Map<string, number>();
+  if (location) {
+    for (const lot of data.stock.byProduct.values()) {
+      if (lot.location_id === location.id)
+        placedByProduct.set(lot.product_id, lot.remaining);
+    }
+    for (const unit of data.units) {
+      if (unit.current_location_id === location.id)
+        placedByProduct.set(
+          unit.product_id,
+          (placedByProduct.get(unit.product_id) ?? 0) + 1,
+        );
+    }
+  }
   const selectLocation = (id: string) => {
     setSelected(id);
     setDetailLimit(20);
@@ -282,7 +296,9 @@ export function Locations() {
                 </div>
                 <div>
                   <small>Capacity</small>
-                  <strong>{location.capacity ?? "Unlimited"}</strong>
+                  <strong>
+                    {location.capacity?.toLocaleString() ?? "Unlimited"}
+                  </strong>
                 </div>
                 <div>
                   <small>Confirmed units</small>
@@ -308,7 +324,9 @@ export function Locations() {
                             {p.name}
                           </ItemTitle>
                           <ItemDescription className="line-clamp-none text-xs mono break-all">
-                            {p.id}
+                            {p.id} ·{" "}
+                            {(placedByProduct.get(p.id) ?? 0).toLocaleString()}{" "}
+                            placed
                           </ItemDescription>
                         </ItemContent>
                         <ItemActions>
