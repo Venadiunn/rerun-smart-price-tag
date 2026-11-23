@@ -167,6 +167,7 @@ test("overview receiving submits the existing inventory command", async ({
     name: "Receive stock",
     exact: true,
   });
+  await dialog.getByRole("textbox", { name: "Find product" }).fill("PROD-999");
   await dialog
     .getByRole("combobox", { name: "Product", exact: true })
     .selectOption("PROD-999");
