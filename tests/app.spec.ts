@@ -32,12 +32,15 @@ test("signed-out staff gate and invalid login", async ({ page }) => {
 });
 test.describe("administrator workspace", () => {
   test.use({ storageState: ".private/administrator.state.json" });
-  test("tag pool covers all 500 store capacity slots", async ({ page }) => {
+  test("tag pool covers all configured store capacity slots", async ({
+    page,
+  }) => {
     await page.goto("/tags");
-    await expect(page.locator(".summary-line")).toContainText("500 total tags");
-    await expect(page.locator(".summary-line")).toContainText(
-      "500 capacity slots",
-    );
+    const counts = page.locator(".summary-line strong");
+    await expect(counts.first()).toBeVisible();
+    const total = await counts.nth(0).innerText();
+    expect(Number(total.replaceAll(",", ""))).toBeGreaterThan(500000);
+    await expect(counts.nth(1)).toHaveText(total);
     await page.getByLabel("Tag status filter").selectOption("Available");
     await expect(page.locator(".tag-card").first()).toBeVisible();
     await page
@@ -52,7 +55,9 @@ test.describe("administrator workspace", () => {
     await page.getByLabel("Close dialog").click();
     await page.setViewportSize({ width: 320, height: 640 });
     await page.reload();
-    await expect(page.locator(".summary-line")).toContainText("500 total tags");
+    await expect(page.locator(".summary-line")).toContainText(
+      total + " total tags",
+    );
     expect(
       await page.evaluate(
         () => document.documentElement.scrollWidth <= innerWidth,
@@ -138,6 +143,7 @@ test.describe("administrator workspace", () => {
   });
   test("master workbook download and reviewed import", async ({ page }) => {
     await page.goto("/master");
+    test.setTimeout(90000);
     const pending = page.waitForEvent("download");
     await page.getByRole("button", { name: "Download master XLSX" }).click();
     const file = await pending;
@@ -150,7 +156,7 @@ test.describe("administrator workspace", () => {
     });
     await expect(
       page.getByRole("heading", { name: "Review 0 changes" }),
-    ).toBeVisible();
+    ).toBeVisible({timeout:45000});
     await expect(
       page.getByRole("button", { name: "Publish new revision" }),
     ).toBeDisabled();

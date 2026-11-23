@@ -1,22 +1,59 @@
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { Button } from "./ui/button";
+import { isOnHand } from "../lib/opening-stock";
+import { storeSummary } from "../lib/store-layout";
+import type { Location, Unit, Product } from "../lib/types";
 
-import type { Location, Unit } from "../lib/types";
-import { storeAisles } from "../lib/store-layout";
-import { locationLoad } from "../lib/sorting";
-
+const zones = [
+  "Household, Health & Beauty",
+  "Dairy & Refrigerated",
+  "Frozen Foods",
+  "Dry Grocery & Snacks",
+  "Beverages",
+  "Produce & Floral",
+  "Meat, Seafood, Deli & Bakery",
+];
+const format = (n: number) => n.toLocaleString();
 export function StoreVisualization({
   locations,
   units,
+  opening,
+  products,
   selected,
   onSelect,
 }: {
   locations: Location[];
   units: Unit[];
+  products: Product[];
+  opening: Record<string, number>;
   selected: string;
   onSelect: (id: string) => void;
 }) {
-  const aisles = storeAisles(locations);
+  const [choice, setChoice] = useState("");
+  const groups = [...new Set(locations.map((l) => l.department))].sort(
+    (a, b) => zones.indexOf(a) - zones.indexOf(b),
+  );
+  const department = groups.includes(choice)
+    ? choice
+    : groups.includes("Dry Grocery & Snacks")
+      ? "Dry Grocery & Snacks"
+      : groups[0];
+  const homes = new Map(locations.map((l) => [l.id, l.department]));
+  const variants = new Map<string, number>(),
+    onHand = new Map<string, number>();
+  for (const p of products) {
+    const d = homes.get(p.locationId);
+    if (d) variants.set(d, (variants.get(d) ?? 0) + 1);
+  }
+  for (const l of locations)
+    onHand.set(
+      l.department,
+      (onHand.get(l.department) ?? 0) + (opening[l.id] ?? 0),
+    );
+  for (const u of units.filter(isOnHand)) {
+    const d = homes.get(u.current_location_id ?? u.destination_id);
+    if (d) onHand.set(d, (onHand.get(d) ?? 0) + 1);
+  }
   return (
     <div
       className="store-visualization"
@@ -24,110 +61,84 @@ export function StoreVisualization({
     >
       <div className="store-back-wall">
         <span>Receiving & inspection</span>
-        <span>STAFF ACCESS</span>
+        <span>Staff entrance</span>
       </div>
-      <div className="store-walkway">
-        <span>REAR CROSS AISLE</span>
-      </div>
-      <div className="store-aisles">
-        {aisles.map((aisle) => (
-          <section
-            className="store-aisle"
-            key={aisle.id}
-            aria-label={`${aisle.id} ${aisle.label}`}
-          >
-            <header>
-              <span className="eyebrow">{aisle.id}</span>
-              <h3>{aisle.label}</h3>
-            </header>
-            <div className="store-fixtures">
-              {aisle.fixtures.map((l) => {
-                const load = locationLoad(units, l.id),
-                  full = l.capacity !== null && load.committed >= l.capacity;
-                const slots =
-                  l.capacity === null
-                    ? Math.max(30, load.committed)
-                    : l.capacity;
-                return (
-                  <Card
-                    key={l.id}
-                    className={`store-fixture gap-0 py-0 ring-0 ${selected === l.id ? "selected" : ""} ${full ? "full" : ""}`}
-                  >
-                    <span className="fixture-top">
-                      <strong>
-                        {[l.rack, l.shelf].filter(Boolean).join(" / ")}
-                      </strong>
-                      <small>{l.capacity ?? "∞"} slots</small>
-                    </span>
-                    <span className="fixture-slots" aria-hidden="true">
-                      {Array.from({ length: Math.min(slots, 100) }, (_, i) => (
-                        <i
-                          key={i}
-                          className={
-                            i < load.confirmed
-                              ? "placed"
-                              : i < load.committed
-                                ? "reserved"
-                                : ""
-                          }
-                        />
-                      ))}
-                    </span>
-                    <span className="fixture-counts">
-                      <span>{load.confirmed} placed</span>
-                      <span>{load.reserved} reserved</span>
-                    </span>
-                    <Button
-                      variant={selected === l.id ? "secondary" : "outline"}
-                      className="mt-2 w-full"
-                      size="sm"
-                      aria-label={
-                        (selected === l.id ? "Selected " : "Select ") +
-                        l.id +
-                        ": " +
-                        load.confirmed +
-                        " placed, " +
-                        load.reserved +
-                        " reserved, capacity " +
-                        (l.capacity ?? "unlimited")
-                      }
-                      aria-pressed={selected === l.id}
-                      onClick={() => onSelect(l.id)}
-                    >
-                      {selected === l.id ? "Selected" : "Select"}
-                    </Button>
-                  </Card>
-                );
-              })}
-            </div>
-          </section>
-        ))}
-      </div>
-      {!aisles.length && (
-        <p className="store-empty">No locations match this department.</p>
-      )}
-      <div className="store-walkway front">
-        <span>MAIN CUSTOMER WALKWAY</span>
+      <div
+        className={
+          groups.length === 7 ? "grocery-plan full-plan" : "grocery-plan"
+        }
+        aria-label="Departments"
+      >
+        {groups.map((name) => {
+          const load = storeSummary(
+            locations.filter((l) => l.department === name),
+            units,
+            opening,
+          );
+          const used = load.placed + load.reserved;
+          return (
+            <button
+              key={name}
+              type="button"
+              className="department-zone"
+              aria-pressed={department === name}
+              onClick={() => {
+                setChoice(name);
+                onSelect("");
+              }}
+            >
+              <strong>{name}</strong>
+              <span>
+                <b>{format(onHand.get(name) ?? 0)}</b> on hand
+              </span>
+              <small>{format(variants.get(name) ?? 0)} product variants</small>
+              <meter
+                aria-label={name + " capacity used"}
+                min={0}
+                max={load.capacity || 1}
+                value={Math.min(used, load.capacity)}
+              />
+              <small>
+                {format(load.available)} slots free
+                {load.unlimited ? " + unlimited" : ""}
+              </small>
+            </button>
+          );
+        })}
       </div>
       <div className="store-front-wall">
-        <span>Entrance / exit</span>
-        <span>Checkout</span>
+        <span>↑ Entrance</span>
+        <strong>Checkouts</strong>
+        <span>Exit ↓</span>
       </div>
-      <div className="store-map-key">
-        <span>
-          <i className="placed" /> Placed
-        </span>
-        <span>
-          <i className="reserved" /> Reserved for restocking
-        </span>
-        <span>
-          <i /> Available slot
-        </span>
-      </div>
-      <p className="hint">
-        Mock store layout. Each marker represents one unit of configured
-        capacity. Locations show recorded placements and reservations.
-      </p>
+      {department && (
+        <section className="bay-section">
+          <h3>{department}</h3>
+          <div className="bay-list">
+            {storeSummary(
+              locations.filter((l) => l.department === department),
+              units,
+              opening,
+            ).loads.map((l) => (
+              <Button
+                key={l.id}
+                variant={selected === l.id ? "secondary" : "outline"}
+                className="bay-button"
+                aria-label={`${selected === l.id ? "Selected" : "Select"} ${l.id}: ${l.confirmed} placed, ${l.reserved} reserved`}
+                aria-pressed={selected === l.id}
+                onClick={() => onSelect(l.id)}
+              >
+                <strong>
+                  {l.aisle} · {l.rack || l.shelf}
+                </strong>
+                <span>
+                  {format(l.confirmed)} placed · {format(l.reserved)} reserved
+                </span>
+              </Button>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

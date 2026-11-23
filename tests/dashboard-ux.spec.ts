@@ -102,7 +102,7 @@ test("refresh failure preserves loaded data and refresh recovers", async ({
   await page.getByRole("heading", { name: "Overview", exact: true }).waitFor();
   const timestamp = page.locator(".workspace-freshness time");
   await expect(timestamp).toHaveAttribute("datetime", /^\d{4}-/);
-  await page.route("**/rpc/rerun_snapshot", (route) =>
+  await page.route("**/rpc/rerun_stock_snapshot", (route) =>
     route.fulfill({
       status: 503,
       contentType: "application/json",
@@ -116,7 +116,7 @@ test("refresh failure preserves loaded data and refresh recovers", async ({
   await expect(
     page.getByRole("heading", { name: "Overview", exact: true }),
   ).toBeVisible();
-  await page.unroute("**/rpc/rerun_snapshot");
+  await page.unroute("**/rpc/rerun_stock_snapshot");
   await page.getByRole("button", { name: "Refresh data", exact: true }).click();
   await expect(page.getByRole("alert")).toHaveCount(0);
 });
@@ -126,6 +126,9 @@ test("phone location selection opens details and returns to the schematic", asyn
 }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/locations");
+  await page
+    .getByRole("button", { name: /^Household, Health & Beauty/ })
+    .click();
   await page
     .getByRole("button", { name: /^Select Electronics-Aisle-2-Shelf-A:/ })
     .click();
@@ -156,7 +159,7 @@ test("refresh access errors block the cached workspace until recovery", async ({
     [403, "42501", "Permission denied"],
     [400, "P0001", "Staff access required"],
   ] as const) {
-    await page.route("**/rpc/rerun_snapshot", (route) =>
+    await page.route("**/rpc/rerun_stock_snapshot", (route) =>
       route.fulfill({
         status,
         contentType: "application/json",
@@ -172,7 +175,7 @@ test("refresh access errors block the cached workspace until recovery", async ({
     await expect(
       page.getByRole("heading", { name: "Overview", exact: true }),
     ).toHaveCount(0);
-    await page.unroute("**/rpc/rerun_snapshot");
+    await page.unroute("**/rpc/rerun_stock_snapshot");
     await page.getByRole("button", { name: "Try again", exact: true }).click();
     await expect(
       page.getByRole("heading", { name: "Overview", exact: true }),

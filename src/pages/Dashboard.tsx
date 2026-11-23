@@ -20,6 +20,7 @@ import { ReceiveStockDialog } from "../components/ReceiveStockDialog";
 
 import { Link } from "@tanstack/react-router";
 import { useWorkspace } from "../lib/context";
+import { isOnHand } from "../lib/opening-stock";
 import { dateTime } from "../lib/domain";
 import { PageTitle, Status } from "../components/ui";
 import { AutoSortPanel } from "../components/AutoSortPanel";
@@ -34,9 +35,9 @@ export function Dashboard() {
   );
   const stats = [
     {
-      label: "Products",
-      value: data.master.products.length,
-      sub: `${data.units.filter((u) => !["Sold", "Stocked Out", "Offered", "In-Transit"].includes(u.status)).length} units on hand`,
+      label: "Items on hand",
+      value: data.stock.total + data.units.filter(isOnHand).length,
+      sub: `${data.master.products.length.toLocaleString()} product variants`,
     },
     {
       label: "Pending restock",
@@ -45,7 +46,7 @@ export function Dashboard() {
     },
     {
       label: "Restocked",
-      value: restocked.length,
+      value: restocked.length + data.stock.total,
       sub: "Units confirmed at a destination",
     },
     {
@@ -197,36 +198,47 @@ export function Dashboard() {
           </Button>
         </div>
         <div className="mini-locations">
-          {data.master.locations.slice(0, 4).map((l) => {
-            const load = locationLoad(data.units, l.id);
-            return (
-              <div key={l.id}>
-                <strong>
-                  {l.aisle} · {l.rack || l.shelf}
-                </strong>
-                <small>
-                  {load.confirmed} placed · {load.reserved} reserved /{" "}
-                  {l.capacity ?? "∞"}
-                </small>
-                <Progress
-                  className="capacity-bar"
-                  aria-label={`${l.id} capacity used`}
-                  value={
-                    l.capacity
-                      ? Math.min(100, (load.committed / l.capacity) * 100)
-                      : 0
-                  }
-                />
-                <Status
-                  value={
-                    l.capacity && load.committed >= l.capacity
-                      ? "Full"
-                      : "Space available"
-                  }
-                />
-              </div>
-            );
-          })}
+          {data.master.locations
+            .toSorted((a, b) => (b.capacity ?? 0) - (a.capacity ?? 0))
+            .filter(
+              (l, i, list) =>
+                list.findIndex((x) => x.department === l.department) === i,
+            )
+            .slice(0, 4)
+            .map((l) => {
+              const load = locationLoad(
+                data.units,
+                l.id,
+                data.stock.byLocation,
+              );
+              return (
+                <div key={l.id}>
+                  <strong>
+                    {l.aisle} · {l.rack || l.shelf}
+                  </strong>
+                  <small>
+                    {load.confirmed} placed · {load.reserved} reserved /{" "}
+                    {l.capacity ?? "∞"}
+                  </small>
+                  <Progress
+                    className="capacity-bar"
+                    aria-label={`${l.id} capacity used`}
+                    value={
+                      l.capacity
+                        ? Math.min(100, (load.committed / l.capacity) * 100)
+                        : 0
+                    }
+                  />
+                  <Status
+                    value={
+                      l.capacity && load.committed >= l.capacity
+                        ? "Full"
+                        : "Space available"
+                    }
+                  />
+                </div>
+              );
+            })}
         </div>
       </Card>
       {receive && <ReceiveStockDialog onClose={() => setReceive(false)} />}

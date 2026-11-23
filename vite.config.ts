@@ -20,7 +20,7 @@ export default defineConfig({
           let text = "";
           for await (const chunk of req) {
             text += chunk;
-            if (text.length > 3_000_000) {
+            if (text.length > 4_400_000) {
               res.statusCode = 413;
               res.end("Upload too large");
               return;

@@ -10,6 +10,7 @@ import { useState } from "react";
 
 import { useWorkspace, isManager } from "../lib/context";
 import { command } from "../lib/api";
+import { openingUnits } from "../lib/opening-stock";
 import { money, qrPayload, dateTime } from "../lib/domain";
 import type { UnitStatus } from "../lib/types";
 import { Modal, Status, field } from "./ui";
@@ -42,6 +43,7 @@ export function ProductDrawer({
   const p = data.master.products.find((p) => p.id === productId)!,
     units = data.units.filter((u) => u.product_id === p.id),
     u = units.find((u) => u.id === unitId);
+  const opening = openingUnits(data, p.id);
   const timeline = data.events.filter((e) => e.entity_id === unitId);
   const smartTag = u ? data.tags.find((t) => t.unit_id === u.id) : undefined;
   if (!p) return null;
@@ -90,11 +92,24 @@ export function ProductDrawer({
             <NativeSelect
               aria-label="Physical unit"
               value={unitId}
-              onChange={(e) => setUnitId(e.target.value)}
+              onChange={async (e) => {
+                const id = e.target.value;
+                if (
+                  opening.includes(id) &&
+                  !(await run(() => command("open_unit", { id })))
+                )
+                  return;
+                setUnitId(id);
+              }}
             >
               <NativeSelectOption value="">
-                Select a unit ({units.length})
+                Select a unit ({units.length + opening.length})
               </NativeSelectOption>
+              {opening.map((id) => (
+                <NativeSelectOption key={id} value={id}>
+                  {id} · Restocked
+                </NativeSelectOption>
+              ))}
               {units.map((u) => (
                 <NativeSelectOption key={u.id} value={u.id}>
                   {u.id} · {u.status}

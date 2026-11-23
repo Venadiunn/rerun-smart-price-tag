@@ -13,17 +13,17 @@ do $$ begin
   assert not has_sequence_privilege('authenticated','rerun_internal.smart_tag_serial','usage'),'Internal tag numbers must not be directly mutable';
   assert not has_table_privilege('authenticated','public.staff_invites','select'),'Invite allowlist must be private';
   assert not has_table_privilege('authenticated','public.command_requests','select'),'Command receipts must be private';
-  assert (select not public and file_size_limit=2097152 from storage.buckets where id='master-workbooks'),'Master workbook bucket must be private and size limited';
+  assert (select not public and file_size_limit=16777216 from storage.buckets where id='master-workbooks'),'Master workbook bucket must be private and size limited';
 end $$;
 set local role authenticated;
 do $$
 declare result jsonb;
 begin
-  result:=public.rerun_snapshot();
+  result:=public.rerun_stock_snapshot();
   assert result->'profile'->>'role'='administrator','Admin session must resolve to active admin';
-  assert jsonb_array_length(result->'master'->'products')>=8,'Authoritative catalog must be available';
+  assert (select jsonb_array_length(payload->'products') from public.master_revisions where id=(result->'revision'->>'id')::uuid)>=8,'Authoritative catalog must be available';
   perform set_config('request.jwt.claim.sub',current_setting('rerun.test_associate'),true);
-  result:=public.rerun_snapshot();
+  result:=public.rerun_stock_snapshot();
   assert jsonb_array_length(result->'profiles')=0,'Associates cannot list staff profiles';
   assert not exists(select 1 from jsonb_array_elements(result->'events') e where e->>'action' like 'staff_%'),'Associates cannot read staff audit details';
   begin

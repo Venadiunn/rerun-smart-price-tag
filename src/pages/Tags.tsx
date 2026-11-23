@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/native-select";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { tagCatalog } from "../lib/tag-catalog";
 import { useState } from "react";
 
 import { useWorkspace, isManager } from "../lib/context";
@@ -31,17 +32,11 @@ export function Tags() {
   );
   const unitsById = new Map(data.units.map((u) => [u.id, u])),
     productsById = new Map(data.master.products.map((p) => [p.id, p]));
-  const filtered = data.tags.filter((t) => {
-    const u = t.unit_id ? unitsById.get(t.unit_id) : undefined,
-      p = u ? productsById.get(u.product_id) : undefined;
-    return (
-      (!statusFilter || t.status === statusFilter) &&
-      [t.id, t.unit_id, p?.id, p?.name, u?.destination_id]
-        .join(" ")
-        .toLowerCase()
-        .includes(query.toLowerCase())
-    );
-  });
+  const {
+    rows: filtered,
+    count,
+    free,
+  } = tagCatalog(data, query, statusFilter, limit);
   return (
     <>
       <PageTitle
@@ -62,20 +57,28 @@ export function Tags() {
       />
       <div className="summary-line">
         <span>
-          <strong>{data.tags.length}</strong> total tags
+          <strong>
+            {(data.tags.length + free + data.stock.total).toLocaleString()}
+          </strong>{" "}
+          total tags
         </span>
         <span>
-          <strong>{capacity}</strong> capacity slots
+          <strong>{capacity.toLocaleString()}</strong> capacity slots
         </span>
         <span>
           <strong>
-            {data.tags.filter((t) => t.status === "Assigned").length}
+            {(
+              data.tags.filter((t) => t.status === "Assigned").length +
+              data.stock.total
+            ).toLocaleString()}
           </strong>{" "}
           assigned
         </span>
         <span>
           <strong>
-            {data.tags.filter((t) => t.status === "Available").length}
+            {(
+              data.tags.filter((t) => t.status === "Available").length + free
+            ).toLocaleString()}
           </strong>{" "}
           available
         </span>
@@ -111,7 +114,7 @@ export function Tags() {
             <NativeSelectOption key={s}>{s}</NativeSelectOption>
           ))}
         </NativeSelect>
-        <span>{filtered.length} matching tags</span>
+        <span>{count.toLocaleString()} matching tags</span>
       </div>
       <div className="tag-grid">
         {filtered.slice(0, limit).map((t) => (
@@ -122,8 +125,10 @@ export function Tags() {
             <strong>{t.id}</strong>
             <p>
               {t.unit_id
-                ? productsById.get(unitsById.get(t.unit_id)?.product_id ?? "")
-                    ?.name
+                ? productsById.get(
+                    unitsById.get(t.unit_id)?.product_id ??
+                      t.unit_id.split("-").slice(1, 3).join("-"),
+                  )?.name
                 : "Ready for a future assignment"}
             </p>
             <small className="mono">{t.unit_id ?? "No active unit"}</small>
@@ -132,7 +137,14 @@ export function Tags() {
                 type="button"
                 variant="outline"
                 aria-label={`Manage ${t.id}`}
-                onClick={() => setSelected(t.id)}
+                onClick={async () => {
+                  if (
+                    !data.tags.some((row) => row.id === t.id) &&
+                    !(await run(() => command("open_unit", { id: t.id })))
+                  )
+                    return;
+                  setSelected(t.id);
+                }}
               >
                 Manage tag
               </Button>
@@ -143,13 +155,13 @@ export function Tags() {
       {filtered.length === 0 && (
         <p className="notice">No smart tags match this search.</p>
       )}
-      {filtered.length > limit && (
+      {count > limit && (
         <Button
           type="button"
           className="secondary"
           onClick={() => setLimit(limit + 40)}
         >
-          Show more tags ({filtered.length - limit} remaining)
+          Show more tags ({(count - limit).toLocaleString()} remaining)
         </Button>
       )}
       {tag && (

@@ -1,8 +1,15 @@
 import type { Location, Unit } from "./types";
 import { locationLoad } from "./sorting";
 
-export function storeSummary(locations: Location[], units: Unit[]) {
-  const loads = locations.map((l) => ({ ...l, ...locationLoad(units, l.id) }));
+export function storeSummary(
+  locations: Location[],
+  units: Unit[],
+  opening: Record<string, number> = {},
+) {
+  const loads = locations.map((l) => ({
+    ...l,
+    ...locationLoad(units, l.id, opening),
+  }));
   const capacity = loads.reduce((sum, l) => sum + (l.capacity ?? 0), 0);
   const placed = loads.reduce((sum, l) => sum + l.confirmed, 0);
   const reserved = loads.reduce((sum, l) => sum + l.reserved, 0);

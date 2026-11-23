@@ -118,7 +118,7 @@ for (const theme of ["light", "dark"])
 test("read-only master records do not show empty action or category columns", async ({
   page,
 }) => {
-  await page.route("**/rpc/rerun_snapshot", async (route) => {
+  await page.route("**/rpc/rerun_stock_snapshot", async (route) => {
     const response = await route.fetch();
     const data = await response.json();
     data.profile.role = "associate";

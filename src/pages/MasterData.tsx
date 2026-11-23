@@ -52,8 +52,10 @@ export function MasterData() {
     master = draft?.master ?? data.master;
   const records = master[tab]
     .map((row, index) => ({ row, index }))
-    .filter(({ row }) =>
-      JSON.stringify(row).toLowerCase().includes(query.toLowerCase()),
+    .filter(
+      ({ row }) =>
+        !query ||
+        JSON.stringify(row).toLowerCase().includes(query.toLowerCase()),
     );
   const pages = Math.max(1, Math.ceil(records.length / 50));
   const currentPage = Math.min(page, pages);
@@ -109,10 +111,14 @@ export function MasterData() {
     });
   }
   const changes = draft
-    ? (["products", "locations", "categories"] as Kind[]).flatMap((kind) =>
-        draft.master[kind]
+    ? (["products", "locations", "categories"] as Kind[]).flatMap((kind) => {
+        const oldById = new Map(
+          draft.base[kind].map((row) => [row.id, row] as const),
+        );
+        const newIds = new Set(draft.master[kind].map((row) => row.id));
+        return draft.master[kind]
           .flatMap((row) => {
-            const old = draft.base[kind].find((p) => p.id === row.id);
+            const old = oldById.get(row.id);
             if (!old) return [`Added ${kind.slice(0, -1)} ${row.id}`];
             return Object.entries(row)
               .filter(
@@ -128,10 +134,10 @@ export function MasterData() {
           })
           .concat(
             draft.base[kind]
-              .filter((row) => !draft.master[kind].some((n) => n.id === row.id))
+              .filter((row) => !newIds.has(row.id))
               .map((row) => `Removed ${kind.slice(0, -1)} ${row.id}`),
-          ),
-      )
+          );
+      })
     : [];
   return (
     <>
@@ -175,8 +181,8 @@ export function MasterData() {
                     e.target.value = "";
                     if (!file) return;
                     await run(async () => {
-                      if (file.size > 2097152)
-                        throw new Error("Upload must be 2 MB or smaller.");
+                      if (file.size > 16777216)
+                        throw new Error("Upload must be 16 MB or smaller.");
                       const bytes = new Uint8Array(await file.arrayBuffer());
                       let binary = "";
                       for (const b of bytes) binary += String.fromCharCode(b);

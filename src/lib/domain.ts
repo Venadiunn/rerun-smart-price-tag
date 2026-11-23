@@ -29,7 +29,7 @@ const product = z.object({
   introducedAt: z.iso.date(),
 });
 export const masterSchema = z.object({
-  products: z.array(product).min(1).max(10000),
+  products: z.array(product).min(1).max(50000),
   locations: z.array(location).min(1).max(1000),
   categories: z.array(category).min(1).max(1000),
 });
@@ -163,6 +163,7 @@ export function markdownSuggestion(
   units: Unit[],
   settings: { ageDays: number; sellThrough: number; discount: number },
   now = new Date(),
+  opening = 0,
 ) {
   const age = Math.floor(
     (now.getTime() - new Date(p.introducedAt).getTime()) / 86400000,
@@ -172,8 +173,9 @@ export function markdownSuggestion(
         u.product_id === p.id && !["Offered", "In-Transit"].includes(u.status),
     ),
     sold = cohort.filter((u) => u.status === "Sold").length;
-  const rate = cohort.length ? (sold / cohort.length) * 100 : null;
-  if (!cohort.length || age < settings.ageDays)
+  const received = cohort.length + opening;
+  const rate = received ? (sold / received) * 100 : null;
+  if (!received || age < settings.ageDays)
     return {
       eligible: false,
       message: "Insufficient history",

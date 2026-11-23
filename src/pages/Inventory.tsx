@@ -23,6 +23,7 @@ import { useState, useDeferredValue } from "react";
 import { Search } from "lucide-react";
 import { useWorkspace } from "../lib/context";
 import { download, exportCSV } from "../lib/api";
+import { isOnHand } from "../lib/opening-stock";
 import { money } from "../lib/domain";
 import { productCsvRows } from "../lib/csv";
 import { PageTitle, Status, Empty } from "../components/ui";
@@ -37,28 +38,44 @@ export function Inventory() {
     [receive, setReceive] = useState(false),
     [page, setPage] = useState(1);
   const q = useDeferredValue(search.toLowerCase());
+  const unitsByProduct = new Map<string, typeof data.units>();
+  for (const u of data.units) {
+    const group = unitsByProduct.get(u.product_id);
+    if (group) group.push(u);
+    else unitsByProduct.set(u.product_id, [u]);
+  }
+  const tagByUnit = new Map(data.tags.map((t) => [t.unit_id, t.id]));
+  const scanned = /^(?:unit|tag)-(gr-[1-7]\d{5})-([1-9]\d?)$/i.exec(q.trim());
   const products = data.master.products
     .filter((p) => {
-      const units = data.units.filter((u) => u.product_id === p.id);
+      const units = unitsByProduct.get(p.id) ?? [];
       const text = [
         p.id,
         p.name,
         p.sku,
         p.barcode,
         ...units.map((u) => u.id),
-        ...data.tags
-          .filter((t) => units.some((u) => u.id === t.unit_id))
-          .map((t) => t.id),
+        ...units.map((u) => tagByUnit.get(u.id)),
       ]
         .join(" ")
         .toLowerCase();
       return (
-        text.includes(q) &&
+        (text.includes(q) ||
+          (scanned &&
+            scanned[1].toUpperCase() === p.id &&
+            Number(scanned[2]) <=
+              (data.stock.byProduct.get(p.id)?.quantity ?? 0) &&
+            !units.some((u) => u.id === "UNIT-" + p.id + "-" + scanned[2]))) &&
         (!category || p.categoryId === category) &&
         (!location ||
           p.locationId === location ||
+          (data.stock.byProduct.get(p.id)?.location_id === location &&
+            (data.stock.byProduct.get(p.id)?.remaining ?? 0) > 0) ||
           units.some((u) => u.destination_id === location)) &&
-        (!status || units.some((u) => u.status === status))
+        (!status ||
+          (status === "Restocked" &&
+            (data.stock.byProduct.get(p.id)?.remaining ?? 0) > 0) ||
+          units.some((u) => u.status === status))
       );
     })
     .toSorted((a, b) =>
@@ -89,6 +106,7 @@ export function Inventory() {
                       masterRevision: data.revision.id,
                       master: data.master,
                       units: data.units,
+                      openingLots: [...data.stock.byProduct.values()],
                     },
                     null,
                     2,
@@ -170,8 +188,15 @@ export function Inventory() {
         </div>
         <div className="table-caption">
           <span>
-            {products.length} product variants · {data.units.length} physical
-            units
+            <strong>
+              {(
+                data.stock.total + data.units.filter(isOnHand).length
+              ).toLocaleString()}{" "}
+              items on hand storewide
+            </strong>
+            <small className="block">
+              {products.length.toLocaleString()} matching product variants
+            </small>
           </span>
           <div className="actions">
             <NativeSelect
@@ -218,7 +243,7 @@ export function Inventory() {
               {products
                 .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                 .map((p) => {
-                  const units = data.units.filter((u) => u.product_id === p.id),
+                  const units = unitsByProduct.get(p.id) ?? [],
                     pending = units.filter(
                       (u) => u.status === "Pending Restock",
                     ).length;
@@ -245,7 +270,12 @@ export function Inventory() {
                         <span className="location-pill">{p.locationId}</span>
                       </TableCell>
                       <TableCell>
-                        <strong>{units.length}</strong>
+                        <strong>
+                          {(
+                            units.filter(isOnHand).length +
+                            (data.stock.byProduct.get(p.id)?.remaining ?? 0)
+                          ).toLocaleString()}
+                        </strong>
                         {pending > 0 && (
                           <small className="amber-text">
                             {pending} pending

@@ -113,6 +113,8 @@ export interface DisplayUpdate {
   created_at: string;
 }
 export interface Snapshot {
+  reserveCount: number;
+  stock: ReturnType<typeof import("./opening-stock.js").stockIndex>;
   profile: Profile;
   profiles: Profile[];
   master: Master;

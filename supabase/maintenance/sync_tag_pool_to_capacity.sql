@@ -12,7 +12,7 @@ begin
   end if;
   select sum((data->>'capacity')::integer) into target from public.locations;
   if target is null or target<1 then raise exception 'Store capacity must be positive'; end if;
-  select count(*) into existing from public.tags;
+  select count(*)+(select coalesce(sum(remaining),0) from rerun_internal.opening_lots) into existing from public.tags;
   if existing>target then raise exception 'Existing tags exceed capacity; review the pool without deleting history'; end if;
   select coalesce(jsonb_object_agg(id,unit_id),'{}') into original_assignments from public.tags where unit_id is not null;
   for i in 1..(target-existing) loop
@@ -23,12 +23,12 @@ begin
     end loop;
     perform public.rerun_command('tag_register',jsonb_build_object('id',tag_id),gen_random_uuid());
   end loop;
-  assert (select count(*) from public.tags)=target,'Tag count must match slot capacity';
+  assert (select count(*) from public.tags)+(select coalesce(sum(remaining),0) from rerun_internal.opening_lots)=target,'Tag count must match slot capacity';
   assert not exists(select 1 from jsonb_each_text(original_assignments) old
     where not exists(select 1 from public.tags t where t.id=old.key and t.unit_id=old.value)),
     'Existing tag assignments must be preserved';
 end $$;
 select jsonb_build_object('capacity',(select sum((data->>'capacity')::integer) from public.locations),
-  'totalTags',(select count(*) from public.tags),'assigned',(select count(*) from public.tags where status='Assigned'),
+  'totalTags',(select count(*) from public.tags)+(select coalesce(sum(remaining),0) from rerun_internal.opening_lots),'assigned',(select count(*) from public.tags where status='Assigned')+(select coalesce(sum(remaining),0) from rerun_internal.opening_lots),
   'available',(select count(*) from public.tags where status='Available')) as verified_tag_pool;
 commit;

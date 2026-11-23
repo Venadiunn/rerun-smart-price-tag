@@ -31,3 +31,4 @@ outputs/
 tmp/
 test-results/
 playwright-report/
+supabase/.temp/

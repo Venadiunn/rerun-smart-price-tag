@@ -210,8 +210,8 @@ export async function readWorkbook(
         continue;
       let xml = await entry.async("string");
       total += xml.length;
-      if (total > 30000000)
-        throw new Error("Expanded workbook exceeds the 30 MB limit.");
+      if (total > 96000000)
+        throw new Error("Expanded workbook exceeds the 96 MB limit.");
       const match = xml.match(
         /xmlns:([A-Za-z][\w.-]*)="http:\/\/schemas.openxmlformats.org\/spreadsheetml\/2006\/main"/,
       );
@@ -299,4 +299,3 @@ export async function readWorkbook(
   }
   return { master: validateMaster(master), revision };
 }
-

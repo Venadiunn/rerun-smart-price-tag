@@ -25,6 +25,7 @@ import { Link } from "@tanstack/react-router";
 import { useWorkspace } from "../lib/context";
 import { PageTitle, Status } from "../components/ui";
 import { StoreVisualization } from "../components/StoreVisualization";
+import { isOnHand } from "../lib/opening-stock";
 import { storeSummary } from "../lib/store-layout";
 import { locationLoad, restockRoute } from "../lib/sorting";
 export function Locations() {
@@ -45,7 +46,18 @@ export function Locations() {
       (l) => !department || l.department === department,
     ),
     location = data.master.locations.find((l) => l.id === selected);
-  const summary = storeSummary(data.master.locations, data.units);
+  const summary = storeSummary(locations, data.units, data.stock.byLocation);
+  const ids = new Set(locations.map((l) => l.id));
+  const onHand =
+    locations.reduce((sum, l) => sum + (data.stock.byLocation[l.id] ?? 0), 0) +
+    data.units.filter(
+      (u) =>
+        isOnHand(u) &&
+        (!department || ids.has(u.current_location_id ?? u.destination_id)),
+    ).length;
+  const variants = data.master.products.filter((p) =>
+    ids.has(p.locationId),
+  ).length;
   const selectLocation = (id: string) => {
     setSelected(id);
     setDetailLimit(20);
@@ -70,6 +82,11 @@ export function Locations() {
       <div className="store-overview" aria-label="Store capacity summary">
         {[
           {
+            label: "ITEMS ON HAND",
+            value: onHand.toLocaleString(),
+            note: variants.toLocaleString() + " product variants",
+          },
+          {
             label: "TOTAL CAPACITY",
             value: summary.unlimited
               ? summary.capacity.toLocaleString() + "+"
@@ -90,11 +107,6 @@ export function Locations() {
             label: "AVAILABLE",
             value: summary.available.toLocaleString(),
             note: "uncommitted slots",
-          },
-          {
-            label: "MASTER CATALOG",
-            value: data.master.products.length.toLocaleString(),
-            note: "unique product variants",
           },
         ].map((s) => (
           <div key={s.label}>
@@ -156,6 +168,8 @@ export function Locations() {
             <StoreVisualization
               locations={locations}
               units={data.units}
+              opening={data.stock.byLocation}
+              products={data.master.products}
               selected={selected}
               onSelect={selectLocation}
             />
@@ -166,7 +180,11 @@ export function Locations() {
               </div>
               <div className="location-grid">
                 {locations.map((l) => {
-                  const load = locationLoad(data.units, l.id),
+                  const load = locationLoad(
+                      data.units,
+                      l.id,
+                      data.stock.byLocation,
+                    ),
                     full = l.capacity !== null && load.committed >= l.capacity;
                   return (
                     <Card
@@ -269,11 +287,11 @@ export function Locations() {
                 <div>
                   <small>Confirmed units</small>
                   <strong>
-                    {
-                      data.units.filter(
-                        (u) => u.current_location_id === location.id,
-                      ).length
-                    }
+                    {locationLoad(
+                      data.units,
+                      location.id,
+                      data.stock.byLocation,
+                    ).confirmed.toLocaleString()}
                   </strong>
                 </div>
               </div>

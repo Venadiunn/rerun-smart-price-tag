@@ -1,3 +1,4 @@
+import { ProductSelect } from "@/components/ProductSelect";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,13 +38,7 @@ export function ReceiveStockDialog({ onClose }: { onClose: () => void }) {
       >
         <label>
           Product
-          <NativeSelect name="productId">
-            {data.master.products.map((p) => (
-              <NativeSelectOption key={p.id} value={p.id}>
-                {p.name} · {p.id}
-              </NativeSelectOption>
-            ))}
-          </NativeSelect>
+          <ProductSelect products={data.master.products} />
         </label>
         <label>
           Initial lifecycle

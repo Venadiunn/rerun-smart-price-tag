@@ -74,6 +74,9 @@ for (const theme of ["light", "dark"] as const) {
       );
       await page.goto("/locations");
       await page
+        .getByRole("button", { name: /^Household, Health & Beauty/ })
+        .click();
+      await page
         .getByRole("button", { name: /^Select Electronics-Aisle-2-Shelf-A:/ })
         .click();
       const list = page.getByRole("list", {

@@ -2143,3 +2143,30 @@ details[open] > .disclosure-trigger .disclosure-chevron {
   height: 44px !important;
   padding: 10px !important;
 }
+
+.grocery-plan { display:grid; gap:.55rem; padding:.85rem 0; grid-template-columns:repeat(2,minmax(0,1fr)); }
+.department-zone { min-width:0; text-align:left; display:grid; align-content:center; gap:.25rem; padding:.8rem; border:1px solid var(--border); background:var(--card); border-radius:.6rem; overflow-wrap:anywhere; }
+.department-zone span,.department-zone small,.bay-button span {font-size:.85rem;color:var(--muted-foreground);}
+.department-zone[aria-pressed="true"],.bay-button[aria-pressed="true"] {outline:2px solid var(--foreground);outline-offset:-2px;background:var(--muted);}
+.department-zone:focus-visible {outline:3px solid var(--ring);outline-offset:2px}
+.department-zone meter {width:100%;height:.65rem;accent-color:var(--primary);}
+.bay-section {margin-top:1.25rem}.bay-list {display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,13rem),1fr));gap:.45rem;margin-top:.65rem}
+.bay-list .bay-button {display:grid;justify-content:start;text-align:left;height:auto;padding:.7rem;white-space:normal;}
+@container (min-width: 36rem) {
+ .full-plan {grid-template-columns:1fr 1.3fr 1fr;grid-template-areas:"house dairy frozen" "house dry frozen" "produce dry drink" "produce fresh drink";}
+ .full-plan > :nth-child(1){grid-area:house}.full-plan > :nth-child(2){grid-area:dairy}.full-plan > :nth-child(3){grid-area:frozen}.full-plan > :nth-child(4){grid-area:dry}.full-plan > :nth-child(5){grid-area:drink}.full-plan > :nth-child(6){grid-area:produce}.full-plan > :nth-child(7){grid-area:fresh}
+}
+.store-visualization {container-type:inline-size}
+@container(max-width:22rem){.grocery-plan{grid-template-columns:1fr}}
+
+/* Share row tracks so long department names cannot shift adjacent capacity meters. */
+.location-grid > .map-location {
+  display: grid;
+  grid-row: span 6;
+  grid-template-rows: subgrid;
+  row-gap: 8px;
+}
+.map-location > .capacity-bar {align-self: center;}
+.map-location > [data-slot="button"] {align-self: end;}
+.department-zone > span {color: var(--foreground);}
+.department-zone > span b {font-size: 1.2rem; font-variant-numeric: tabular-nums;}

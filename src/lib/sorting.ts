@@ -17,10 +17,14 @@ export interface SortResult {
   }[];
 }
 
-export function locationLoad(units: Unit[], locationId: string) {
-  const confirmed = units.filter(
-    (u) => u.current_location_id === locationId,
-  ).length;
+export function locationLoad(
+  units: Unit[],
+  locationId: string,
+  opening: Record<string, number> = {},
+) {
+  const confirmed =
+    (opening[locationId] ?? 0) +
+    units.filter((u) => u.current_location_id === locationId).length;
   const reserved = units.filter(
     (u) =>
       u.status === "Pending Restock" &&

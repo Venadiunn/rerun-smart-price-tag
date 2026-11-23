@@ -18,6 +18,7 @@ import { useEffect, useRef, useState } from "react";
 import type QrScanner from "qr-scanner";
 import { useWorkspace } from "../lib/context";
 import { command } from "../lib/api";
+import { openingUnits } from "../lib/opening-stock";
 import { parseScan, qrPayload, money } from "../lib/domain";
 import type { Scan as ScanRecord } from "../lib/types";
 import { PageTitle, Status } from "../components/ui";
@@ -92,6 +93,7 @@ export function Scan() {
   }
   const product = data.master.products.find((p) => p.id === result?.product_id),
     units = data.units.filter((u) => u.product_id === product?.id);
+  const opening = product ? openingUnits(data, product.id) : [];
   return (
     <>
       <PageTitle
@@ -302,11 +304,24 @@ export function Scan() {
                     Choose the physical unit
                     <NativeSelect
                       value={unitId}
-                      onChange={(e) => setUnitId(e.target.value)}
+                      onChange={async (e) => {
+                        const id = e.target.value;
+                        if (
+                          opening.includes(id) &&
+                          !(await run(() => command("open_unit", { id })))
+                        )
+                          return;
+                        setUnitId(id);
+                      }}
                     >
                       <NativeSelectOption value="">
                         Select a unit
                       </NativeSelectOption>
+                      {opening.map((id) => (
+                        <NativeSelectOption key={id} value={id}>
+                          {id} · Restocked
+                        </NativeSelectOption>
+                      ))}
                       {units.map((u) => (
                         <NativeSelectOption key={u.id} value={u.id}>
                           {u.id} · {u.status}

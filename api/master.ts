@@ -1,6 +1,8 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { createClient } from "@supabase/supabase-js";
+import { gzipSync, gunzipSync } from "node:zlib";
 import { randomUUID } from "node:crypto";
+import type { Location, Category } from "../src/lib/types.js";
 import { validateMaster } from "../src/lib/domain.js";
 import { makeWorkbook, readWorkbook } from "../server-lib/workbook.js";
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -35,26 +37,56 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       !["manager", "administrator"].includes(profile.role)
     )
       return res.status(403).json({ error: "Manager access required" });
-    const { data: snapshot, error: snapshotError } =
-      await sb.rpc("rerun_snapshot");
+    const { data: config, error: snapshotError } = await sb
+      .from("store_config")
+      .select("active_revision")
+      .single();
+    const snapshot = {
+      revision: config?.active_revision ? { id: config.active_revision } : null,
+    };
     if (snapshotError) throw snapshotError;
-    const body = typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const input =
+      typeof req.body === "string" ? JSON.parse(req.body) : req.body;
+    const body = input.gzip
+      ? JSON.parse(
+          gunzipSync(Buffer.from(input.gzip, "base64"), {
+            maxOutputLength: 32 * 1024 * 1024,
+          }).toString(),
+        )
+      : input;
     if (body.action === "import") {
-      if (typeof body.base64 !== "string" || body.base64.length > 2800000)
-        throw new Error("Maximum upload size is 2 MB.");
+      if (typeof body.base64 !== "string" || body.base64.length > 22000000)
+        throw new Error("Maximum upload size is 16 MB.");
+      let locations: Location[] = [],
+        categories: Category[] = [];
+      if (!String(body.filename).toLowerCase().endsWith(".xlsx")) {
+        const [l, c] = await Promise.all([
+          sb.from("locations").select("data"),
+          sb.from("categories").select("data"),
+        ]);
+        if (l.error || c.error) throw l.error ?? c.error;
+        locations = l.data.map((row) => row.data);
+        categories = c.data.map((row) => row.data);
+      }
       const parsed = await readWorkbook(
         Buffer.from(body.base64, "base64"),
         String(body.filename),
-        snapshot.master,
+        { products: [], locations, categories },
       );
       if (parsed.revision && parsed.revision !== snapshot.revision?.id)
         throw new Error(
           "This workbook is an old revision. Download the latest master before editing.",
         );
-      return res.json({
-        master: parsed.master,
-        expectedRevision: snapshot.revision?.id ?? null,
-      });
+      res.setHeader("Content-Type", "application/json");
+      res.setHeader("Content-Encoding", "gzip");
+      return res.end(
+        gzipSync(
+          JSON.stringify({
+            master: parsed.master,
+            expectedRevision: snapshot.revision?.id ?? null,
+          }),
+        ),
+      );
     }
     if (body.action !== "publish") throw new Error("Unknown master action");
     const master = validateMaster(body.master);
@@ -71,6 +103,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         upsert: false,
       });
     if (uploadError) throw uploadError;
+    const archive = await sb.storage
+      .from("master-workbooks")
+      .upload(
+        path.replace(/\.xlsx$/, ".json.gz"),
+        gzipSync(JSON.stringify(master)),
+        { contentType: "application/gzip" },
+      );
+    if (archive.error) throw archive.error;
     const { data, error } = await sb.rpc("rerun_publish_master", {
       candidate: master,
       expected_revision: body.expectedRevision,
@@ -81,15 +121,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (error) throw error;
     return res.json({ revisionId: data });
   } catch (e) {
-    return res
-      .status(400)
-      .json({
-        error:
-          e instanceof Error
-            ? e.message
-            : typeof e === "object" && e && "message" in e
-              ? String(e.message)
-              : "Master request failed",
-      });
+    return res.status(400).json({
+      error:
+        e instanceof Error
+          ? e.message
+          : typeof e === "object" && e && "message" in e
+            ? String(e.message)
+            : "Master request failed",
+    });
   }
 }

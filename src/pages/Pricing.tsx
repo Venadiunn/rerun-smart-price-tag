@@ -1,3 +1,4 @@
+import { ProductSelect } from "@/components/ProductSelect";
 import {
   Empty as EmptyState,
   EmptyHeader,
@@ -6,10 +7,7 @@ import {
 } from "@/components/ui/empty";
 import { Alert } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  NativeSelect,
-  NativeSelectOption,
-} from "@/components/ui/native-select";
+
 import { Input } from "@/components/ui/input";
 import {
   Table,
@@ -34,6 +32,11 @@ export function Pricing() {
       price: number;
       reason: string;
     } | null>(null);
+  const [search, setSearch] = useState("");
+  const [limit, setLimit] = useState(24);
+  const matches = data.master.products.filter((p) =>
+    (p.id + " " + p.name).toLowerCase().includes(search.toLowerCase()),
+  );
   const manager = isManager(data.profile.role);
   return (
     <>
@@ -79,9 +82,24 @@ export function Pricing() {
           % markdown. Sell-through = currently sold units ÷ all received units
           for that product (including returns and stock-outs).
         </p>
+        <Input
+          aria-label="Search pricing"
+          placeholder="Search products or IDs"
+          value={search}
+          onChange={(e) => {
+            setSearch(e.target.value);
+            setLimit(24);
+          }}
+        />
         <div className="suggestion-grid">
-          {data.master.products.map((p) => {
-            const s = markdownSuggestion(p, data.units, data.settings);
+          {matches.slice(0, limit).map((p) => {
+            const s = markdownSuggestion(
+              p,
+              data.units,
+              data.settings,
+              new Date(),
+              data.stock.byProduct.get(p.id)?.remaining,
+            );
             return (
               <article key={p.id} className="suggestion">
                 <span className="eyebrow">{p.id}</span>
@@ -124,6 +142,11 @@ export function Pricing() {
             );
           })}
         </div>
+        {matches.length > limit && (
+          <Button variant="outline" onClick={() => setLimit(limit + 24)}>
+            Show more products
+          </Button>
+        )}
       </Card>
       <Card className="panel gap-0 py-0 ring-0">
         <div className="section-heading">
@@ -302,13 +325,10 @@ export function Pricing() {
           >
             <label>
               Product
-              <NativeSelect name="productId" defaultValue={request.productId}>
-                {data.master.products.map((p) => (
-                  <NativeSelectOption key={p.id} value={p.id}>
-                    {p.name}
-                  </NativeSelectOption>
-                ))}
-              </NativeSelect>
+              <ProductSelect
+                products={data.master.products}
+                initial={request.productId}
+              />
             </label>
             <label>
               Proposed price (USD)
