@@ -8,11 +8,10 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Input } from "@/components/ui/input";
+import { SearchField } from "@/components/SearchField";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Search } from "lucide-react";
 import { useWorkspace } from "../lib/context";
 import { download, exportCSV, command } from "../lib/api";
 import { dateTime } from "../lib/domain";
@@ -81,18 +80,15 @@ export function History() {
                 <span className="tab-count">{data.scans.length}</span>
               </TabsTrigger>
             </TabsList>
-            <label className="search-box">
-              <Search size={17} />
-              <Input
-                aria-label="Search history"
-                placeholder="Search codes, actions or alerts…"
-                value={query}
-                onChange={(e) => {
-                  setQuery(e.target.value);
-                  setLimit(50);
-                }}
-              />
-            </label>
+            <SearchField
+              label="Search history"
+              placeholder="Codes, actions or alerts"
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setLimit(50);
+              }}
+            />
             <Button
               type="button"
               className="text-button"

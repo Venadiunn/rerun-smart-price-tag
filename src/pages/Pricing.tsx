@@ -1,4 +1,5 @@
 import { ProductSelect } from "@/components/ProductSelect";
+import { SearchField } from "@/components/SearchField";
 import {
   Empty as EmptyState,
   EmptyHeader,
@@ -17,7 +18,7 @@ import {
   TableBody,
   TableCell,
 } from "@/components/ui/table";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 
@@ -69,84 +70,100 @@ export function Pricing() {
         </span>
       </Alert>
       <Card className="panel gap-0 py-0 ring-0">
-        <div className="section-heading">
+        <CardHeader className="section-heading">
           <div>
             <span className="eyebrow">RULE-BASED RECOMMENDATIONS</span>
             <h2>Products worth a closer look</h2>
           </div>
           <span className="small-chip">MANAGER APPROVAL REQUIRED</span>
-        </div>
-        <p className="section-copy">
-          After {data.settings.ageDays} days, review products with sell-through
-          below {data.settings.sellThrough}%. Suggest a {data.settings.discount}
-          % markdown. Sell-through = currently sold units ÷ all received units
-          for that product (including returns and stock-outs).
-        </p>
-        <Input
-          aria-label="Search pricing"
-          placeholder="Search products or IDs"
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setLimit(24);
-          }}
-        />
-        <div className="suggestion-grid">
-          {matches.slice(0, limit).map((p) => {
-            const s = markdownSuggestion(
-              p,
-              data.units,
-              data.settings,
-              new Date(),
-              data.stock.byProduct.get(p.id)?.remaining,
-            );
-            return (
-              <article key={p.id} className="suggestion">
-                <span className="eyebrow">{p.id}</span>
-                <h3>{p.name}</h3>
-                <div className="price-pair">
-                  <strong>{money(p.price)}</strong>
-                  {s.eligible && (
-                    <>
-                      <strong className="indigo-text">{money(s.price)}</strong>
-                    </>
-                  )}
-                </div>
-                <p>
-                  {s.age} days ·{" "}
-                  {s.rate === null
-                    ? "No cohort"
-                    : `${s.rate.toFixed(1)}% sell-through`}
-                </p>
-                <small>{s.message}</small>
-                {p.cost === null && (
-                  <small className="amber-text">
-                    Cost not supplied; no margin floor available.
-                  </small>
-                )}
-                <Button
-                  type="button"
-                  className="secondary"
-                  disabled={!s.eligible}
-                  onClick={() =>
-                    setRequest({
-                      productId: p.id,
-                      price: s.price,
-                      reason: `Rule-based review: ${s.age} days; ${s.rate?.toFixed(1)}% sell-through; ${data.settings.discount}% proposed markdown.`,
-                    })
-                  }
-                >
-                  Request review
-                </Button>
-              </article>
-            );
-          })}
-        </div>
-        {matches.length > limit && (
-          <Button variant="outline" onClick={() => setLimit(limit + 24)}>
-            Show more products
-          </Button>
-        )}
+        </CardHeader>
+        <CardContent className="panel-content">
+          <p className="section-copy">
+            After {data.settings.ageDays} days, review products with
+            sell-through below {data.settings.sellThrough}%. The suggested
+            markdown is {data.settings.discount}%. Sell-through is the share of
+            all received units that are currently sold. Received units include
+            returns and stock-outs.
+          </p>
+          <SearchField
+            label="Search pricing"
+            placeholder="Product name or ID"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setLimit(24);
+            }}
+          />
+          {matches.length === 0 && (
+            <p className="hint" role="status">
+              No products match your search.
+            </p>
+          )}
+          {matches.length > 0 && (
+            <div className="suggestion-grid">
+              {matches.slice(0, limit).map((p) => {
+                const s = markdownSuggestion(
+                  p,
+                  data.units,
+                  data.settings,
+                  new Date(),
+                  data.stock.byProduct.get(p.id)?.remaining,
+                );
+                return (
+                  <article key={p.id} className="suggestion">
+                    <span className="eyebrow">{p.id}</span>
+                    <h3>{p.name}</h3>
+                    <div className="price-pair">
+                      <div>
+                        <span>Current price</span>
+                        <strong>{money(p.price)}</strong>
+                      </div>
+                      {s.eligible && (
+                        <div>
+                          <span>Suggested price</span>
+                          <strong>{money(s.price)}</strong>
+                        </div>
+                      )}
+                    </div>
+                    <p>
+                      {s.age} days ·{" "}
+                      {s.rate === null
+                        ? "No cohort"
+                        : `${s.rate.toFixed(1)}% sell-through`}
+                    </p>
+                    <small>{s.message}</small>
+                    {p.cost === null && (
+                      <small className="amber-text">
+                        Cost not supplied; no margin floor available.
+                      </small>
+                    )}
+                    <Button
+                      type="button"
+                      className="secondary"
+                      disabled={!s.eligible}
+                      onClick={() =>
+                        setRequest({
+                          productId: p.id,
+                          price: s.price,
+                          reason: `Rule-based review: ${s.age} days; ${s.rate?.toFixed(1)}% sell-through; ${data.settings.discount}% proposed markdown.`,
+                        })
+                      }
+                    >
+                      Request review
+                    </Button>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+          {matches.length > limit && (
+            <div className="actions">
+              <Button variant="outline" onClick={() => setLimit(limit + 24)}>
+                Show more products
+              </Button>
+            </div>
+          )}
+        </CardContent>
       </Card>
       <Card className="panel gap-0 py-0 ring-0">
         <div className="section-heading">

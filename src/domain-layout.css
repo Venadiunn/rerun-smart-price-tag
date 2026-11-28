@@ -969,63 +969,10 @@
   .display-attempt .danger-text {
     font-size: 0.875rem;
   }
-  .section-copy {
-    padding: 0 24px 20px;
-    font-size: 0.875rem;
-  }
-  .suggestion-grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 15px;
-    padding: 0 24px 24px;
-  }
-  .suggestion {
-    padding: 18px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: start;
-    gap: 11px;
-  }
-  .suggestion h3 {
-    font-size: 0.875rem;
-    min-height: 37px;
-    line-height: 1.6;
-  }
-  .price-pair {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    flex-wrap: wrap;
-  }
-  .price-pair strong {
-    font-size: 1.125rem;
-    letter-spacing: -0.3px;
-  }
-  .price-pair svg {
-    color: var(--muted-foreground);
-  }
-  .suggestion p,
-  .suggestion small {
-    font-size: 0.875rem;
-    line-height: 1.6;
-  }
   .reason-cell {
     max-width: 280px;
     font-size: 0.875rem;
     line-height: 1.7;
-  }
-  .rules-form {
-    display: flex;
-    align-items: end;
-    gap: 20px;
-    padding: 0 24px 24px;
-    flex-wrap: wrap;
-  }
-  .rules-form label {
-    flex: 1;
-    min-width: 135px;
   }
   .master-status {
     display: flex;
@@ -1206,8 +1153,7 @@
     .stat {
       padding: 27px;
     }
-    .tag-grid,
-    .suggestion-grid {
+    .tag-grid {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
   }
@@ -1221,8 +1167,7 @@
     .stat small {
       font-size: 0.875rem;
     }
-    .tag-grid,
-    .suggestion-grid {
+    .tag-grid {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
     .dashboard-grid {
@@ -1262,8 +1207,7 @@
     .scan-grid {
       grid-template-columns: 1fr;
     }
-    .tag-grid,
-    .suggestion-grid {
+    .tag-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
     .settings-grid {
@@ -1455,27 +1399,6 @@
     .tag-card-top svg {
       width: 19px;
     }
-    .suggestion-grid {
-      padding: 0 20px 20px;
-      gap: 10px;
-    }
-    .suggestion {
-      padding: 14px;
-      gap: 9px;
-    }
-    .suggestion h3 {
-      font-size: 0.875rem;
-    }
-    .price-pair strong {
-      font-size: 1rem;
-    }
-    .suggestion p,
-    .suggestion small {
-      font-size: 0.875rem;
-    }
-    .rules-form {
-      padding: 0 20px 20px;
-    }
     .master-status {
       padding: 18px;
       gap: 12px;
@@ -1539,10 +1462,6 @@
     }
     .map-legend span {
       font-size: 0.875rem;
-    }
-    .section-copy {
-      padding-left: 20px;
-      padding-right: 20px;
     }
   }
 

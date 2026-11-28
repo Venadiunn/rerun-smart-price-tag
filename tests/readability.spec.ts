@@ -4,6 +4,49 @@ test.use({
     process.env.STAFF_STORAGE_STATE ?? ".private/administrator.state.json",
 });
 
+test("pricing search aligns with the card content and leaves room before results", async ({
+  page,
+}) => {
+  await page.goto("/pricing");
+  const title = page.getByRole("heading", {
+    name: "Products worth a closer look",
+  });
+  const panel = page.locator(".panel").filter({ has: title });
+  const search = panel.getByRole("textbox", { name: "Search pricing" });
+  await expect(search).toBeVisible();
+
+  for (const width of [1440, 820, 390, 320]) {
+    await page.setViewportSize({ width, height: 900 });
+    const layout = await panel.evaluate((card) => {
+      const bounds = (selector: string) =>
+        card.querySelector(selector)!.getBoundingClientRect();
+      const heading = bounds("h2");
+      const field = bounds('input[aria-label="Search pricing"]');
+      const result = bounds(".suggestion");
+      return {
+        inset: field.left - card.getBoundingClientRect().left,
+        headingOffset: Math.abs(heading.left - field.left),
+        resultOffset: Math.abs(result.left - field.left),
+        resultGap: result.top - field.bottom,
+      };
+    });
+    expect(layout.inset).toBeGreaterThanOrEqual(14);
+    expect(layout.headingOffset).toBeLessThanOrEqual(1);
+    expect(layout.resultOffset).toBeLessThanOrEqual(1);
+    expect(layout.resultGap).toBeGreaterThanOrEqual(12);
+  }
+
+  await search.fill("PROD-001");
+  await expect(panel.locator(".suggestion h3")).toHaveText(
+    "Premium Leather Boots",
+  );
+  await expect(panel.getByText("Current price", { exact: true })).toBeVisible();
+  await search.fill("no-such-pricing-product");
+  await expect(panel.getByRole("status")).toHaveText(
+    "No products match your search.",
+  );
+});
+
 for (const theme of ["light", "dark"] as const)
   for (const width of [1440, 320]) {
     test(`screen text remains readable at ${width}px in ${theme}`, async ({
@@ -58,6 +101,19 @@ for (const theme of ["light", "dark"] as const)
             })),
         );
         expect(failures, route).toEqual([]);
+
+        const wrappedMetrics = await page
+          .locator(".stat > strong, .store-overview > div > strong")
+          .evaluateAll((values) =>
+            values
+              .filter((value) => {
+                const range = document.createRange();
+                range.selectNodeContents(value);
+                return range.getClientRects().length > 1;
+              })
+              .map((value) => value.textContent),
+          );
+        expect(wrappedMetrics, route).toEqual([]);
       }
     });
   }

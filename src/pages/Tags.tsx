@@ -6,6 +6,7 @@ import {
   NativeSelectOption,
 } from "@/components/ui/native-select";
 import { Input } from "@/components/ui/input";
+import { SearchField } from "@/components/SearchField";
 import { Button } from "@/components/ui/button";
 import { tagCatalog } from "../lib/tag-catalog";
 import { useState } from "react";
@@ -90,17 +91,15 @@ export function Tags() {
         </span>
       </div>
       <div className="panel table-toolbar">
-        <label className="search-box">
-          <Input
-            aria-label="Search smart tags"
-            placeholder="Search tag, unit, product or location…"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setLimit(40);
-            }}
-          />
-        </label>
+        <SearchField
+          label="Search smart tags"
+          placeholder="Tag, item, unit, location"
+          value={query}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setLimit(40);
+          }}
+        />
         <NativeSelect
           aria-label="Tag status filter"
           value={statusFilter}

@@ -15,12 +15,11 @@ import {
   NativeSelect,
   NativeSelectOption,
 } from "@/components/ui/native-select";
-import { Input } from "@/components/ui/input";
+import { SearchField } from "@/components/SearchField";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ReceiveStockDialog } from "../components/ReceiveStockDialog";
 import { useState, useDeferredValue, useMemo } from "react";
-import { Search } from "lucide-react";
 import { useWorkspace } from "../lib/context";
 import { download, exportCSV } from "../lib/api";
 import { isOnHand } from "../lib/opening-stock";
@@ -141,18 +140,15 @@ export function Inventory() {
       <AutoSortPanel />
       <Card className="panel gap-0 py-0 ring-0">
         <div className="table-toolbar">
-          <label className="search-box">
-            <Search size={18} />
-            <Input
-              aria-label="Search inventory"
-              value={search}
-              onChange={(e) => {
-                setSearch(e.target.value);
-                setPage(1);
-              }}
-              placeholder="Search products, SKU, unit or tag ID…"
-            />
-          </label>
+          <SearchField
+            label="Search inventory"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            placeholder="Name, SKU, unit or tag"
+          />
           <div className="filter-row">
             <NativeSelect
               aria-label="Category filter"

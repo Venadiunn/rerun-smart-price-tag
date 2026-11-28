@@ -22,7 +22,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
-import { Search } from "lucide-react";
+import { SearchField } from "@/components/SearchField";
 import { useWorkspace, isManager } from "../lib/context";
 import {
   publishMaster,
@@ -293,18 +293,15 @@ export function MasterData() {
           </div>
           <TabsContent value={tab}>
             <div className="table-toolbar">
-              <label className="search-box">
-                <Search aria-hidden="true" />
-                <Input
-                  aria-label="Search master records"
-                  placeholder="Search identifiers, names, or destinations…"
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setPage(1);
-                  }}
-                />
-              </label>
+              <SearchField
+                label="Search master records"
+                placeholder="Name, ID, or location"
+                value={query}
+                onChange={(e) => {
+                  setQuery(e.target.value);
+                  setPage(1);
+                }}
+              />
               <span className="text-sm text-muted-foreground">
                 {records.length.toLocaleString()} matching records
               </span>
