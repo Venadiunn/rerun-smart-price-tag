@@ -2341,7 +2341,6 @@ details[open] > .disclosure-trigger .disclosure-chevron {
 }
 @container store-plan (max-width: 21rem) {
   .floor-backroom span { display: none; }
-  .floor-checkout { font-size: 0.75rem; }
   .zone-code { padding: 0.12rem; }
 }
 
