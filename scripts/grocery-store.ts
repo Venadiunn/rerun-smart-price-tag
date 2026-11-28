@@ -62,7 +62,7 @@ export function groceryMaster(previous: Master, date: string) {
     categoryId: household,
     departmentCode: "G2",
   }));
-  const locations = previous.locations.map((l) => ({
+  const locations: Master["locations"] = previous.locations.map((l) => ({
     ...l,
     department: household,
   }));

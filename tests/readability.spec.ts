@@ -74,10 +74,10 @@ for (const theme of ["light", "dark"] as const) {
       );
       await page.goto("/locations");
       await page
-        .getByRole("button", { name: /^Household, Health & Beauty/ })
+        .getByRole("button", { name: "Capacity grid", exact: true })
         .click();
       await page
-        .getByRole("button", { name: /^Select Electronics-Aisle-2-Shelf-A:/ })
+        .getByRole("button", { name: /^Select Electronics-Aisle-2-Shelf-A$/ })
         .click();
       const list = page.getByRole("list", {
         name: "Assigned products",

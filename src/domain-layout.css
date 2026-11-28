@@ -1618,27 +1618,6 @@
     background: var(--muted);
     padding: 18px;
   }
-  .store-back-wall {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    background: white;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 14px;
-    font-size: 0.875rem;
-  }
-  .store-back-wall > span {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .store-back-wall > span:last-child {
-    color: var(--muted-foreground);
-    font-size: 0.875rem;
-    letter-spacing: 1px;
-  }
   .store-walkway {
     display: flex;
     align-items: center;
@@ -1756,11 +1735,6 @@
     padding: 35px 10px;
     text-align: center;
   }
-  .destination-details {
-    max-height: 1120px;
-    overflow-y: auto;
-    align-self: start;
-  }
   @media (max-width: 1100px) {
     .store-overview {
       gap: 8px;
@@ -1795,17 +1769,8 @@
     .store-fixture {
       padding: 8px;
     }
-    .store-back-wall {
-      padding: 10px;
-    }
-    .store-back-wall > span:last-child {
-      display: none;
-    }
     .store-view-controls {
       padding-left: 20px;
-    }
-    .destination-details {
-      max-height: 800px;
     }
   }
 }

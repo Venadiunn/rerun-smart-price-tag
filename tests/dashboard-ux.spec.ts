@@ -129,9 +129,7 @@ test("phone location selection opens details and returns to the schematic", asyn
   await page
     .getByRole("button", { name: /^Household, Health & Beauty/ })
     .click();
-  await page
-    .getByRole("button", { name: /^Select Electronics-Aisle-2-Shelf-A:/ })
-    .click();
+  await page.getByRole("button", { name: /^Aisle G2-01/ }).click();
   const details = page.getByRole("heading", {
     name: "Destination details",
     exact: true,

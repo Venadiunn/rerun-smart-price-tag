@@ -392,7 +392,7 @@ export function Tags() {
               </details>
             </section>
             <aside className="label-sidebar">
-              <QRLabel value={`rerun:tag:${tag.id}`} label={tag.id} />
+              <QRLabel value={tag.id} label={tag.id} />
               <p className="hint">
                 This label identifies the reusable tag. Scanning resolves its
                 current unit assignment.

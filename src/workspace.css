@@ -4,8 +4,8 @@
   flex-direction: column;
 }
 .workspace-topbar {
-  height: 56px;
-  padding: 0 24px 0 16px;
+  min-height: 3.1rem;
+  padding: 0.25rem clamp(0.75rem, 2vw, 1.5rem);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -18,9 +18,7 @@
 }
 .workspace-content {
   width: 100%;
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 28px 24px;
+  padding: 1.5rem clamp(0.875rem, 2vw, 1.5rem);
   flex: 1;
   min-width: 0;
 }
@@ -825,11 +823,6 @@ button.tag-card:hover {
   background: var(--muted);
   border-color: var(--border);
 }
-.store-back-wall {
-  background: var(--card);
-  border-color: var(--border);
-  color: var(--muted-foreground);
-}
 .store-aisle,
 .store-fixture,
 .map-location {
@@ -940,7 +933,7 @@ button.store-fixture:hover,
   overflow-wrap: anywhere;
 }
 .location-focus-heading {
-  scroll-margin-top: 88px;
+  scroll-margin-block-start: 5rem;
 }
 .location-focus-heading:focus {
   outline: 2px solid var(--ring);
@@ -1287,12 +1280,12 @@ button.store-fixture:hover,
 }
 @media (max-width: 767px) {
   .workspace-topbar {
-    height: 60px;
-    padding: 0 12px;
+    min-height: 3.25rem;
+    padding-inline: 0.65rem;
     gap: 8px;
   }
   .workspace-content {
-    padding: 20px 16px;
+    padding: 1.1rem clamp(0.75rem, 4vw, 1rem);
   }
   .workspace-footer {
     padding: 16px;
@@ -1552,12 +1545,6 @@ button.store-fixture:hover,
   .fixture-top {
     flex-wrap: wrap;
     gap: 4px;
-  }
-  .store-back-wall {
-    padding: 10px;
-  }
-  .store-back-wall > span:last-child {
-    display: none;
   }
   .store-view-controls {
     padding-inline: 16px;
@@ -2130,161 +2117,232 @@ details[open] > .disclosure-trigger .disclosure-chevron {
   padding: 10px !important;
 }
 
+/* A diagram and its controls share the available content width at each zoom. */
 .store-visualization {
-  container-type: inline-size;
-  --zone-background: #3f69b4;
-  --zone-border: #32558f;
-  --zone-active: #284f91;
+  container: store-plan / inline-size;
+  --zone-background: #315e9d;
+  --zone-active: #20477c;
+  --zone-border: #244d85;
   --zone-text: #fff;
-  --floor-aisle: var(--card);
 }
 .dark .store-visualization {
-  --zone-background: #345d9f;
-  --zone-border: #779be2;
-  --zone-active: #23457e;
+  --zone-background: #294e88;
+  --zone-active: #193d74;
+  --zone-border: #6c92cd;
 }
-.grocery-plan {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: clamp(8px, 1.7cqi, 24px);
-  margin-block: 12px;
-  padding: clamp(5px, 1cqi, 12px);
-  background: var(--floor-aisle);
-}
-.department-zone {
-  min-width: 0;
-  display: grid;
-  align-content: center;
-  justify-items: center;
-  gap: 0.25rem;
-  min-height: 7rem;
-  padding: clamp(6px, 1.3cqi, 16px);
-  border: 1px solid var(--zone-border);
-  background: var(--zone-background);
-  color: var(--zone-text);
-  text-align: center;
-  line-height: 1.3;
-  overflow-wrap: anywhere;
-}
-.grocery-plan > .department-zone:only-of-type {
-  grid-column: 1 / -1;
-}
-.department-zone > span,
-.department-zone > small {
-  font-size: 0.85rem;
-}
-.department-zone b {
-  font-size: 1.15em;
-  font-variant-numeric: tabular-nums;
-}
-.department-zone:hover {
-  background: var(--zone-active);
-}
-.department-zone[aria-pressed="true"] {
-  background: var(--zone-active);
-  box-shadow: inset 0 0 0 2px var(--zone-text);
-}
-.department-zone:focus-visible {
-  outline: 3px solid var(--foreground);
-  outline-offset: 2px;
-}
-.store-checkout {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  text-align: center;
-}
-.store-checkout strong {
-  display: grid;
-  place-items: center;
-  min-height: 100%;
-  padding: 0.35rem;
-  background: var(--zone-background);
-  border: 1px solid var(--zone-border);
-  color: var(--zone-text);
-}
-.store-checkout span {
-  display: flex;
-  align-items: center;
-  gap: 0.2em;
-}
-.store-checkout svg {
-  flex: 0 0 auto;
-  width: 1em;
-  height: 1em;
-  color: var(--zone-background);
-}
-.full-plan [data-zone="dairy"] {
-  grid-column: 1 / -1;
-  grid-row: 1;
-}
-@container (min-width: 44rem) {
-  .full-plan {
-    grid-template-columns: 1.15fr 1fr 1fr 1.15fr;
-    grid-template-rows: minmax(7rem, auto) minmax(9rem, auto) minmax(3rem, auto) minmax(3.25rem, auto);
-    grid-template-areas:
-      "household dairy dairy frozen"
-      "household grocery beverages frozen"
-      "produce grocery beverages fresh"
-      "produce checkout checkout fresh";
-  }
-  .full-plan [data-zone="household"] { grid-area: household; }
-  .full-plan [data-zone="dairy"] { grid-area: dairy; }
-  .full-plan [data-zone="grocery"] { grid-area: grocery; }
-  .full-plan [data-zone="beverages"] { grid-area: beverages; }
-  .full-plan [data-zone="frozen"] { grid-area: frozen; }
-  .full-plan [data-zone="produce"] { grid-area: produce; }
-  .full-plan [data-zone="fresh"] { grid-area: fresh; }
-  .full-plan .store-checkout { grid-area: checkout; }
-}
-@container (max-width: 17rem) {
-  .store-checkout span {
-    flex-direction: column;
-    gap: 0;
-    font-size: 0.75rem;
-  }
-}
-.bay-section {
-  margin-top: 1.25rem;
-}
-.bay-heading {
+.floor-metrics {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 0.75rem;
-}
-.bay-heading > span {
+  gap: 0.35rem 1rem;
+  margin-bottom: 0.75rem;
   font-size: 0.875rem;
   color: var(--muted-foreground);
 }
-.bay-heading > meter {
-  width: min(7rem, 100%);
+.floor-metrics b {
+  color: var(--foreground);
+  font-variant-numeric: tabular-nums;
 }
-.bay-list {
+.floor-diagram, .floor-departments, .floor-column, .floor-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
-  gap: 0.45rem;
-  margin-top: 0.65rem;
+  min-width: 0;
+  min-height: 0;
 }
-.bay-list .bay-button {
+.floor-diagram {
+  block-size: clamp(20rem, 43cqi, 38rem);
+  padding: clamp(4px, 1cqi, 0.65rem);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.floor-diagram, .floor-departments, .floor-column, .floor-row {
+  gap: clamp(2px, 0.55cqi, 0.35rem);
+}
+.floor-backroom, .floor-checkout {
+  min-width: 0;
+  min-height: 0;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-size: 0.875rem;
+}
+.floor-backroom {
+  flex-direction: column;
+  gap: 0.2rem;
+  background: var(--muted);
+}
+.floor-backroom span { color: var(--muted-foreground); }
+.floor-checkout {
+  background: var(--secondary);
+  gap: clamp(0.2rem, 2cqi, 1rem);
+  line-height: 1.15;
+}
+.department-zone {
+  display: grid;
+  place-items: center;
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  container: floor-zone / size;
+  padding: 0.25rem;
+  border: 1px solid var(--zone-border);
+  background: var(--zone-background);
+  color: var(--zone-text);
+  text-align: center;
+  line-height: 1.25;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+.zone-shelves {
+  position: absolute;
+  inset: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4%;
+  pointer-events: none;
+}
+.zone-shelves i {
+  display: block;
+  max-height: 0.65rem;
+  min-height: 1px;
+  flex: 0 1 10%;
+  background: color-mix(in srgb, white 15%, transparent);
+}
+.zone-label,
+.zone-code {
+  display: grid;
+  gap: 0.1rem;
+  position: relative;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0.2rem 0.3rem;
+  border-radius: var(--radius);
+  background: var(--zone-background);
+}
+.department-zone:hover,
+.department-zone[aria-pressed="true"] {
+  background: var(--zone-active);
+}
+.department-zone[aria-pressed="true"] {
+  box-shadow: inset 0 0 0 2px var(--zone-text);
+}
+.department-zone[aria-pressed="true"] :is(.zone-label, .zone-code) { background: var(--zone-active); }
+.department-zone:focus-visible { outline: 3px solid var(--foreground); z-index: 1; }
+.zone-count { font-size: 0.82em; }
+.zone-count b { font-size: 1.12em; font-variant-numeric: tabular-nums; }
+.zone-code,
+.floor-legend { display: none; }
+.store-footprint figcaption { margin-top: 0.5rem; }
+.aisle-section { margin-top: 1rem; }
+.aisle-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.35rem 1rem;
+}
+.aisle-heading h3 { font-weight: 650; }
+.aisle-assumption { font-size: 0.875rem; color: var(--muted-foreground); }
+.floor-stock {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 10rem), 1fr));
+  gap: 0.5rem;
+  margin-block: 0.65rem;
+}
+.floor-stock > div {
+  min-width: 0;
+  padding: 0.6rem;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.floor-stock :is(dt, small) { font-size: 0.875rem; color: var(--muted-foreground); }
+.floor-stock dd {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+}
+.aisle-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr));
+  gap: 0.45rem;
+}
+.aisle-list .aisle-button {
   display: grid;
   justify-content: start;
   text-align: left;
   height: auto;
-  padding: 0.7rem;
+  padding: 0.55rem 0.7rem;
   white-space: normal;
 }
-.bay-button span {
-  font-size: 0.85rem;
-  color: var(--muted-foreground);
-}
-.bay-button[aria-pressed="true"] {
+.aisle-button span { font-size: 0.85rem; color: var(--muted-foreground); }
+.aisle-button[aria-pressed="true"] {
   outline: 2px solid var(--foreground);
   outline-offset: -2px;
-  background: var(--muted);
+}
+.capacity-explainer { margin: 0 0 0.85rem; }
+
+@container floor-zone (max-height: 4rem) and (min-width: 15rem) {
+  .zone-label {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: center;
+    gap: 0.1rem 0.5rem;
+  }
+}
+@container store-plan (max-width: 43rem) {
+  .zone-label { display: none; }
+  .zone-code { display: block; font-weight: 650; }
+  .floor-legend {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.25rem), 1fr));
+    gap: 0.45rem;
+    margin-top: 0.75rem;
+  }
+  .floor-legend [data-slot="button"] {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    height: auto;
+    padding: 0.45rem 0.55rem;
+    white-space: normal;
+    text-align: left;
+  }
+  .floor-legend [aria-pressed="true"] {
+    outline: 2px solid var(--foreground);
+    outline-offset: -2px;
+  }
+  .legend-code {
+    padding: 0.12rem 0.35rem;
+    border-radius: var(--radius);
+    background: var(--zone-background);
+    color: var(--zone-text);
+    font-size: 0.75rem;
+    line-height: 1.4;
+  }
+  .legend-label {
+    display: grid;
+    min-width: 0;
+    gap: 0.15rem;
+    line-height: 1.35;
+  }
+  .legend-label :is(span, small) {
+    color: var(--muted-foreground);
+    font-size: 0.85rem;
+  }
+  .legend-label b {
+    color: var(--foreground);
+    font-variant-numeric: tabular-nums;
+  }
+}
+@container store-plan (max-width: 21rem) {
+  .floor-backroom span { display: none; }
+  .floor-checkout { font-size: 0.75rem; }
+  .zone-code { padding: 0.12rem; }
 }
 
 /* Share row tracks so long department names cannot shift adjacent capacity meters. */

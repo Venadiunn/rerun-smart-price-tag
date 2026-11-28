@@ -8,6 +8,8 @@ React, TypeScript, Vite, Tailwind CSS, TanStack Router and Query, Supabase Postg
 
 QR generation uses [nimiq/qr-creator](https://github.com/nimiq/qr-creator); camera and image scanning use [nimiq/qr-scanner](https://github.com/nimiq/qr-scanner). Both are MIT licensed. ReRun does not implement a QR decoder or computer-vision engine.
 
+New labels open ReRun in the phone's browser. If staff need to sign in first, the linked item is ready to look up afterward. Scan older printed labels from **Scan & verify** in ReRun, or reprint them to get a browser link. If the device blocks camera access, upload a photo or enter the item code on the same page.
+
 ## Local development
 
 1. Install Node.js 22 or later and run `npm ci`.
@@ -56,7 +58,7 @@ Deploy the repository to Vercel using the Vite preset, `npm run build`, output `
 
 ## Demonstration boundaries
 
-The grocery demonstration contains 33,248 catalog variants across seven departments. Its opening lots add 778,654 individually addressable units to the existing operational inventory. Each stocked unit has a scannable tag and each remaining slot has a reserve tag. Overview shows live on-hand units above the catalog count. Store locations lets staff drill from departments into bays and inspect placed, reserved, and available capacity.
+The grocery demonstration contains 33,248 catalog variants across seven departments. Its opening lots add 778,654 individually addressable units to the existing operational inventory. Each stocked unit has a scannable tag and each remaining slot has a reserve tag. Overview shows live on-hand units above the catalog count. Store locations shows a proportional sales floor, modeled aisle addresses, and separate shelf and backstock estimates. The Capacity grid holds the recorded unit slots and reservations. See [the store plan](docs/STORE-PLAN.md) for fixture assumptions and reconciliation.
 
 To generate and validate the workbook against an existing pre-grocery master, run `node --env-file=.env.local --import tsx scripts/seed-grocery.ts` with an administrator session at `SUPABASE_SESSION_FILE`. Add `--apply` for the one-time publication. The database commits the catalog, lots, and tag pool together. Stock changes use the normal scan, receipt, placement, and sale commands.
 

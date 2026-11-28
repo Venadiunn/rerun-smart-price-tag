@@ -2,15 +2,17 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useRef } from "react";
 import QrCreator from "qr-creator";
 
+import { scanLink } from "../lib/scan-links";
 import { download } from "../lib/api";
 export function QRLabel({ value, label }: { value: string; label: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
+  const url = scanLink(value, window.location.origin);
   useEffect(() => {
     if (!ref.current) return;
     const qr = document.createElement("canvas");
     QrCreator.render(
       {
-        text: value,
+        text: url,
         radius: 0,
         ecLevel: "M",
         fill: "#141927",
@@ -25,15 +27,23 @@ export function QRLabel({ value, label }: { value: string; label: string }) {
     context.fillStyle = "#ffffff";
     context.fillRect(0, 0, 336, 336);
     context.drawImage(qr, 48, 48);
-  }, [value]);
+  }, [url]);
   return (
     <div className="qr-label">
       <div className="qr-paper">
         <canvas ref={ref} aria-label={`QR code for ${label}`} />
         <strong>{label}</strong>
-        <small>ReRun · Scan to look up</small>
+        <small>Scan to open ReRun in your browser</small>
       </div>
       <div className="actions">
+        <Button
+          variant="outline"
+          role="link"
+          nativeButton={false}
+          render={<a href={url} target="_blank" rel="noreferrer" />}
+        >
+          Open lookup
+        </Button>
         <Button
           type="button"
           className="secondary"
@@ -58,7 +68,9 @@ export function QRLabel({ value, label }: { value: string; label: string }) {
             img.style.width = "40mm";
             const text = win.document.createElement("p");
             text.textContent = label;
-            win.document.body.append(img, text);
+            const help = win.document.createElement("p");
+            help.textContent = "Scan to open ReRun in your browser";
+            win.document.body.append(img, text, help);
             img.onload = () => win.print();
           }}
         >

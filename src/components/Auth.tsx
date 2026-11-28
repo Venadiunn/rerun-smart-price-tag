@@ -6,11 +6,16 @@ import { Brand } from "./Brand";
 import { AppearanceMenu } from "./AppearanceMenu";
 import { useState } from "react";
 
+import { scanCodeFromUrl } from "../lib/scan-links";
 import { supabase } from "../lib/supabase";
 export function Auth({ activation = false }: { activation?: boolean }) {
   const [busy, setBusy] = useState(false),
     [message, setMessage] = useState(""),
     [done, setDone] = useState(false);
+  const scanLink =
+    !activation &&
+    /^\/scan\/?$/.test(location.pathname) &&
+    Boolean(scanCodeFromUrl(location.search, location.hash));
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
@@ -67,7 +72,9 @@ export function Auth({ activation = false }: { activation?: boolean }) {
             <p>
               {activation
                 ? "Choose a private password to finish setting up your staff account."
-                : "Sign in to your ReRun staff workspace."}
+                : scanLink
+                  ? "Sign in to look up the QR code in ReRun. You can do everything here in your browser."
+                  : "Sign in to your ReRun staff workspace."}
             </p>
           </header>
           <form className="auth-form" onSubmit={submit}>

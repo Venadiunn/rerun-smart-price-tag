@@ -10,6 +10,7 @@ import { useState } from "react";
 
 import { useWorkspace, isManager } from "../lib/context";
 import { command } from "../lib/api";
+import { getFloorPlan, shelfAddress } from "../lib/floor-plan";
 import { openingUnits } from "../lib/opening-stock";
 import { money, qrPayload, dateTime } from "../lib/domain";
 import type { UnitStatus } from "../lib/types";
@@ -47,6 +48,10 @@ export function ProductDrawer({
   const timeline = data.events.filter((e) => e.entity_id === unitId);
   const smartTag = u ? data.tags.find((t) => t.unit_id === u.id) : undefined;
   if (!p) return null;
+  const plannedShelf =
+    (u?.destination_id ?? p.locationId) === p.locationId
+      ? getFloorPlan(data.master).byProduct.get(p.id)
+      : undefined;
   return (
     <Modal title="Item details" onClose={onClose} wide>
       <div className="product-detail-head">
@@ -65,6 +70,9 @@ export function ProductDrawer({
         <div>
           <small>VERIFIED DESTINATION · MASTER v{data.revision.revision}</small>
           <strong>{u?.destination_id ?? p.locationId}</strong>
+          {plannedShelf && (
+            <span>Modeled shelf: {shelfAddress(plannedShelf)}</span>
+          )}
           {u?.current_location_id && (
             <span>Last confirmed placement: {u.current_location_id}</span>
           )}
@@ -287,12 +295,10 @@ export function ProductDrawer({
           <QRLabel
             value={
               qrMode === "tag" && smartTag
-                ? `rerun:tag:${smartTag.id}`
+                ? smartTag.id
                 : qrMode === "snapshot"
                   ? qrPayload(p, u?.id)
-                  : u
-                    ? `rerun:unit:${u.id}`
-                    : p.id
+                  : (u?.id ?? p.id)
             }
             label={qrMode === "tag" && smartTag ? smartTag.id : (u?.id ?? p.id)}
           />

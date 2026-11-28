@@ -156,7 +156,7 @@ test.describe("administrator workspace", () => {
     });
     await expect(
       page.getByRole("heading", { name: "Review 0 changes" }),
-    ).toBeVisible({timeout:45000});
+    ).toBeVisible({ timeout: 45000 });
     await expect(
       page.getByRole("button", { name: "Publish new revision" }),
     ).toBeDisabled();
@@ -199,17 +199,56 @@ test.describe("administrator workspace", () => {
     await page
       .getByRole("button", { name: "Open Premium Leather Boots" })
       .click();
+    const link = await page
+      .getByRole("link", { name: "Open lookup" })
+      .getAttribute("href");
+    expect(new URL(link!).pathname).toBe("/scan");
+    expect(new URL(link!).hash).toBe("#item=PROD-001");
     const image = await page
       .locator("canvas")
       .evaluate((canvas: HTMLCanvasElement) => canvas.toDataURL());
     await page.getByLabel("Close dialog").click();
     await page.goto("/scan");
+    const camera = page.getByRole("button", {
+      name: "Start camera",
+      exact: true,
+    });
+    const hasCameraApi = await page.evaluate(
+      () => window.isSecureContext && !!navigator.mediaDevices?.getUserMedia,
+    );
+    if (hasCameraApi) {
+      await page.evaluate(() => {
+        Object.defineProperty(navigator.mediaDevices, "getUserMedia", {
+          configurable: true,
+          value: async () => {
+            throw new DOMException("Permission denied", "NotAllowedError");
+          },
+        });
+      });
+      await camera.click();
+      await expect(page.locator(".inline-error")).toContainText(
+        "Allow camera access for ReRun",
+      );
+    } else {
+      await expect(camera).toBeDisabled();
+      await expect(page.locator(".camera-placeholder")).toContainText(
+        "Live camera access is unavailable here",
+      );
+    }
+
     await page.locator("input[type=file]").setInputFiles({
       name: "generated-qr.png",
       mimeType: "image/png",
       buffer: Buffer.from(image.split(",")[1], "base64"),
     });
     await expect(page.locator(".scan-alerts")).toContainText("VALID ITEM");
+    const canSimulateCamera =
+      hasCameraApi &&
+      (await page.evaluate(
+        () =>
+          typeof document.createElement("canvas").captureStream === "function",
+      ));
+    if (!canSimulateCamera) return;
     await page.getByRole("button", { name: "Clear", exact: true }).click();
     await page.evaluate(async (image) => {
       const source = new Image();
@@ -237,9 +276,7 @@ test.describe("administrator workspace", () => {
         },
       });
     }, image);
-    await page
-      .getByRole("button", { name: "Start camera", exact: true })
-      .click();
+    await camera.click();
     await expect(page.locator(".scan-alerts")).toContainText("VALID ITEM");
   });
   test("overview sorting and searchable smart-tag coverage", async ({

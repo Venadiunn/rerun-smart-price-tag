@@ -1,6 +1,10 @@
 import { test, expect } from "@playwright/test";
-test.use({ storageState: ".private/administrator.state.json" });
-test("seven grocery departments reconcile with store totals and grocery tag lookup", async ({
+test.use({
+  storageState:
+    process.env.STAFF_STORAGE_STATE ?? ".private/administrator.state.json",
+});
+
+test("proportional floor zones reconcile with stock and expose wheel-scrollable aisle details", async ({
   page,
 }) => {
   test.setTimeout(90000);
@@ -8,66 +12,107 @@ test("seven grocery departments reconcile with store totals and grocery tag look
   await page.goto("/locations");
   const zones = page.locator(".department-zone");
   await expect(zones).toHaveCount(7);
-  const layout = await page.locator(".grocery-plan").evaluate((plan) => {
+  const footprint = page.locator(".floor-diagram");
+  const areas = await footprint.evaluate((plan) => {
     const bounds = (selector: string) =>
-      plan.querySelector(selector)!.getBoundingClientRect().toJSON();
+      plan.querySelector(selector)!.getBoundingClientRect();
+    const sizes = (selector: string) => {
+      const rect = bounds(selector);
+      return rect.width * rect.height;
+    };
     return {
-      household: bounds('[data-zone="household"]'),
-      dairy: bounds('[data-zone="dairy"]'),
-      frozen: bounds('[data-zone="frozen"]'),
-      grocery: bounds('[data-zone="grocery"]'),
-      beverages: bounds('[data-zone="beverages"]'),
-      checkout: bounds(".store-checkout"),
-      produce: bounds('[data-zone="produce"]'),
-      fresh: bounds('[data-zone="fresh"]'),
-      mapBottom: plan.closest(".panel")!.getBoundingClientRect().bottom,
-      detailsTop: document
-        .querySelector(".destination-details")!
-        .getBoundingClientRect().top,
+      beverages: sizes('[data-zone="G3"]'),
+      produce: sizes('[data-zone="G6"]'),
+      receivingAboveAisles:
+        bounds(".floor-backroom").bottom < bounds(".floor-departments").top,
+      checkoutBelowAisles:
+        bounds(".floor-checkout").top > bounds(".floor-departments").bottom,
+      detailsBelowMap:
+        document.querySelector(".destination-details")!.getBoundingClientRect()
+          .top > plan.getBoundingClientRect().bottom,
     };
   });
-  expect(layout.dairy.left).toBeGreaterThan(layout.household.right);
-  expect(layout.dairy.right).toBeLessThan(layout.frozen.left);
-  expect(layout.dairy.bottom).toBeLessThan(layout.grocery.top);
-  expect(layout.grocery.right).toBeLessThan(layout.beverages.left);
-  expect(layout.checkout.top).toBeGreaterThan(layout.beverages.bottom);
-  expect(layout.produce.bottom).toBe(layout.checkout.bottom);
-  expect(layout.fresh.bottom).toBe(layout.checkout.bottom);
-  expect(layout.detailsTop).toBeGreaterThan(layout.mapBottom);
-
+  expect(areas.beverages / areas.produce).toBeGreaterThan(3);
+  expect(areas.beverages / areas.produce).toBeLessThan(3.6);
+  expect(
+    areas.receivingAboveAisles &&
+      areas.checkoutBelowAisles &&
+      areas.detailsBelowMap,
+  ).toBe(true);
+  const dairy = zones.filter({
+    has: page.locator("strong", { hasText: /^Dairy$/ }),
+  });
+  expect(
+    await dairy.evaluate((zone) => {
+      const box = zone.getBoundingClientRect();
+      const label = zone.querySelector(".zone-label")!.getBoundingClientRect();
+      return label.top >= box.top && label.bottom <= box.bottom;
+    }),
+  ).toBe(true);
   const summary = page.getByLabel("Store capacity summary");
   const totals = await summary.locator("strong").allTextContents();
+  const number = (text: string) => Number(text.replaceAll(",", ""));
   const departments = await zones.locator("b").allTextContents();
-  const number = (s: string) => Number(s.replaceAll(",", ""));
-  expect(departments.reduce((s, n) => s + number(n), 0)).toEqual(
+  expect(departments.reduce((sum, value) => sum + number(value), 0)).toBe(
     number(totals[0]),
   );
   await expect(summary.locator("small").first()).toContainText(
     "33,248 product variants",
   );
-  await zones.filter({ hasText: "Produce & Floral" }).click();
-  await expect(page.locator(".bay-section h3")).toHaveText("Produce & Floral");
-  await page.locator(".bay-button").first().click();
-  await expect(page.locator(".bay-button").first()).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
+  await page.getByRole("button", { name: "Beverages", exact: true }).click();
+  const beveragePlan = page.getByRole("region", {
+    name: "Beverages aisle plan",
+  });
+  await expect(beveragePlan).toContainText("37,240 planned positions");
+  await expect(
+    beveragePlan.getByRole("button", { name: /^Aisle G3-/ }),
+  ).toHaveCount(12);
+  await page.getByRole("button", { name: /^Aisle G3-01/ }).click();
   const details = page.getByRole("heading", {
     name: "Destination details",
     exact: true,
   });
   await expect(details).toBeFocused();
   await expect(details).toBeInViewport();
+  const assigned = page.getByRole("list", { name: "Assigned products" });
+  await expect(assigned).toContainText("Bay 1 · Side A · Shelf 1");
+  const before = await page.evaluate(() => window.scrollY);
+  const pointer = await assigned.getByRole("listitem").first().boundingBox();
+  await page.mouse.move(pointer!.x + 20, pointer!.y + 10);
+  await page.mouse.wheel(0, 1900);
+  await expect
+    .poll(() => page.evaluate(() => window.scrollY))
+    .toBeGreaterThan(before);
+  await expect(
+    page.getByRole("heading", {
+      name: "Last confirmed placements",
+      exact: true,
+    }),
+  ).toBeInViewport();
+  expect(
+    await page.locator(".destination-details").evaluate((panel) => ({
+      maxHeight: getComputedStyle(panel).maxHeight,
+      scrollTop: panel.scrollTop,
+    })),
+  ).toEqual({ maxHeight: "none", scrollTop: 0 });
+
   await page.getByRole("button", { name: "Back to store schematic" }).click();
   await expect(
     page.getByRole("heading", { name: "Store schematic" }),
   ).toBeFocused();
-  await page.setViewportSize({ width: 390, height: 844 });
+  await page.setViewportSize({ width: 320, height: 740 });
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth - innerWidth,
     ),
   ).toBeLessThanOrEqual(1);
+  const key = page.getByRole("group", { name: "Department key" });
+  const produce = key.getByRole("button", { name: "Choose Produce & Floral" });
+  await expect(produce).toContainText("1,300 variants");
+  await produce.click();
+  await expect(
+    page.getByRole("region", { name: "Produce & Floral aisle plan" }),
+  ).toBeVisible();
   await page.goto("/inventory");
   await page.getByLabel("Search inventory").fill("TAG-GR-100001-1");
   await expect(page.locator(".product-cell")).toHaveCount(1);

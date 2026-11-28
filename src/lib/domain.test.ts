@@ -5,6 +5,7 @@ import {
   validateMaster,
   markdownSuggestion,
 } from "./domain";
+import { scanLink, scanCodeFromUrl } from "./scan-links";
 import { seedMaster } from "./seed";
 import type { Unit } from "./types";
 describe("documented QR scenarios", () => {
@@ -92,6 +93,47 @@ describe("documented QR scenarios", () => {
       parseScan("TAG-2", seedMaster, [], [{ id: "TAG-2", unit_id: null }])
         .findings,
     ).toEqual(["UNASSIGNED TAG"]);
+  });
+  it("opens a browser link and verifies the code inside it, including snapshot differences", () => {
+    const origin = "https://rerun.example";
+    const base = seedMaster.products[0];
+    const code = qrPayload({ ...base, price: base.price - 100 });
+    const url = new URL(scanLink(code, origin));
+    expect(url.origin).toBe(origin);
+    expect(url.pathname).toBe("/scan");
+    expect(url.search).toBe("");
+    expect(scanCodeFromUrl(url.search, url.hash)).toBe(code);
+    expect(parseScan(url.href, seedMaster, [], [], origin).findings).toEqual([
+      "PRICE MISMATCH",
+    ]);
+    expect(
+      parseScan(origin + "/scan?code=PROD-001", seedMaster, [], [], origin)
+        .productId,
+    ).toBe(base.id);
+  });
+  it("resolves opened tag labels across the production domains", () => {
+    const origin =
+      "https://rerun-smart-price-tag-venadiunns-projects.vercel.app";
+    const url = new URL(scanLink("TAG-UNASSIGNED", origin));
+    expect(url.hostname).toBe("rerun-smart-price-tag-psi.vercel.app");
+    expect(
+      parseScan(
+        url.href,
+        seedMaster,
+        [],
+        [{ id: "TAG-UNASSIGNED", unit_id: null }],
+        origin,
+      ).findings,
+    ).toEqual(["UNASSIGNED TAG"]);
+    expect(() =>
+      parseScan(
+        "https://example.com/scan#item=PROD-001",
+        seedMaster,
+        [],
+        [],
+        origin,
+      ),
+    ).toThrow();
   });
   it("does not accept extra fractional cents", () => {
     const p = JSON.parse(qrPayload(seedMaster.products[0]));

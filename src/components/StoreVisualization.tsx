@@ -1,152 +1,283 @@
-import { useState } from "react";
-import { ArrowDown, ArrowUp } from "lucide-react";
 import { Button } from "./ui/button";
-import { isOnHand } from "../lib/opening-stock";
-import { storeSummary } from "../lib/store-layout";
-import type { Location, Unit, Product } from "../lib/types";
+import type { FloorPlan } from "../lib/floor-plan";
+import type { measureFloorStock } from "../lib/floor-plan";
 
-const floorZones = new Map([
-  ["Dairy & Refrigerated", "dairy"],
-  ["Household, Health & Beauty", "household"],
-  ["Frozen Foods", "frozen"],
-  ["Dry Grocery & Snacks", "grocery"],
-  ["Beverages", "beverages"],
-  ["Produce & Floral", "produce"],
-  ["Meat, Seafood, Deli & Bakery", "fresh"],
-]);
-const format = (n: number) => n.toLocaleString();
+const layoutOrder = [
+  [["Household, Health & Beauty"], ["Produce & Floral"]],
+  [["Dairy & Refrigerated"], ["Dry Grocery & Snacks", "Beverages"]],
+  [["Frozen Foods"], ["Meat, Seafood, Deli & Bakery"]],
+];
+type Department = FloorPlan["departments"][number];
+const format = (value: number) => value.toLocaleString();
+const area = (departments: Department[]) =>
+  departments.reduce((sum, department) => sum + department.floorArea, 0);
+const tracks = (weights: number[]) =>
+  weights.map((weight) => `minmax(0, ${Math.max(1, weight)}fr)`).join(" ");
+
 export function StoreVisualization({
-  locations,
-  units,
-  opening,
-  products,
-  selected,
-  onSelect,
+  plan,
+  stock,
+  department,
+  selectedAisle,
+  onChooseDepartment,
+  onChooseAisle,
 }: {
-  locations: Location[];
-  units: Unit[];
-  products: Product[];
-  opening: Record<string, number>;
-  selected: string;
-  onSelect: (id: string) => void;
+  plan: FloorPlan;
+  stock: ReturnType<typeof measureFloorStock>;
+  department: string;
+  selectedAisle?: string;
+  onChooseDepartment: (department: string) => void;
+  onChooseAisle: (id: string) => void;
 }) {
-  const [choice, setChoice] = useState("");
-  const departments = [...new Set(locations.map((l) => l.department))];
-  const mappedDepartments = [...floorZones.keys()].filter((name) =>
-    departments.includes(name),
+  const visibleDepartments = plan.departments.filter(
+    (group) => group.floorArea > 0,
   );
-  const groups = [
-    ...mappedDepartments,
-    ...departments.filter((name) => !floorZones.has(name)),
-  ];
-  const fullPlan =
-    groups.length === floorZones.size &&
-    mappedDepartments.length === floorZones.size;
-  const department = groups.includes(choice)
-    ? choice
-    : groups.includes("Dry Grocery & Snacks")
-      ? "Dry Grocery & Snacks"
-      : groups[0];
-  const homes = new Map(locations.map((l) => [l.id, l.department]));
-  const variants = new Map<string, number>(),
-    onHand = new Map<string, number>();
-  for (const p of products) {
-    const d = homes.get(p.locationId);
-    if (d) variants.set(d, (variants.get(d) ?? 0) + 1);
-  }
-  for (const l of locations)
-    onHand.set(
-      l.department,
-      (onHand.get(l.department) ?? 0) + (opening[l.id] ?? 0),
-    );
-  for (const u of units.filter(isOnHand)) {
-    const d = homes.get(u.current_location_id ?? u.destination_id);
-    if (d) onHand.set(d, (onHand.get(d) ?? 0) + 1);
-  }
-  const departmentLocations = locations.filter(
-    (l) => l.department === department,
+  const byName = new Map(
+    visibleDepartments.map((group) => [group.name, group]),
   );
-  const load = storeSummary(departmentLocations, units, opening);
+  const used = new Set<string>();
+  const columns = layoutOrder
+    .map((column) =>
+      column
+        .map((row) =>
+          row.flatMap((name) => {
+            const zone = byName.get(name);
+            if (!zone) return [];
+            used.add(name);
+            return [zone];
+          }),
+        )
+        .filter((row) => row.length),
+    )
+    .filter((column) => column.length);
+  for (const zone of visibleDepartments)
+    if (!used.has(zone.name)) columns.push([[zone]]);
+  const active =
+    plan.departments.find((zone) => zone.name === department) ??
+    visibleDepartments[0];
+  const activeStock = active && stock.byDepartment.get(active.name);
+  const footprint = plan.salesArea + plan.backroomArea + plan.checkoutArea;
+
   return (
     <section
       className="store-visualization"
       aria-label="Interactive store floor plan"
     >
-      <div className="store-back-wall">
-        <span>Receiving & inspection</span>
-        <span>Staff entrance</span>
-      </div>
-      <div className={fullPlan ? "grocery-plan full-plan" : "grocery-plan"}>
-        {groups.map((name) => (
-          <button
-            key={name}
-            type="button"
-            className="department-zone"
-            data-zone={floorZones.get(name)}
-            aria-pressed={department === name}
-            onClick={() => {
-              setChoice(name);
-              onSelect("");
-            }}
-          >
-            <strong>{name}</strong>
+      {footprint > 0 && (
+        <>
+          <div className="floor-metrics" aria-label="Modeled store dimensions">
             <span>
-              <b>{format(onHand.get(name) ?? 0)}</b> on hand
+              <b>{format(footprint)} sq ft</b> modeled footprint
             </span>
-            <small>{format(variants.get(name) ?? 0)} product variants</small>
-          </button>
-        ))}
-        <div className="store-checkout">
-          <span>
-            <ArrowUp aria-hidden="true" /> Entrance
-          </span>
-          <strong>Checkouts</strong>
-          <span>
-            Exit <ArrowDown aria-hidden="true" />
-          </span>
-        </div>
-      </div>
-      {department && (
-        <section className="bay-section">
-          <div className="bay-heading">
-            <h3>{department}</h3>
             <span>
-              {format(load.available)} slots free
-              {load.unlimited ? " + unlimited" : ""}
+              <b>{format(plan.aisleCount)}</b> aisles & display runs
             </span>
-            {load.capacity > 0 && (
-              <meter
-                aria-label={department + " capacity used"}
-                min={0}
-                max={load.capacity}
-                value={Math.min(load.placed + load.reserved, load.capacity)}
-              />
-            )}
+            <span>
+              <b>{format(plan.bayCount)}</b> four-foot bays
+            </span>
           </div>
-          {departmentLocations.some((l) => /^G[1-7]-BAY-/.test(l.id)) && (
-            <p className="muted">
-              Grocery bays group multiple fixtures and their backstock.
-            </p>
-          )}
-          <div className="bay-list">
-            {load.loads.map((l) => (
-              <Button
-                key={l.id}
-                variant={selected === l.id ? "secondary" : "outline"}
-                className="bay-button"
-                aria-label={`${selected === l.id ? "Selected" : "Select"} ${l.id}: ${l.confirmed} placed, ${l.reserved} reserved`}
-                aria-pressed={selected === l.id}
-                onClick={() => onSelect(l.id)}
+          <figure className="store-footprint">
+            <div
+              className="floor-diagram"
+              style={{
+                gridTemplateRows: tracks(
+                  plan.backroomArea
+                    ? [plan.backroomArea, plan.salesArea, plan.checkoutArea]
+                    : [plan.salesArea, plan.checkoutArea],
+                ),
+              }}
+            >
+              {plan.backroomArea > 0 && (
+                <div className="floor-backroom">
+                  <strong>Backroom & receiving</strong>
+                  <span>
+                    {format(plan.backroomArea)} sq ft ·{" "}
+                    {format(stock.total.backstock)} units estimated in backstock
+                  </span>
+                </div>
+              )}
+              <div
+                className="floor-departments"
+                style={{
+                  gridTemplateColumns: tracks(
+                    columns.map((column) => area(column.flat())),
+                  ),
+                }}
               >
-                <strong>
-                  {l.aisle} · {l.rack || l.shelf}
-                </strong>
-                <span>
-                  {format(l.confirmed)} placed · {format(l.reserved)} reserved
+                {columns.map((column) => (
+                  <div
+                    className="floor-column"
+                    key={column[0][0].fixture.code}
+                    style={{
+                      gridTemplateRows: tracks(column.map(area)),
+                    }}
+                  >
+                    {column.map((row) => (
+                      <div
+                        className="floor-row"
+                        key={row[0].fixture.code}
+                        style={{
+                          gridTemplateColumns: tracks(
+                            row.map((zone) => zone.floorArea),
+                          ),
+                        }}
+                      >
+                        {row.map((zone) => (
+                          <button
+                            key={zone.name}
+                            type="button"
+                            className="department-zone"
+                            data-zone={zone.fixture.code}
+                            aria-label={zone.name}
+                            aria-pressed={active?.name === zone.name}
+                            onClick={() => onChooseDepartment(zone.name)}
+                          >
+                            <span className="zone-code" aria-hidden="true">
+                              {zone.fixture.code}
+                            </span>
+                            <span className="zone-shelves" aria-hidden="true">
+                              {zone.aisles.map((aisle) => (
+                                <i
+                                  key={aisle.id}
+                                  style={{
+                                    width: `${(aisle.bays / zone.fixture.baysPerAisle) * 100}%`,
+                                  }}
+                                />
+                              ))}
+                            </span>
+                            <span className="zone-label">
+                              <strong>{zone.fixture.shortName}</strong>
+                              <span className="zone-count">
+                                <b>
+                                  {format(
+                                    stock.byDepartment.get(zone.name)?.onHand ??
+                                      0,
+                                  )}
+                                </b>{" "}
+                                on hand
+                              </span>
+                              <small className="zone-count">
+                                {format(zone.variants)} variants
+                              </small>
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+              <div className="floor-checkout">
+                <span>↑ Entrance</span>
+                <strong>Checkouts</strong>
+                <span>Exit ↓</span>
+              </div>
+            </div>
+            <figcaption className="hint">
+              Block area represents estimated floor space. Choose a department
+              to see its aisles, shelf stock, and backstock.
+            </figcaption>
+          </figure>
+          <div
+            className="floor-legend"
+            role="group"
+            aria-label="Department key"
+          >
+            {visibleDepartments.map((zone) => (
+              <Button
+                key={zone.name}
+                type="button"
+                variant={active?.name === zone.name ? "secondary" : "outline"}
+                aria-label={`Choose ${zone.name}`}
+                aria-pressed={active?.name === zone.name}
+                onClick={() => onChooseDepartment(zone.name)}
+              >
+                <span className="legend-code">{zone.fixture.code}</span>
+                <span className="legend-label">
+                  <strong>{zone.fixture.shortName}</strong>
+                  <span>
+                    <b>
+                      {format(stock.byDepartment.get(zone.name)?.onHand ?? 0)}
+                    </b>{" "}
+                    on hand
+                  </span>
+                  <small>{format(zone.variants)} variants</small>
                 </span>
               </Button>
             ))}
           </div>
+        </>
+      )}
+      {active && activeStock && (
+        <section
+          className="aisle-section"
+          aria-label={active.name + " aisle plan"}
+        >
+          <div className="aisle-heading">
+            <div>
+              <h3>{active.name}</h3>
+              <p className="hint">
+                {format(active.floorArea)} sq ft of sales floor ·{" "}
+                {format(active.aisles.length)} aisles and display runs ·{" "}
+                {format(active.bays)} bays
+              </p>
+            </div>
+            <p className="aisle-assumption">
+              <b>{active.fixture.type}</b> ·{" "}
+              {active.fixture.sides === 2 ? "Two-sided" : "Single-sided"} ·{" "}
+              {active.fixture.levels} shelf levels · up to{" "}
+              {active.variantsPerFace} variants per face
+            </p>
+          </div>
+          <dl className="floor-stock">
+            <div>
+              <dt>On hand</dt>
+              <dd>{format(activeStock.onHand)}</dd>
+              <small>{format(active.variants)} variants</small>
+            </div>
+            <div>
+              <dt>On shelves (est.)</dt>
+              <dd>{format(activeStock.shelf)}</dd>
+              <small>{format(active.shelfUnits)} planned positions</small>
+            </div>
+            <div>
+              <dt>Backstock (est.)</dt>
+              <dd>{format(activeStock.backstock)}</dd>
+              <small>{format(active.backroomArea)} sq ft of storage</small>
+            </div>
+            <div>
+              <dt>Awaiting placement</dt>
+              <dd>{format(activeStock.staging)}</dd>
+            </div>
+          </dl>
+          {active.aisles.length === 0 ? (
+            <p className="hint">
+              No products have a shelf assignment in this department.
+            </p>
+          ) : (
+            <div
+              className="aisle-list"
+              role="group"
+              aria-label="Select an aisle"
+            >
+              {active.aisles.map((aisle) => (
+                <Button
+                  key={aisle.id}
+                  type="button"
+                  variant={selectedAisle === aisle.id ? "secondary" : "outline"}
+                  className="aisle-button"
+                  aria-pressed={selectedAisle === aisle.id}
+                  onClick={() => onChooseAisle(aisle.id)}
+                >
+                  <strong>Aisle {aisle.id}</strong>
+                  <span>
+                    {aisle.bays} {aisle.bays === 1 ? "bay" : "bays"} ·{" "}
+                    {format(aisle.products.length)} variants
+                  </span>
+                </Button>
+              ))}
+            </div>
+          )}
         </section>
       )}
     </section>

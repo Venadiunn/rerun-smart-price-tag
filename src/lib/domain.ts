@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { normalizeScanCode } from "./scan-links.js";
 import type { Master, Product, ScanResult, Unit } from "./types.js";
 const code = z.string().trim().min(1).max(120);
 const category = z.object({ id: code, name: code });
@@ -67,11 +68,7 @@ export function parseScan(
   tags: { id: string; unit_id: string | null }[],
   origin = "",
 ): ScanResult {
-  if (!raw.trim() || raw.length > 32768)
-    throw new Error(
-      "Enter a supported identifier or QR payload (maximum 32 KB).",
-    );
-  let identifier = raw.trim(),
+  let identifier = normalizeScanCode(raw, origin),
     payload: unknown = identifier;
   let full: Record<string, unknown> | null = null;
   if (identifier.startsWith("{") || identifier.startsWith("[")) {
@@ -86,20 +83,7 @@ export function parseScan(
     if (typeof full.Item_ID !== "string" || !full.Item_ID.trim())
       throw new Error("QR JSON requires Item_ID.");
     identifier = typeof full.Unit_ID === "string" ? full.Unit_ID : full.Item_ID;
-  } else if (/^https?:/i.test(identifier)) {
-    const url = new URL(identifier);
-    if (
-      !origin ||
-      url.origin !== origin ||
-      url.pathname !== "/scan" ||
-      !url.searchParams.get("code")
-    )
-      throw new Error(
-        "This QR link does not belong to ReRun. Enter an item identifier instead.",
-      );
-    identifier = url.searchParams.get("code")!;
   }
-  identifier = identifier.replace(/^rerun:(unit|tag):/, "");
   const tag = tags.find((t) => t.id === identifier);
   if (tag) {
     if (!tag.unit_id)

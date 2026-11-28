@@ -46,16 +46,16 @@ for (const theme of ["light", "dark"] as const)
       await page.getByLabel("Close dialog").click();
       await page.goto("/locations");
       await page
-        .getByRole("button", { name: /^Household, Health & Beauty/ })
+        .getByRole("button", { name: "Capacity grid", exact: true })
         .click();
       const fixture = page.getByRole("button", {
-        name: /^Select Electronics-Aisle-2-Shelf-A:/,
+        name: /^Select Electronics-Aisle-2-Shelf-A$/,
       });
-      await expect(fixture).toContainText("Shelf-A");
+      await expect(fixture).toHaveText("Select");
       await fixture.click();
       await expect(
         page.getByRole("button", {
-          name: /^Selected Electronics-Aisle-2-Shelf-A:/,
+          name: /^Selected Electronics-Aisle-2-Shelf-A$/,
         }),
       ).toHaveAttribute("aria-pressed", "true");
       const assigned = page.getByRole("list", {

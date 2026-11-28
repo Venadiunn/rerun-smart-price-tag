@@ -18,63 +18,85 @@ import { useEffect, useRef, useState } from "react";
 import type QrScanner from "qr-scanner";
 import { useWorkspace } from "../lib/context";
 import { command } from "../lib/api";
+import { getFloorPlan, shelfAddress } from "../lib/floor-plan";
 import { openingUnits } from "../lib/opening-stock";
+import { normalizeScanCode, scanCodeFromUrl } from "../lib/scan-links";
 import { parseScan, qrPayload, money } from "../lib/domain";
 import type { Scan as ScanRecord } from "../lib/types";
 import { PageTitle, Status } from "../components/ui";
 export function Scan() {
-  const { data, run, busy, openProduct } = useWorkspace(),
-    [raw, setRaw] = useState(
-      () => new URLSearchParams(location.search).get("code") ?? "",
-    ),
+  const { data, run, busy, openProduct } = useWorkspace();
+  const linkedCode = scanCodeFromUrl(location.search, location.hash);
+  const [raw, setRaw] = useState(linkedCode),
     [result, setResult] = useState<ScanRecord | null>(null),
     [unitId, setUnitId] = useState(""),
     [active, setActive] = useState(false),
+    [starting, setStarting] = useState(false),
+    [uploading, setUploading] = useState(false),
     [cameras, setCameras] = useState<{ id: string; label: string }[]>([]),
     [error, setError] = useState("");
-  const video = useRef<HTMLVideoElement>(null),
-    scanner = useRef<QrScanner | null>(null),
-    locked = useRef(false);
-  useEffect(
-    () => () => {
+  const video = useRef<HTMLVideoElement>(null);
+  const scanner = useRef<QrScanner | null>(null);
+  const processing = useRef(false);
+  const mounted = useRef(false);
+  const cameraSupported =
+    window.isSecureContext && !!navigator.mediaDevices?.getUserMedia;
+
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
       scanner.current?.destroy();
-    },
-    [],
-  );
+      scanner.current = null;
+    };
+  }, []);
+
   async function lookup(value: string) {
-    if (locked.current) return;
-    locked.current = true;
+    if (processing.current) return;
+    processing.current = true;
     scanner.current?.stop();
     setActive(false);
+    setStarting(false);
     setError("");
-    try {
-      parseScan(value, data.master, data.units, data.tags, location.origin);
-      let normalized = value;
-      if (/^https?:/i.test(value))
-        normalized = new URL(value).searchParams.get("code")!;
-      const found = await run(() =>
-        command<ScanRecord>("scan", { raw: normalized }),
-      );
-      if (found) {
-        setResult(found);
-        setUnitId(found.unit_id ?? "");
-        setRaw(value);
-      } else locked.current = false;
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Scan failed");
-      locked.current = false;
-    }
-  }
-  async function start() {
-    setError("");
-    locked.current = false;
     setResult(null);
     try {
+      const code = normalizeScanCode(value, location.origin);
+      // Validate the syntax before recording the scan. The database supplies the result.
+      parseScan(code, data.master, data.units, data.tags);
+      const found = await run(() => command<ScanRecord>("scan", { raw: code }));
+      if (found && mounted.current) {
+        setResult(found);
+        setUnitId(found.unit_id ?? "");
+        setRaw(code);
+      }
+    } catch (e) {
+      if (mounted.current)
+        setError(e instanceof Error ? e.message : "Scan failed.");
+    } finally {
+      processing.current = false;
+    }
+  }
+
+  async function start() {
+    if (!video.current || starting || processing.current) return;
+    setStarting(true);
+    setError("");
+    setResult(null);
+    setCameras([]);
+    let current: QrScanner | undefined;
+    // A code can be decoded before the camera startup promise settles.
+    let decoded = false;
+    try {
       const { default: Scanner } = await import("qr-scanner");
+      if (!mounted.current || !video.current) return;
       scanner.current?.destroy();
-      scanner.current = new Scanner(
-        video.current!,
-        (r) => void lookup(r.data),
+      current = new Scanner(
+        video.current,
+        ({ data: code }) => {
+          if (decoded) return;
+          decoded = true;
+          void lookup(code);
+        },
         {
           preferredCamera: "environment",
           highlightScanRegion: true,
@@ -82,18 +104,94 @@ export function Scan() {
           returnDetailedScanResult: true,
         },
       );
-      await scanner.current.start();
+      scanner.current = current;
+      await current.start();
+      if (!mounted.current || scanner.current !== current || decoded) return;
       setActive(true);
-      setCameras(await Scanner.listCameras());
-    } catch (e) {
+      // Some browsers can use the camera but cannot enumerate all devices.
+      void Scanner.listCameras()
+        .then((choices) => {
+          if (mounted.current && scanner.current === current && !decoded) {
+            setCameras(choices);
+          }
+        })
+        .catch(() => {});
+    } catch {
+      if (!mounted.current) return;
+      current?.destroy();
+      if (scanner.current === current) scanner.current = null;
+      setActive(false);
       setError(
-        `Camera unavailable: ${e instanceof Error ? e.message : String(e)}. Use an image upload or manual entry.`,
+        "Could not open the camera. Allow camera access for ReRun in your browser settings. If you opened ReRun inside another app, open this page in Safari or Chrome. You can also upload a QR image or enter the code below.",
       );
+    } finally {
+      if (mounted.current) setStarting(false);
     }
   }
+
+  async function scanFile(file: File) {
+    setError("");
+    if (file.size > 10485760) {
+      setError("Choose an image smaller than 10 MB.");
+      return;
+    }
+    setUploading(true);
+    scanner.current?.stop();
+    setActive(false);
+    try {
+      const { default: Scanner } = await import("qr-scanner");
+      const { data: code } = await Scanner.scanImage(file, {
+        returnDetailedScanResult: true,
+        alsoTryWithoutScanRegion: true,
+      });
+      if (mounted.current) await lookup(code);
+    } catch {
+      if (mounted.current)
+        setError(
+          "No readable QR code found. Try a clear, uncropped photo or screenshot.",
+        );
+    } finally {
+      if (mounted.current) setUploading(false);
+    }
+  }
+
   const product = data.master.products.find((p) => p.id === result?.product_id),
     units = data.units.filter((u) => u.product_id === product?.id);
   const opening = product ? openingUnits(data, product.id) : [];
+  const cleanDestination =
+    product &&
+    (units.find((u) => u.id === unitId)?.destination_id ?? product.locationId);
+  const plannedShelf =
+    product && cleanDestination === product.locationId
+      ? getFloorPlan(data.master).byProduct.get(product.id)
+      : undefined;
+  const disabled = busy || starting || uploading;
+  const manualEntry = (
+    <div className="manual-entry">
+      <h3>{linkedCode ? "Look up the linked QR code" : "Enter a code"}</h3>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void lookup(raw);
+        }}
+      >
+        <Textarea
+          aria-label="Item code or QR JSON"
+          value={raw}
+          onChange={(e) => setRaw(e.target.value)}
+          placeholder="Item ID, unit ID, tag ID, ReRun link, or QR JSON"
+          rows={3}
+        />
+        <Button
+          type="submit"
+          className={linkedCode ? "primary" : "secondary"}
+          disabled={disabled || !raw.trim()}
+        >
+          Look up item
+        </Button>
+      </form>
+    </div>
+  );
   return (
     <>
       <PageTitle
@@ -109,6 +207,7 @@ export function Scan() {
               {active ? "CAMERA ACTIVE" : "READY TO SCAN"}
             </span>
           </div>
+          {linkedCode && manualEntry}
           <div className={`camera-box ${active ? "active" : ""}`}>
             <video
               ref={video}
@@ -118,8 +217,16 @@ export function Scan() {
             />
             {!active && (
               <div className="camera-placeholder">
-                <h3>Bring an item into focus.</h3>
-                <p>Camera access begins when you choose Start camera.</p>
+                <h3>
+                  {starting
+                    ? "Waiting for camera access…"
+                    : "Scan with your browser"}
+                </h3>
+                <p>
+                  {cameraSupported
+                    ? "Choose Start camera, allow access, and point it at the QR code. No download is needed."
+                    : "Live camera access is unavailable here. Open ReRun in a browser over HTTPS, upload a QR image, or enter the code."}
+                </p>
               </div>
             )}
           </div>
@@ -127,7 +234,7 @@ export function Scan() {
             <Button
               type="button"
               className="primary"
-              disabled={busy}
+              disabled={disabled || !cameraSupported}
               onClick={
                 active
                   ? () => {
@@ -137,31 +244,22 @@ export function Scan() {
                   : start
               }
             >
-              {active ? "Stop camera" : "Start camera"}
+              {starting
+                ? "Starting camera…"
+                : active
+                  ? "Stop camera"
+                  : "Start camera"}
             </Button>
-            <label className="secondary upload-button">
-              Upload QR image
+            <label className="secondary upload-button" aria-busy={uploading}>
+              {uploading ? "Reading image…" : "Upload QR image"}
               <Input
                 type="file"
                 accept="image/*"
-                onChange={async (e) => {
+                disabled={disabled}
+                onChange={(e) => {
                   const file = e.target.files?.[0];
-                  if (!file) return;
                   e.target.value = "";
-                  if (file.size > 10485760) {
-                    setError("Image must be smaller than 10 MB.");
-                    return;
-                  }
-                  try {
-                    const { default: Scanner } = await import("qr-scanner");
-                    const image = await Scanner.scanImage(file, {
-                      returnDetailedScanResult: true,
-                    });
-                    locked.current = false;
-                    await lookup(image.data);
-                  } catch {
-                    setError("No readable QR code found. Try a clearer image.");
-                  }
+                  if (file) void scanFile(file);
                 }}
               />
             </label>
@@ -184,31 +282,7 @@ export function Scan() {
               </NativeSelect>
             </label>
           )}
-          <div className="manual-entry">
-            <h3>Manual or external scanner input</h3>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                locked.current = false;
-                void lookup(raw);
-              }}
-            >
-              <Textarea
-                aria-label="Item code or QR JSON"
-                value={raw}
-                onChange={(e) => setRaw(e.target.value)}
-                placeholder={"PROD-001, UNIT-…, TAG-…, or product JSON"}
-                rows={3}
-              />
-              <Button
-                type="submit"
-                className="secondary"
-                disabled={busy || !raw.trim()}
-              >
-                Look up item
-              </Button>
-            </form>
-          </div>
+          {!linkedCode && manualEntry}
           {error && (
             <Alert role="alert" className="inline-error">
               {error}
@@ -223,7 +297,6 @@ export function Scan() {
                 type="button"
                 className="text-button"
                 onClick={() => {
-                  locked.current = false;
                   setResult(null);
                   setRaw("");
                 }}
@@ -249,10 +322,10 @@ export function Scan() {
                   <div className="destination">
                     <div>
                       <small>VERIFIED MASTER DESTINATION</small>
-                      <strong>
-                        {units.find((u) => u.id === unitId)?.destination_id ??
-                          product.locationId}
-                      </strong>
+                      <strong>{cleanDestination}</strong>
+                      {plannedShelf && (
+                        <span>Modeled shelf: {shelfAddress(plannedShelf)}</span>
+                      )}
                     </div>
                   </div>
                   <div className="scan-comparison">
@@ -403,7 +476,6 @@ export function Scan() {
                 if (i === 3) v.Item_ID = "PROD-999";
                 if (i === 4) v.Item_Name = "Altered Item Name";
                 if (i === 5) v.Intended_Location = "Aisle-99-Shelf-Z";
-                locked.current = false;
                 setResult(null);
                 setRaw(JSON.stringify(v));
               }}
